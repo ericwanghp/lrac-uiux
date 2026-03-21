@@ -1,0 +1,65 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Testing
+coverage
+
+# Next.js
+.next
+out
+build
+dist
+
+# Production
+*.log
+npm-debug.log*
+
+# Debug
+npm-debug.log*
+
+# Local env files
+.env
+.env*.local
+.env.production
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Docs (can be included if needed)
+docs
+README.md
+README.zh.md
+
+# Tests
+tests
+playwright.config.ts
+vitest.config.ts
+
+# Config
+.claude
+.auto-coding
+.stitch
+
+# Misc
+*.tgz
+.cache

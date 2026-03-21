@@ -1,0 +1,95 @@
+{
+  "name": "projects/682648262469521919",
+  "projectId": "682648262469521919",
+  "title": "Auto-Coding Framework Management Frontend",
+  "visibility": "PRIVATE",
+  "createTime": "2026-03-14T03:59:22.068545Z",
+  "updateTime": "2026-03-14T04:04:35.912301Z",
+  "projectType": "PROJECT_DESIGN",
+  "origin": "STITCH",
+  "deviceType": "DESKTOP",
+  "designTheme": {
+    "colorMode": "DARK",
+    "font": "INTER",
+    "roundness": "ROUND_EIGHT",
+    "customColor": "#5d6ed0",
+    "saturation": 3
+  },
+  "screens": {
+    "qa-interface": {
+      "id": "de89b23d8a344282aa87a5a13b6c6d59",
+      "sourceScreen": "projects/682648262469521919/screens/de89b23d8a344282aa87a5a13b6c6d59",
+      "title": "Phase 1-2 Requirements Q&A",
+      "x": 0,
+      "y": 0,
+      "width": 2560,
+      "height": 2370
+    },
+    "dashboard": {
+      "id": "4d64dc95e4c0426d8dd1f85d6258b4c9",
+      "sourceScreen": "projects/682648262469521919/screens/4d64dc95e4c0426d8dd1f85d6258b4c9",
+      "title": "Auto-Coding Dashboard Main View",
+      "x": 0,
+      "y": 1441,
+      "width": 2560,
+      "height": 2048
+    },
+    "design-viewer": {
+      "id": "6c054ce7c18e42efa25f70ec7c5470b8",
+      "sourceScreen": "projects/682648262469521919/screens/6c054ce7c18e42efa25f70ec7c5470b8",
+      "title": "Phase 2.5 Design Viewer",
+      "x": 0,
+      "y": 4323,
+      "width": 2560,
+      "height": 2048
+    },
+    "enhanced-qa-card": {
+      "id": "4acbaff61d144a4ab8f0c8e3557eb44b",
+      "sourceScreen": "projects/682648262469521919/screens/4acbaff61d144a4ab8f0c8e3557eb44b",
+      "title": "Enhanced Phase 1-2 Requirements Q&A",
+      "x": 0,
+      "y": 7205,
+      "width": 2560,
+      "height": 2048
+    },
+    "enhanced-approval-card": {
+      "id": "8cbf25ab1e1c425aa2ff8864536ce29c",
+      "sourceScreen": "projects/682648262469521919/screens/8cbf25ab1e1c425aa2ff8864536ce29c",
+      "title": "Enhanced Design Approval & Review",
+      "x": 0,
+      "y": 8646,
+      "width": 2560,
+      "height": 2048
+    },
+    "settings-page": {
+      "id": "752bf8981aac40bfa6d69518ad606b9a",
+      "sourceScreen": "projects/682648262469521919/screens/752bf8981aac40bfa6d69518ad606b9a",
+      "title": "User Settings & Preferences",
+      "x": 0,
+      "y": 10000,
+      "width": 2560,
+      "height": 2048
+    },
+    "execution-monitor-v2": {
+      "id": "10bc7b1b701f4e2cb40a9dc74e95907d",
+      "sourceScreen": "projects/682648262469521919/screens/10bc7b1b701f4e2cb40a9dc74e95907d",
+      "title": "Enhanced Phase 5 Execution Monitor V2",
+      "x": 0,
+      "y": 12000,
+      "width": 2560,
+      "height": 2048
+    },
+    "pm-team-dashboard": {
+      "id": "23075a99bd374aebbbd88907c3c0b198",
+      "sourceScreen": "projects/682648262469521919/screens/23075a99bd374aebbbd88907c3c0b198",
+      "title": "Project Management & Team Dashboard",
+      "x": 0,
+      "y": 14000,
+      "width": 2560,
+      "height": 2424
+    }
+  },
+  "metadata": {
+    "userRole": "OWNER"
+  }
+}

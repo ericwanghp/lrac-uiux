@@ -1,0 +1,1114 @@
+# Progress Notes
+
+# ============================================================
+# Session: imac-frontend-cli-linkage-enhanced-cards | Timestamp: 2026-03-16T17:20:00Z | Role: fullstack-dev
+# ============================================================
+
+## Starting State
+- Current Features: IMAC 终端编排主链路已可用，需增强前端顶层联动与卡片交互体验
+- Blockers: None
+
+## Execution Content
+1. 实现全局实时项目状态能力：
+   - 新增 `components/providers/project-realtime-status-provider.tsx`
+   - 在 `app/layout.tsx` 注入 Provider，实现全站状态共享
+2. 增强顶部项目联动入口：
+   - 在 `components/layout/header.tsx` 新增 launcher 选择：Terminal / iTerm2 / VSCode
+   - 提供一键打开动作，支持项目顶部快速切换联动入口
+3. 增强侧边状态反馈：
+   - `components/navigation/sidebar.tsx` 增加实时进度条、当前阶段与 Live/Syncing 状态
+4. 完成 Enhanced Q&A / Enhanced Approval Card 终端联动：
+   - 在 `app/terminal/page.tsx` 监听 `interaction.question.raised` 与 `interaction.approval.requested`
+   - 弹出 Enhanced Q&A Card 与 Enhanced Approval Card
+   - 支持提交回答、审批通过/拒绝、路由到人工（Slack/Feishu/Teams）并回写 API
+5. 里程碑轨道优化回收：
+   - 轨道视图去除 PM 节点，Deployment 作为终点
+   - 移除 Milestone Branch Overlay，折叠态补充阶段背景提示
+
+## Ending State
+- Completed: 顶部联动入口 + 增强卡片弹层 + 全局实时状态反馈完成
+- Verification: typecheck ✅, lint ✅, dashboard/terminal 页面运行态检查 ✅
+
+## Next Steps
+- 接入真实沟通系统 SDK（Slack/飞书/Teams）并补齐鉴权、告警与审计字段
+
+---
+
+# ============================================================
+# Session: imac-add-phase5-to-phase8-completion | Timestamp: 2026-03-16T14:15:00Z | Role: fullstack-dev
+# ============================================================
+
+## Starting State
+- Current Features: IMAC p5d-001 已完成，p5d-002 到 p8m-001 待推进
+- Blockers: None
+
+## Execution Content
+1. 完成 CLI runner 与事件流水：
+   - 新增 `lib/services/terminal-command-runner.ts`
+   - 提交命令后异步执行并写入 `terminal.output.appended` 与 `terminal.command.finished`
+2. 完成 terminal session API 完整链路增强：
+   - 完善 `/api/terminal/sessions/[id]/commands` 与 `/close`
+   - 引入串行写入机制，确保 session event `seqNo` 单调递增
+3. 完成交互事件路由 API：
+   - `question/{eventId}/answer`
+   - `approval/{eventId}/approve`
+   - `approval/{eventId}/reject`
+   - `{eventId}/route-human`
+4. 完成前端终端工作区与 PM 编排视图增强：
+   - Terminal 页面接入 session/commands/events API、命令输入框、增量轮询
+   - PM 页面新增主终端与子终端编排状态看板
+5. 完成人工路由适配接口与测试/运维文档：
+   - `lib/integrations/human-routing-adapter.ts`
+   - `tests/integration/terminal-sessions.test.ts`
+   - `docs/deployment/IMAC-terminal-observability-runbook.md`
+   - `docs/plans/IMAC-pm-operations.md`
+6. 更新任务与阶段状态：
+   - `imac-phase-5-core` ~ `imac-phase-8-management` 全部标记 completed
+   - `imac-cli-terminal-orchestration-p5d-002` 到 `p8m-001` 全部标记 completed
+
+## Ending State
+- Completed: IMAC ADD 全部任务（p2p-001 至 p8m-001）完成并回写
+- Verification: JSON parse ✅, typecheck ✅, lint ✅
+
+## Next Steps
+- 进入增量迭代：补充真实企业通信平台 adapter 实现（Slack/飞书/Teams）与安全策略加固
+
+---
+
+# ============================================================
+# Session: imac-add-phase5-api | Timestamp: 2026-03-16T13:00:00Z | Role: backend-dev
+# ============================================================
+
+## Starting State
+- Current Features: IMAC ADD Phase 4 已完成，进入 Phase 5 Core 首个任务 p5d-001
+- Blockers: None
+
+## Execution Content
+1. 新增终端会话数据模型与持久化工具：
+   - `lib/types/terminal.ts`
+   - `lib/utils/terminal-session-operations.ts`
+   - 支持 session 创建、event 追加、seqNo 自增、sessions.json 存储
+2. 新增 Terminal Session API：
+   - `POST /api/terminal/sessions` 创建会话
+   - `GET /api/terminal/sessions` 列表查询
+   - `GET /api/terminal/sessions/[id]` 会话详情
+   - `POST /api/terminal/sessions/[id]/commands` 提交命令事件
+   - `GET /api/terminal/sessions/[id]/events?afterSeq=` 增量事件拉取
+   - `POST /api/terminal/sessions/[id]/close` 关闭会话
+3. 更新任务状态：
+   - `imac-cli-terminal-orchestration-p5d-001` 标记为 completed
+   - `imac-phase-5-core` 标记为 in_progress
+4. 校验：
+   - tasks.json JSON 解析通过
+   - typecheck 与 lint 通过
+
+## Ending State
+- Completed: p5d-001 交付完成，Phase 5 Core 主干 API 已可用于后续 CLI Runner 接入
+- Verification: JSON parse ✅, typecheck ✅, lint ✅
+
+## Next Steps
+- 启动 `imac-cli-terminal-orchestration-p5d-002`：接入 Claude CLI runner 并回填 command finished/output 事件
+
+---
+
+# ============================================================
+# Session: imac-add-phase4-breakdown | Timestamp: 2026-03-16T12:05:00Z | Role: project-manager
+# ============================================================
+
+## Starting State
+- Current Features: IMAC ADD Phase 2.5 与 Phase 3 已完成，Phase 4（任务拆解）待落文档与状态回写
+- Blockers: None
+
+## Execution Content
+1. 新增 Phase 4 拆解文档：
+   - 创建 `docs/plans/IMAC-phase4-breakdown.md`
+   - 输出 Phase 5~8 的 WBS、依赖图、交付件映射、风险项与 Phase 4 DoD
+2. 更新 tasks.json：
+   - 将 `imac-phase-4-breakdown` 并行组状态更新为 `completed`
+   - 将 `imac-cli-terminal-orchestration-p4b-001` 状态更新为 `completed`
+   - 补充 p4b-001 的 startedAt/completedAt 与 executionHistory
+3. 执行工程校验：
+   - tasks.json JSON 解析通过
+   - typecheck 与 lint 全部通过
+
+## Ending State
+- Completed: IMAC ADD Phase 4 拆解完成并同步任务状态
+- Verification: JSON parse ✅, typecheck ✅, lint ✅
+
+## Next Steps
+- 启动 Phase 5：优先实现 `imac-cli-terminal-orchestration-p5d-001`（session/event API）
+
+---
+
+# ============================================================
+# Session: imac-add-phase25-3-docs | Timestamp: 2026-03-16T11:20:00Z | Role: architect
+# ============================================================
+
+## Starting State
+- Current Features: IMAC ADD PRD 已完成，待推进 Phase 2.5 设计与 Phase 3 架构，并按规程回写 tasks.json/progress.txt
+- Blockers: None
+
+## Execution Content
+1. 完成 IMAC ADD 的 UI 规格文档：
+   - 新增 `docs/design/UI-SPEC-imac-terminal-orchestration.md`
+   - 定义 PM 主终端、并行子终端、Enhanced Q&A Card、Enhanced Approval Card 的信息架构与交互规则
+   - 明确触发事件与状态机（question/approval/routing）
+2. 完成 IMAC ADD 的架构文档：
+   - 新增 `docs/architecture/ARCH-imac-cli-terminal-orchestration.md`
+   - 定义 Terminal Workspace、Session Orchestrator、CLI Runner、Event Normalizer、Interaction Router
+   - 定义 session/event/ticket 数据模型、API V1、可靠性与安全策略
+3. 同步更新 `.auto-coding/tasks.json`：
+   - 新增并完善 IMAC parallelGroups（phase2 到 phase8）
+   - 将 `imac-cli-terminal-orchestration-p25d-001` 标记为 completed，并补 executionHistory
+   - 将 `imac-cli-terminal-orchestration-p3a-001` 标记为 completed，并补 executionHistory
+4. 执行校验：
+   - tasks.json JSON 解析通过
+   - `npm run typecheck` 通过
+   - `npm run lint` 通过
+
+## Ending State
+- Completed: IMAC ADD Phase 2.5 与 Phase 3 文档阶段完成并回写任务状态
+- Verification: JSON parse ✅, typecheck ✅, lint ✅
+
+## Next Steps
+- 进入 `imac-cli-terminal-orchestration-p4b-001`：细化开发拆解并开始 Phase 5 的 API 与 CLI Runner 实现
+
+---
+
+# ============================================================
+# Session: imac-dashboard-persistence-bind | Timestamp: 2026-03-15T14:30:00Z | Role: fullstack-dev
+# ============================================================
+
+## Starting State
+- Current Features: Dashboard uses mock data and does not load persisted project context
+- Blockers: None
+
+## Execution Content
+1. IMAC intake summary:
+   - Single-select: Primary objective = bind frontend with persisted backend project context
+   - Multi-select: Impact areas = architecture integration, data persistence loading, dashboard UX rendering
+2. Auto phase detection:
+   - Selected start phase: Phase 3 (Architecture)
+   - Reason: change crosses frontend-backend boundary and data integration contract
+3. Impact analysis:
+   - Files likely to change: app/dashboard/page.tsx
+   - Persistence sources loaded: docs/, .auto-coding/tasks.json, .auto-coding/progress.txt, .auto-coding/qa-sessions/sessions.json
+   - Risks: runtime failures when persistence files are absent
+   - Mitigation: Promise.allSettled with safe fallback values
+4. Implemented dashboard data loading from backend persistence:
+   - Resolved and displayed project root path
+   - Analyzed docs directory coverage by category
+   - Loaded .auto-coding task status, progress session count, and QA session count
+   - Rendered real execution history instead of mock activity
+5. Updated /IMAC command docs and README examples earlier to enforce question-driven intake
+
+## Ending State
+- Completed: Dashboard now renders project path and persisted backend context
+- Verification: typecheck and lint pass
+
+## Next Steps
+- Validate UI at /dashboard in browser and confirm cards display expected persistence metrics
+
+---
+
+# ============================================================
+# Session: deployment-setup | Timestamp: 2026-03-15T13:00:00Z | Role: devops-engineer
+# ============================================================
+
+## Starting State
+- Current Features: FEAT-020 (Deployment Documentation & Docker)
+- Blockers: None
+
+## Execution Content
+1. Created Dockerfile with multi-stage build for Next.js:
+   - Stage 1: Install dependencies (node:20-alpine)
+   - Stage 2: Build the application
+   - Stage 3: Production runner with non-root user
+2. Created docker-compose.yml for local development
+3. Created .env.example with all required environment variables
+4. Created nginx.conf for production reverse proxy:
+   - SSL termination support
+   - Gzip compression
+   - Rate limiting
+   - Static asset caching
+   - Security headers
+5. Created deployment guide in docs/deployment/DEPLOYMENT.md
+6. Created GitHub Actions workflow (.github/workflows/deploy.yml):
+   - Lint & Type Check
+   - Unit Tests
+   - Integration Tests
+   - Build
+   - E2E Tests
+   - Docker Build & Push
+7. Created .dockerignore for optimized builds
+8. Created health check API endpoint (app/api/health/route.ts)
+9. Fixed JSON syntax errors in tasks.json (missing brace, double comma)
+10. Fixed Tailwind CSS v3/v4 compatibility (installed v3)
+11. Fixed terminal page type errors for production build
+
+## Ending State
+- Completed: FEAT-020 (Deployment Documentation & Docker)
+- Production build verified successfully
+- All deployment artifacts created
+
+## Next Steps
+- Commit changes with git
+
+---
+
+# ============================================================
+# Session: perf-optimization | Timestamp: 2026-03-15T12:00:00Z | Role: frontend-dev
+# ============================================================
+
+## Starting State
+- Current Features: FEAT-019 (Performance & Accessibility)
+- Blockers: None
+
+## Execution Content
+1. Added SSG to all static pages:
+   - app/dashboard/page.tsx
+   - app/settings/page.tsx
+   - app/design/page.tsx
+   - app/approval/page.tsx
+   - app/qa/page.tsx
+   - app/terminal/page.tsx
+   - Used `export const dynamic = "force-static"` and `export const revalidate = 3600`
+2. Added dynamic imports for recharts in app/pm/page.tsx (code splitting)
+3. Updated react-window to v2 API for terminal page virtualization
+4. Added ARIA labels:
+   - Sidebar navigation with aria-label
+   - Header with role="banner" and aria-labels on interactive elements
+5. Added keyboard navigation:
+   - Skip link in layout.tsx
+   - Focus indicators via CSS utility classes
+   - prefers-reduced-motion media query for accessibility
+
+## Ending State
+- Completed: FEAT-019 (Performance & Accessibility)
+- Lint passes
+- TypeScript errors fixed (react-window v2 migration)
+
+## Next Steps
+- Commit changes with git
+- Continue with FEAT-020 (Deployment)
+
+---
+
+# ============================================================
+# Session: test-suite | Timestamp: 2026-03-15T10:30:00Z | Role: test-engineer
+# ============================================================
+
+## Starting State
+- Current Features: FEAT-018 (Test Suite)
+- Blockers: None
+
+## Execution Content
+1. Installed testing dependencies: vitest, @vitejs/plugin-react, jsdom, @testing-library/react, @testing-library/jest-dom, @testing-library/user-event, supertest, @playwright/test
+2. Created vitest.config.ts for unit tests
+3. Created playwright.config.ts for E2E tests
+4. Created test directories: tests/unit, tests/integration, tests/e2e
+5. Wrote unit tests (69 tests):
+   - utils.test.ts - cn() utility function
+   - schemas.test.ts - Zod validation schemas
+   - button.test.tsx - Button component
+   - card.test.tsx - Card components
+   - input.test.tsx - Input component
+   - stat-card.test.tsx - StatCard component
+   - progress-bar.test.tsx - ProgressBar component
+   - status-badge.test.tsx - StatusBadge component
+6. Wrote integration tests (42 tests):
+   - api.test.ts - Feature filtering and status logic
+   - file-operations.test.ts - File operation utilities
+   - markdown-operations.test.ts - Markdown utilities
+7. Created E2E tests (Playwright):
+   - navigation.test.ts - Page navigation flows
+   - qa-session.test.ts - Q&A workflow
+   - approval-workflow.test.ts - Approval workflow
+
+## Ending State
+- Completed: FEAT-018 (Test Suite)
+- All 111 tests passing
+- Coverage: 100% on tested files
+
+## Next Steps
+- Run E2E tests with `npm run test:e2e`
+- Continue with FEAT-019 (Performance optimization)
+
+---
+
+# ============================================================
+# Session: phase1-2-complete | Timestamp: 2026-03-14T10:45:00Z | Role: business-analyst
+# ============================================================
+
+## Starting State
+- Current Features: New project requirement (management frontend)
+- Blockers: None
+
+## Execution Content
+1. Explored project context and framework rules
+2. Conducted 9-round user Q&A to understand requirements
+3. Analyzed 3 competitors (AgentGPT, Flowise, Linear)
+4. Created BRD with competitive analysis reference
+5. Created PRD with detailed functional requirements
+6. Added interactive Q&A enhancements (canvas selection, AI-assisted revision)
+7. User approved BRD and PRD
+
+## Ending State
+- Completed: BRD, PRD, Competitive Analysis
+- Remaining Issues: None
+- Design Direction: Option C (Hybrid Professional Platform)
+
+## Next Steps
+- Phase 2.5: UI/UX Design with Stitch
+- Invoke frontend-design skill for style/theme brainstorming
+- Generate UI designs using Stitch
+- Document design system in DESIGN.md
+- Create component specifications
+
+---
+
+# ============================================================
+# Session: phase2.5-complete | Timestamp: 2026-03-14T12:00:00Z | Role: ux-designer
+# ============================================================
+
+## Starting State
+- Current Features: BRD and PRD approved
+- Blockers: None
+
+## Execution Content
+1. Analyzed competitive UI patterns (Linear, AgentGPT, Flowise)
+2. Confirmed design direction: Hybrid Professional Platform (Option C)
+3. Used Stitch MCP to generate 9 UI screens:
+   - Dashboard (main overview)
+   - Q&A Interface (Phase 1-2)
+   - Enhanced Q&A Card (component)
+   - Design Viewer (Phase 2.5)
+   - Enhanced Approval Card (component)
+   - Execution Monitor V2 (Phase 5-7)
+   - Settings Page
+   - PM Team Dashboard (Phase 8)
+   - Question Card (component)
+4. Created DESIGN.md with complete design system (colors, typography, spacing, components)
+5. Created SITE.md with sitemap and roadmap
+6. Created 7 UI specification documents mapping to shadcn/ui components:
+   - UI-SPEC-dashboard.md
+   - UI-SPEC-qa.md
+   - UI-SPEC-approval.md
+   - UI-SPEC-execution-monitor.md
+   - UI-SPEC-settings.md
+   - UI-SPEC-pm-dashboard.md
+   - UI-SPEC-design-viewer.md
+   - UI-SPEC-index.md (overview)
+
+## Ending State
+- Completed: 9 UI screens, DESIGN.md, SITE.md, 7 UI specifications
+- Design System: Linear-inspired dark theme (#121826, #3B82F6, #8B5CF6)
+- Component Library: shadcn/ui mapped to all designs
+- Remaining Issues: None
+
+## Next Steps
+- Phase 3: Architecture Design
+- Create ARCH-lrac-uiux.md
+- Define technology stack and integration points
+- Plan file system integration and real-time updates
+
+---
+
+# ============================================================
+# Session: phase3-4-complete | Timestamp: 2026-03-14T14:00:00Z | Role: architect
+# ============================================================
+
+## Starting State
+- Current Features: Design system and UI specifications complete
+- Blockers: None
+
+## Execution Content
+1. Analyzed BRD, PRD, and UI specifications
+2. Created comprehensive architecture document (ARCH-lrac-uiux.md):
+   - Technology stack: Next.js 14, React 18, Tailwind, shadcn/ui
+   - File system integration strategy
+   - Real-time architecture (WebSocket + chokidar)
+   - Component hierarchy and data models
+   - API design (REST + WebSocket)
+   - Security considerations
+   - Performance optimization strategies
+   - Testing strategy (75%+ coverage)
+   - Deployment architecture
+3. Created tasks.json with 20 features:
+   - Foundation: FEAT-001, FEAT-002, FEAT-003 (parallel)
+   - UI Components: FEAT-004, FEAT-005 (parallel after FEAT-002)
+   - Phase 1 Core: FEAT-006, FEAT-007, FEAT-008 (parallel after FEAT-004)
+   - Phase 1 Interactive: FEAT-009, FEAT-010, FEAT-011 (parallel after FEAT-006)
+   - Phase 2 Enhanced: FEAT-012, FEAT-013, FEAT-014, FEAT-015 (parallel after FEAT-008)
+   - Sequential: FEAT-016, FEAT-017, FEAT-018, FEAT-019, FEAT-020
+4. Defined 5 parallel groups with dependency chains
+5. Updated progress-summary.md
+
+## Ending State
+- Completed: Architecture document, tasks.json with 20 features
+- Architecture: Next.js 14 App Router + file system + WebSocket
+- Task Breakdown: 5 parallel groups, 20 features total
+- Remaining Issues: None
+
+## Next Steps
+- Phase 5: Development & Unit/Functional Test Loop
+- Start FEAT-001: Initialize Next.js project
+- Execute foundation parallel group
+- Follow TDD enforcement (red-green-refactor)
+
+---
+
+# ============================================================
+# Session: feat-001-complete | Timestamp: 2026-03-14T16:30:00Z | Role: fullstack-dev
+# ============================================================
+
+## Starting State
+- Current Features: 20 features planned, none started
+- Active Phase: Phase 5 (Development)
+- Blockers: None
+
+## Execution Content
+1. Installed Next.js 14 dependencies:
+   - Production: next@14, react@18, react-dom@18, typescript
+   - Dev: tailwindcss, postcss, autoprefixer, eslint, prettier, @tailwindcss/typography
+   - Utils: clsx, tailwind-merge
+
+2. Created configuration files:
+   - tsconfig.json: TypeScript strict mode with safety checks
+   - tailwind.config.ts: Custom design system colors (#121826, #3B82F6, #8B5CF6, etc.)
+   - postcss.config.js: PostCSS for Tailwind
+   - .eslintrc.json: ESLint + Prettier integration
+   - .prettierrc: Code formatting rules
+   - next.config.js: Next.js with Turbopack config
+   - .gitignore: Updated with Next.js entries
+
+3. Created app structure:
+   - app/layout.tsx: Root layout with dark theme
+   - app/page.tsx: Dashboard placeholder
+   - app/globals.css: Global styles with CSS variables
+   - lib/utils.ts: cn() utility for class merging
+   - next-env.d.ts: Next.js TypeScript definitions
+
+4. Fixed configuration issues:
+   - Removed --turbopack flag (not supported in Next.js 14.2.35)
+   - Fixed Tailwind darkMode config (string instead of array)
+   - Removed duplicate color definitions in Tailwind config
+   - Ran Prettier to fix formatting issues
+
+5. Verified setup:
+   - TypeScript type checking: ✅ Passed
+   - ESLint: ✅ Passed
+   - Development server: ✅ Runs on port 3000
+
+## Ending State
+- Completed: FEAT-001 (Initialize Next.js project)
+- Status: Foundation parallel group in progress
+- Remaining: FEAT-002 (shadcn/ui), FEAT-003 (Project structure)
+- Tests: Verification commands passed (typecheck, lint, dev server)
+
+## Next Steps
+- Start FEAT-002: Configure shadcn/ui component library
+- Start FEAT-003: Set up project structure and layout
+- Both can run in parallel (no interdependencies)
+- Follow TDD enforcement for all new code
+
+---
+
+# ============================================================
+# Session: feat-002-003-complete | Timestamp: 2026-03-14T17:00:00Z | Role: fullstack-dev
+# ============================================================
+
+## Starting State
+- Current Features: FEAT-001 completed, FEAT-002 and FEAT-003 pending
+- Active Phase: Phase 5 (Development)
+- Blockers: None
+
+## Execution Content
+
+### FEAT-002: Configure shadcn/ui component library
+1. Created components.json configuration
+2. Installed shadcn/ui dependencies:
+   - @radix-ui/react-slot
+   - class-variance-authority
+3. Created basic UI components:
+   - components/ui/button.tsx (with variants: default, destructive, outline, secondary, ghost, link)
+   - components/ui/card.tsx (Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter)
+   - components/ui/input.tsx
+   - components/ui/badge.tsx (with variants: default, secondary, destructive, outline, success, warning, error)
+4. Updated globals.css with shadcn/ui CSS variables:
+   - Added semantic colors (success, warning, error)
+   - Added muted, accent, popover, card variables
+   - Configured dark theme with proper HSL values
+5. Updated tailwind.config.ts to use CSS variables:
+   - Changed from hardcoded colors to hsl(var(--*))
+   - Added nested color objects for primary, secondary, etc.
+
+### FEAT-003: Set up project structure and layout
+1. Created component directories:
+   - components/layout/
+   - components/navigation/
+   - components/indicators/
+2. Created Sidebar component (components/navigation/sidebar.tsx):
+   - Navigation items for 8 phases
+   - Logo with gradient styling
+   - Active state highlighting
+   - Version footer
+3. Created Header component (components/layout/header.tsx):
+   - Search input
+   - Phase indicator badge
+   - System status indicator
+   - User menu and settings buttons
+4. Created PhaseIndicator component (components/indicators/phase-indicator.tsx):
+   - 8-phase progress visualization
+   - Completed/active/pending states
+   - Connector lines between phases
+   - Current phase badge
+5. Updated app/layout.tsx:
+   - Added Sidebar and Header
+   - Flex layout with overflow handling
+   - Dark theme applied globally
+
+## Ending State
+- Completed: FEAT-002 (shadcn/ui), FEAT-003 (Layout)
+- Status: Foundation parallel group complete (3/3 features)
+- Tests: TypeScript ✅, ESLint ✅, Dev server ✅
+- Ready: UI Components group (FEAT-004, FEAT-005) can now start
+
+## Next Steps
+- Start UI Components parallel group
+- FEAT-004: Build shared UI components (ProjectCard, StatCard, StatusBadge, ProgressBar)
+- FEAT-005: Create dashboard page with metric cards
+- Both features can run in parallel
+
+---
+
+# ============================================================
+# Session: feat-004-006-complete | Timestamp: 2026-03-14T17:25:00Z | Role: fullstack-dev
+# ============================================================
+
+## Starting State
+- Current Features: Foundation complete (FEAT-001, FEAT-002, FEAT-003)
+- Active Phase: Phase 5 (Development)
+- Next: UI Components and Dashboard page
+- Blockers: None
+
+## Execution Content
+
+### FEAT-004: Build shared UI components
+1. Created components/shared/ directory
+2. Created ProjectCard component:
+   - Gradient border on hover
+   - Progress bar with gradient fill
+   - Status badge with semantic colors
+   - Phase and task count display
+3. Created StatCard component:
+   - 5 variants (default, primary, success, warning, error)
+   - Icon support
+   - Trend indicator with percentage
+   - Description text
+4. Created StatusBadge component:
+   - 5 status types (pending, in_progress, completed, blocked, active)
+   - Animated dot for active status
+   - 3 size variants (sm, md, lg)
+   - Custom label support
+5. Created ProgressBar component:
+   - 5 variants (default, gradient, success, warning, error)
+   - 3 size variants (sm, md, lg)
+   - Optional label display
+   - Gradient styling (#8B5CF6 → #3B82F6)
+6. Created index.ts for barrel exports
+
+### FEAT-006: Build Dashboard page
+1. Created app/dashboard/page.tsx
+2. Dashboard features:
+   - Stats grid with 4 metric cards
+   - Phase indicator component
+   - Project cards section
+   - Feature progress breakdown
+   - Recent activity feed
+   - Quick actions panel
+3. Updated app/page.tsx to redirect to /dashboard
+4. Mock data for demonstration (will connect to real data later)
+
+## Ending State
+- Completed: FEAT-004 (Shared UI), FEAT-006 (Dashboard page)
+- Status: UI Components group 50% complete (1/2), Phase 1 Core started (1/3)
+- Tests: TypeScript ✅, ESLint ✅, Dev server ✅
+- Remaining in UI Components: FEAT-005 (File system utilities)
+- Remaining in Phase 1 Core: FEAT-007 (API routes), FEAT-008 (Q&A interface)
+
+## Next Steps
+- Continue with FEAT-005: Create file system utilities and types
+- Or start FEAT-007: Implement API routes for project management
+- Both can run in parallel with different dependencies
+
+---
+# ============================================================
+# Session: feat-005-007-complete | Timestamp: 2026-03-14T18:45:00Z | Role: backend-dev
+# ============================================================
+
+## Starting State
+- Current Features: FEAT-004, FEAT-006 completed
+- Active Phase: Phase 5 (Development)
+- Next: File utilities, types, validation, and API routes
+- Blockers: None
+
+## Execution Content
+
+### FEAT-005: Create file system utilities and types
+1. Created TypeScript types (lib/types/):
+   - tasks.ts: TasksJson v3.0 types (Feature, FeatureStatus, ParallelGroup, etc.)
+   - qa-session.ts: Q&A session types for Phase 1-2
+   - approval.ts: Approval record types for Phase 3
+   - index.ts: Barrel exports for all types
+2. Created file utilities (lib/utils/):
+   - file-operations.ts: Path sanitization, read/write tasks.json, read/write progress.txt
+   - markdown-operations.ts: Read/write BRD, PRD, Architecture documents
+3. Created validation schemas (lib/validation/):
+   - schemas.ts: Zod schemas for all API inputs
+   - index.ts: Barrel exports for validation schemas
+4. Fixed TypeScript errors:
+   - Exported PROJECT_ROOT from file-operations.ts
+   - Added null checks for array access
+   - Changed unused parameters to _parameter pattern
+   - Fixed z.record() to use both key and value schemas
+
+### FEAT-007: Implement API routes for project management
+1. Created API routes (app/api/):
+   - GET /api/features: List all features with filtering
+   - GET /api/features/[id]: Get single feature with dependencies
+   - PATCH /api/features/[id]/status: Update feature status
+   - GET /api/projects: Get project overview with statistics
+   - GET /api/progress: Get progress summary for dashboard
+2. All routes use:
+   - Zod validation for inputs
+   - Path sanitization for file operations
+   - Proper error handling with HTTP status codes
+   - TypeScript strict mode compliance
+3. Tested all endpoints:
+   - Dev server runs without errors
+   - /api/projects returns correct statistics
+   - /api/features returns 20 features
+   - /api/progress returns progress data
+   - /api/features/FEAT-001 returns single feature
+4. Fixed all lint and formatting issues:
+   - Prettier formatting applied
+   - ESLint passes with no warnings
+
+## Ending State
+- Completed: FEAT-005 (File utilities, types, validation), FEAT-007 (API routes)
+- Status: UI Components group complete (2/2), Phase 1 Core 67% complete (2/3)
+- Tests: TypeScript ✅, ESLint ✅, Prettier ✅, API endpoints tested ✅
+- Remaining in Phase 1 Core: FEAT-008 (8-Phase visualization component)
+- Parallel groups updated:
+  - ui-components: completed (FEAT-004, FEAT-005)
+  - phase-1-core: in_progress (FEAT-006 ✅, FEAT-007 ✅, FEAT-008 pending)
+
+## Next Steps
+- Complete FEAT-008: Create 8-Phase visualization component
+- After FEAT-008: Phase 1 Interactive group becomes ready (FEAT-009, FEAT-010, FEAT-011)
+- All Phase 1 Interactive features depend on FEAT-006 ✅
+
+---
+
+# ============================================================
+# Session: phase1-parallel-complete | Timestamp: 2026-03-15T00:00:00Z | Role: project-manager
+# ============================================================
+
+## Starting State
+- Current Features: FEAT-005, FEAT-007 completed, FEAT-008 pending, Phase 1 Interactive group pending
+- Active Phase: Phase 5 (Development)
+- Blockers: None
+
+## Execution Content
+
+### Parallel Agent Execution Strategy
+Dispatched 4 agents in parallel using tmux panes:
+1. **fe-phase-viz** (frontend-dev) → FEAT-008: 8-Phase visualization
+2. **fe-qa-interface** (frontend-dev) → FEAT-009: Q&A interface
+3. **be-qa-api** (backend-dev) → FEAT-010: Q&A API endpoints
+4. **fe-approval-ui** (frontend-dev) → FEAT-011: Document viewer + approval
+
+### FEAT-008: Create 8-Phase visualization component
+1. Enhanced components/indicators/phase-indicator.tsx
+2. Added overall progress bar (5/9 phases complete)
+3. Implemented 3 visual states:
+   - Completed: Green (#10B981) with checkmark
+   - Active: Blue (#3B82F6) with glow effect
+   - Pending: Grayed out, non-clickable
+4. Added responsive design (mobile grid + desktop horizontal)
+5. Implemented click navigation to /phase/{number}
+6. Added connector lines with gradient progress
+7. Current phase badge with name display
+
+### FEAT-009: Build Q&A interface for Phase 1-2
+1. Created app/qa/page.tsx (361 lines)
+2. Implemented sequential question display (one at a time)
+3. Added progress indicator (X of Y questions)
+4. Supported 4 question types:
+   - text: Single-line text input
+   - textarea: Multi-line text input
+   - choice: Single-choice radio buttons
+   - multi-select: Multiple-choice checkboxes
+5. Implemented save/resume with localStorage
+6. Added form validation with error states
+7. Created 9 sample questions for demonstration
+8. Progress bar shows completion percentage
+
+### FEAT-010: Create API endpoints for Q&A sessions
+1. Created app/api/qa/sessions/route.ts (142 lines)
+   - GET: List all sessions with filtering
+   - POST: Create new session
+2. Created app/api/qa/sessions/[id]/route.ts (225 lines)
+   - GET: Get single session
+   - PATCH: Update session answers
+   - DELETE: Delete session
+3. Created lib/utils/qa-session-operations.ts
+   - File read/write utilities
+   - Session ID generation
+   - Path sanitization for security
+4. Updated lib/validation/schemas.ts with Q&A schemas
+5. All endpoints use Zod validation
+6. Data persisted to .auto-coding/qa-sessions/
+
+### FEAT-011: Build document viewer and approval workflow
+1. Created app/approval/page.tsx (393 lines)
+2. Implemented markdown rendering with react-markdown
+3. Added syntax highlighting with react-syntax-highlighter (oneDark theme)
+4. Created approval workflow buttons:
+   - Approve (green #10B981)
+   - Reject (red #EF4444)
+   - Request Changes (orange #F59E0B)
+5. Implemented comment system with threading
+6. Added sample architecture document for demo
+7. Created 4 new shadcn/ui components:
+   - components/ui/textarea.tsx
+   - components/ui/scroll-area.tsx
+   - components/ui/avatar.tsx
+   - components/ui/alert-dialog.tsx
+8. Installed dependencies:
+   - lucide-react (icons)
+   - react-markdown, remark-gfm (markdown)
+   - react-syntax-highlighter, @types/react-syntax-highlighter (code highlighting)
+   - @radix-ui/react-scroll-area, @radix-ui/react-avatar, @radix-ui/react-alert-dialog
+
+## Ending State
+- Completed: FEAT-008, FEAT-009, FEAT-010, FEAT-011 (4 features)
+- Status: 
+  - Phase 1 Core: completed (3/3 features: FEAT-006, FEAT-007, FEAT-008)
+  - Phase 1 Interactive: completed (3/3 features: FEAT-009, FEAT-010, FEAT-011)
+- Tests: TypeScript ✅, ESLint ✅, Prettier ✅
+- Commits: 4 feature commits + 1 tasks.json update
+- Parallel execution time: ~35 minutes (vs ~2+ hours sequential)
+
+## Next Steps
+- Phase 2 Enhanced group is now ready (depends on FEAT-008 ✅):
+  - FEAT-012: Build Stitch design viewer
+  - FEAT-013: Implement WebSocket server for real-time updates
+  - FEAT-014: Build terminal output display
+  - FEAT-015: Implement global search with Cmd+K
+- All 4 features can run in parallel
+
+---
+
+# ============================================================
+# Session: feat-015-complete | Timestamp: 2026-03-15T08:35:00Z | Role: frontend-dev
+# ============================================================
+
+## Starting State
+- Current Features: FEAT-015 assigned (global search with Cmd+K)
+- Blockers: None
+
+## Execution Content
+
+### FEAT-015: Implement global search with Cmd+K
+1. Created components/ui/command-palette.tsx (422 lines)
+   - Modal overlay with backdrop blur
+   - Search input with real-time filtering
+   - Search across 4 content types: projects, documents, tasks, phases
+   - Quick actions section (3 predefined actions)
+   - Recent items tracking (up to 5 items)
+   - Full keyboard navigation support
+   - Design system compliant styling
+
+2. Updated app/layout.tsx
+   - Converted to client component for state management
+   - Added global Cmd+K keyboard listener
+   - Integrated CommandPalette component at root level
+   - State management for open/close
+
+3. Keyboard Navigation Implemented:
+   - Cmd+K / Ctrl+K: Toggle command palette
+   - Arrow Up/Down: Navigate through results
+   - Enter: Select item
+   - Escape: Close palette
+   - Tab: (native browser navigation)
+
+4. Features Implemented:
+   - Client-side search filtering across all content types
+   - Mock data for demonstration (ready for API integration)
+   - Quick actions: Create Project, Switch Theme, Open Settings
+   - Recent items persistence during session
+   - Category grouping (Projects, Documents, Tasks, Phases)
+   - Visual feedback for selected items
+   - Accessible keyboard shortcuts with visual hints
+
+5. Design System Compliance:
+   - Background: #121826 (card background)
+   - Primary accent: #3B82F6 (blue) for selection
+   - Border radius: 8px (large)
+   - Typography: Inter font family
+   - Proper spacing and transitions (150-200ms ease)
+   - Backdrop blur for modal overlay
+
+## Ending State
+- Completed: FEAT-015 (global search with Cmd+K)
+- Tests: TypeScript ✅, ESLint ✅, Prettier ✅
+- Files created: 1 (components/ui/command-palette.tsx)
+- Files modified: 1 (app/layout.tsx)
+
+## Next Steps
+- Ready for integration with real data sources
+- Can implement actual quick actions (theme toggle, navigation)
+- Ready for backend API integration for search functionality
+
+---
+
+# ============================================================
+# Session: feat-014-terminal | Timestamp: 2026-03-15T00:45:00Z | Role: frontend-dev
+# ============================================================
+
+## Starting State
+- Current Features: FEAT-014 (Build terminal output display)
+- Blockers: None
+
+## Execution Content
+1. Installed dependencies: react-window, @radix-ui/react-tabs, @radix-ui/react-select
+2. Created UI components: tabs.tsx, select.tsx
+3. Built terminal output display at app/terminal/page.tsx:
+   - Dark background (#0A0A0A) matching design system
+   - Line numbers with monospace font
+   - Syntax highlighting (error/warning/info/debug/timestamp)
+   - Content-type styling (stdout/stderr/system)
+   - Tabs for output type switching
+   - Log level filter dropdown
+   - Search functionality with highlighting
+   - Control buttons (Pause/Resume/Copy/Download/Clear)
+   - Virtualization with react-window for performance
+   - Auto-scroll to bottom
+   - Status badges (STREAMING/PAUSED/IDLE)
+4. Verified TypeScript, ESLint, Prettier compliance
+5. Follows UI-SPEC-execution-monitor.md and .stitch/DESIGN.md
+
+## Ending State
+- Completed: FEAT-014 terminal output display
+- Tests: TypeScript ✅, ESLint ✅, Prettier ✅
+- Ready for: WebSocket integration (FEAT-013)
+
+## Next Steps
+- Integrate WebSocket for real-time log streaming
+- Add unit and integration tests
+- Consider E2E tests for terminal interaction
+
+---
+
+# ============================================================
+# Session: phase2-parallel-complete | Timestamp: 2026-03-15T09:30:00Z | Role: project-manager
+# ============================================================
+
+## Starting State
+- Current Features: Phase 1 complete (11/11 features)
+- Active Phase: Phase 5 (Development)
+- Next: Phase 2 Enhanced group (4 features)
+- Blockers: None
+
+## Execution Content
+
+### Parallel Agent Execution Strategy
+Dispatched 4 agents in parallel using tmux panes:
+1. **fe-design-viewer** (frontend-dev) → FEAT-012: Design viewer
+2. **be-websocket** (backend-dev) → FEAT-013: WebSocket server
+3. **fe-terminal** (frontend-dev) → FEAT-014: Terminal output display
+4. **fe-search-palette** (frontend-dev) → FEAT-015: Global search
+
+### FEAT-012: Build Stitch design viewer
+1. Created app/design/page.tsx (442 lines)
+2. Implemented image viewer with zoom controls (25%-200%)
+3. Added annotation system:
+   - Click-to-add numbered markers
+   - Title and description input
+   - Sidebar with resolve/reopen functionality
+4. Created version selector for 9 design iterations
+5. Added download button
+6. Matches UI-SPEC-design-viewer.md specifications
+
+### FEAT-013: Implement WebSocket server for real-time updates
+1. Created lib/websocket/ directory structure
+2. Implemented WebSocket server (lib/websocket/server.ts, 393 lines):
+   - Runs on port 3001
+   - File watcher with chokidar (monitors .auto-coding/, docs/)
+   - Client subscription management by projectId
+   - Heartbeat/ping-pong for connection health
+   - Message types: file_changed, task_updated, phase_changed
+3. Created WebSocket hook (lib/websocket/useWebSocket.ts, 323 lines):
+   - React hook for client connection
+   - Auto-reconnection logic
+   - Message type handlers
+   - Connection state management
+4. Created TypeScript types (lib/websocket/types.ts, 92 lines):
+5. Created barrel exports (lib/websocket/index.ts)
+
+### FEAT-014: Build terminal output display
+1. Installed dependencies: react-window, @radix-ui/react-tabs, @radix-ui/react-select
+2. Created UI components: tabs.tsx, select.tsx
+3. Built terminal output display at app/terminal/page.tsx (367 lines):
+   - Dark background (#0A0A0A) matching design system
+   - Line numbers with monospace font
+   - Syntax highlighting (error/warning/info/debug/timestamp)
+   - Content-type styling (stdout/stderr/system)
+   - Tabs for output type switching
+   - Log level filter dropdown
+   - Search functionality with highlighting
+   - Control buttons (Pause/Resume/Copy/Download/Clear)
+   - Virtualization with react-window for performance
+   - Auto-scroll to bottom
+   - Status badges (STREAMING/PAUSED/IDLE)
+
+### FEAT-015: Implement global search with Cmd+K
+1. Created components/ui/command-palette.tsx (528 lines)
+   - Modal overlay with backdrop blur
+   - Search input with real-time filtering
+   - Search across 4 content types: projects, documents, tasks, phases
+   - Quick actions section (3 predefined actions)
+   - Recent items tracking (up to 5 items)
+   - Full keyboard navigation support
+   - Design system compliant styling
+2. Updated app/layout.tsx:
+   - Converted to client component for state management
+   - Added global Cmd+K keyboard listener
+   - Integrated CommandPalette component at root level
+   - State management for open/close
+
+## Ending State
+- Completed: FEAT-012, FEAT-013, FEAT-014, FEAT-015 (4 features)
+- Status: Phase 2 Enhanced group completed (4/4 features)
+- Tests: TypeScript ✅, ESLint ✅, Prettier ✅
+- Commits: 4 feature commits + 1 tasks.json update
+- Parallel execution time: ~35 minutes (vs ~2+ hours sequential)
+- Overall progress: 15/20 features (75%)
+
+## Next Steps
+- Sequential features remain (FEAT-016, FEAT-017, FEAT-018, FEAT-019, FEAT-020)
+- All depend on FEAT-012, FEAT-013, FEAT-014, FEAT-015 completion
+- Next: FEAT-016 (Settings page) and FEAT-017 (PM Dashboard) can run in parallel
+
+---
+
+# ============================================================
+# Session: feat-016-settings | Timestamp: 2026-03-15T01:55:00Z | Role: frontend-dev
+# ============================================================
+
+## Starting State
+- Current Features: FEAT-016 (Build Settings page)
+- Blockers: None
+
+## Execution Content
+1. Read UI-SPEC-settings.md specifications
+2. Installed missing shadcn/ui components (Switch, Slider, Label)
+3. Installed dependencies: @radix-ui/react-switch, @radix-ui/react-slider, @radix-ui/react-label, class-variance-authority
+4. Created switch.tsx, slider.tsx, label.tsx UI components
+5. Built Settings page at app/settings/page.tsx with:
+   - Theme toggle (dark/light mode)
+   - Font size slider (12-20px range)
+   - Auto-save toggle with interval slider (10-120 seconds)
+   - Notification preferences (desktop, sound, email, notification level)
+   - Keyboard shortcuts reference (16 shortcuts across Global, Actions, Search categories)
+   - Integrations panel (GitHub, VS Code, API keys)
+   - Settings persistence to localStorage
+   - Real-time save status indicator
+6. Applied design system from .stitch/DESIGN.md (dark theme, gradient buttons, proper spacing)
+7. Fixed TypeScript errors (proper type guards for Slider onValueChange)
+8. Verified TypeScript, ESLint, Prettier compliance
+9. Updated tasks.json to mark FEAT-016 as completed
+
+## Ending State
+- Completed: FEAT-016 (Settings page with all acceptance criteria met)
+- Remaining Issues: None
+- Technical Details: All settings persisted to localStorage, theme applied to document root, font size applied globally
+
+## Next Steps
+- Ready for next feature (FEAT-017: PM Dashboard)
+- All Phase 2 Enhanced Features completed
+- Can proceed with Phase 3 tasks when ready
+
+---
+
+# ============================================================
+# Session: feat-017-complete | Timestamp: 2026-03-15T01:55:00Z | Role: frontend-dev
+# ============================================================
+
+## Starting State
+- Current Features: FEAT-017 (PM Dashboard)
+- Blockers: None
+
+## Execution Content
+1. Installed dependencies: recharts, @types/recharts
+2. Created table.tsx UI component (Table, TableHeader, TableBody, TableRow, TableHead, TableCell)
+3. Built PM Dashboard at app/pm/page.tsx:
+   - Stat Cards: Total Tasks, In Progress, Completed, Blocked (with icons)
+   - Progress Charts: Bar chart for phase progress, Pie chart for task distribution (using recharts)
+   - Task Table: Sortable (ID, Due Date), filterable (status), searchable (title, ID), with status badges and priority indicators
+   - Team Overview: 4 team members with avatars, tasks completed/in progress, progress bars
+   - Timeline View: Gantt-style visualization for task schedules
+   - WebSocket Integration: Real-time updates via ws://localhost:3001
+4. Used shadcn/ui components: Card, Badge, Avatar, Input, Select, Button
+5. Dark theme colors: #121826 background, #3B82F6 blue, #10B981 green, #EF4444 red
+6. TypeScript strict mode ✅
+7. ESLint ✅
+8. Prettier ✅
+
+## Ending State
+- Completed: FEAT-017 PM Dashboard
+- Tests: TypeScript compilation passing
+- Files Modified:
+  - app/pm/page.tsx (new)
+  - components/ui/table.tsx (new)
+  - package.json (added recharts, @types/recharts)
+
+## Next Steps
+- FEAT-018: Write comprehensive test suite (75%+ coverage)
+- FEAT-019: Optimize performance and accessibility
+- FEAT-020: Create deployment documentation and Docker setup
+
+---
+# ============================================================
+# Session: imac-dash-project-switcher | Timestamp: 2026-03-21T00:00:00Z | Role: fullstack-dev
+# ============================================================
+
+## Starting State
+- Current Features: Dashboard Project Switcher enhancement
+- Blockers: None
+
+## Execution Content
+1. /IMAC intake: selected path input + existing buttons mode, auto-discovery validation, localStorage persistence
+2. Detected start phase: Phase 5 (pure implementation, no upstream changes needed)
+3. Created `components/shared/project-switcher-form.tsx` — Client Component with:
+   - Path input with FolderOpen icon prefix
+   - Auto-validation against discovered projects (green check / red alert icons)
+   - Enter-key and Go button submission
+   - localStorage persistence under key `lrac-last-project-path`
+   - Existing project buttons preserved as shortcuts below the input
+4. Updated `components/shared/index.ts` to export ProjectSwitcherForm
+5. Updated `app/dashboard/page.tsx` to import and use ProjectSwitcherForm in the Project Switcher card
+6. Added feature `imac-dash-ps-p5d-001` to tasks.json
+7. TypeScript check: ✅ passed
+
+## Ending State
+- Completed: imac-dash-ps-p5d-001
+- Remaining Issues: None
+
+## Next Steps
+- Verify `http://localhost:3000/dashboard` visually for the new Project Switcher
+- Test path validation feedback and localStorage persistence in browser
+
+---

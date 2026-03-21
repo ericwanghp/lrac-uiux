@@ -1,0 +1,68 @@
+
+# Dependencies
+node_modules/
+
+# Build artifacts
+.next/
+.next-build/
+dist/
+build/
+coverage/
+
+# Session data
+.sessions.json
+
+# macOS system files
+.DS_Store
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+# Claude Code local settings
+.claude/settings.local.json
+.claude/settings.json
+.claude/*.local.*
+
+
+# Excalidraw architecture diagrams
+CLAUDE-architecture.excalidraw
+
+.agents/
+.test/
+
+# TypeScript
+*.tsbuildinfo
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Auto-coding specific
+.auto-coding/reports/
+
+# Environment files
+.env
+.env.*
+!.env.example
+.env*.local
+
+.npm-cache/
+
+# Accidental shell output files
+/-1
+
+# Runtime persistence (generated at runtime)
+.auto-coding/terminal-sessions/
+.auto-coding/qa-sessions/sessions.json
+.auto-coding/approvals/records.json
+.auto-coding/config/ui-settings.json
+.auto-coding/progress-summary.md
+
+# Local reports
+.claude/reports/

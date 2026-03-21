@@ -1,0 +1,1881 @@
+{
+  "version": "3.0",
+  "project": "lrac-uiux",
+  "parallelGroups": {
+    "foundation": {
+      "name": "Foundation Setup",
+      "features": ["inital-p5d-001", "inital-p5d-002", "inital-p5d-003"],
+      "canStartWhen": [],
+      "status": "completed",
+      "completedFeatures": ["inital-p5d-001", "inital-p5d-002", "inital-p5d-003"],
+      "remainingFeatures": []
+    },
+    "ui-components": {
+      "name": "UI Components Library",
+      "features": ["inital-p5d-004", "inital-p5d-005"],
+      "canStartWhen": ["inital-p5d-002"],
+      "status": "completed",
+      "completedFeatures": ["inital-p5d-004", "inital-p5d-005"],
+      "remainingFeatures": []
+    },
+    "phase-1-core": {
+      "name": "Phase 1 Core Features",
+      "features": ["inital-p5d-006", "inital-p5d-007", "inital-p5d-008"],
+      "canStartWhen": ["inital-p5d-004"],
+      "status": "completed",
+      "completedFeatures": ["inital-p5d-006", "inital-p5d-007", "inital-p5d-008"],
+      "remainingFeatures": []
+    },
+    "phase-1-interactive": {
+      "name": "Phase 1 Interactive Features",
+      "features": ["inital-p5d-009", "inital-p5d-010", "inital-p5d-011"],
+      "canStartWhen": ["inital-p5d-006"],
+      "status": "completed",
+      "completedFeatures": ["inital-p5d-009", "inital-p5d-010", "inital-p5d-011"],
+      "remainingFeatures": []
+    },
+    "phase-2-enhanced": {
+      "name": "Phase 2 Enhanced Features",
+      "features": ["inital-p5d-012", "inital-p5d-013", "inital-p5d-014", "inital-p5d-015"],
+      "canStartWhen": ["inital-p5d-008"],
+      "status": "completed",
+      "completedFeatures": ["inital-p5d-012", "inital-p5d-013", "inital-p5d-014", "inital-p5d-015"],
+      "remainingFeatures": []
+    },
+    "imac-phase-2-product-design": {
+      "name": "IMAC Phase 2 Product Design",
+      "features": ["imac-cli-terminal-orchestration-p2p-001"],
+      "canStartWhen": [],
+      "status": "completed",
+      "completedFeatures": ["imac-cli-terminal-orchestration-p2p-001"],
+      "remainingFeatures": []
+    },
+    "imac-phase-25-design": {
+      "name": "IMAC Phase 2.5 UI Design",
+      "features": ["imac-cli-terminal-orchestration-p25d-001"],
+      "canStartWhen": ["imac-cli-terminal-orchestration-p2p-001"],
+      "status": "completed",
+      "completedFeatures": ["imac-cli-terminal-orchestration-p25d-001"],
+      "remainingFeatures": []
+    },
+    "imac-phase-3-architecture": {
+      "name": "IMAC Phase 3 Architecture",
+      "features": ["imac-cli-terminal-orchestration-p3a-001"],
+      "canStartWhen": ["imac-cli-terminal-orchestration-p2p-001"],
+      "status": "completed",
+      "completedFeatures": ["imac-cli-terminal-orchestration-p3a-001"],
+      "remainingFeatures": []
+    },
+    "imac-phase-4-breakdown": {
+      "name": "IMAC Phase 4 Breakdown",
+      "features": ["imac-cli-terminal-orchestration-p4b-001"],
+      "canStartWhen": [
+        "imac-cli-terminal-orchestration-p25d-001",
+        "imac-cli-terminal-orchestration-p3a-001"
+      ],
+      "status": "completed",
+      "completedFeatures": ["imac-cli-terminal-orchestration-p4b-001"],
+      "remainingFeatures": []
+    },
+    "imac-phase-5-core": {
+      "name": "IMAC Phase 5 Core",
+      "features": [
+        "imac-cli-terminal-orchestration-p5d-001",
+        "imac-cli-terminal-orchestration-p5d-002",
+        "imac-cli-terminal-orchestration-p5d-003"
+      ],
+      "canStartWhen": ["imac-cli-terminal-orchestration-p4b-001"],
+      "status": "completed",
+      "completedFeatures": [
+        "imac-cli-terminal-orchestration-p5d-001",
+        "imac-cli-terminal-orchestration-p5d-002",
+        "imac-cli-terminal-orchestration-p5d-003"
+      ],
+      "remainingFeatures": []
+    },
+    "imac-phase-5-interaction": {
+      "name": "IMAC Phase 5 Interaction",
+      "features": [
+        "imac-cli-terminal-orchestration-p5d-004",
+        "imac-cli-terminal-orchestration-p5d-005"
+      ],
+      "canStartWhen": ["imac-cli-terminal-orchestration-p5d-003"],
+      "status": "completed",
+      "completedFeatures": [
+        "imac-cli-terminal-orchestration-p5d-004",
+        "imac-cli-terminal-orchestration-p5d-005"
+      ],
+      "remainingFeatures": []
+    },
+    "imac-phase-5-orchestration": {
+      "name": "IMAC Phase 5 Orchestration",
+      "features": [
+        "imac-cli-terminal-orchestration-p5d-006",
+        "imac-cli-terminal-orchestration-p5d-007"
+      ],
+      "canStartWhen": [
+        "imac-cli-terminal-orchestration-p5d-002",
+        "imac-cli-terminal-orchestration-p5d-004",
+        "imac-cli-terminal-orchestration-p5d-005"
+      ],
+      "status": "completed",
+      "completedFeatures": [
+        "imac-cli-terminal-orchestration-p5d-006",
+        "imac-cli-terminal-orchestration-p5d-007"
+      ],
+      "remainingFeatures": []
+    },
+    "imac-phase-6-testing": {
+      "name": "IMAC Phase 6 Testing",
+      "features": ["imac-cli-terminal-orchestration-p6t-001"],
+      "canStartWhen": ["imac-cli-terminal-orchestration-p5d-007"],
+      "status": "completed",
+      "completedFeatures": ["imac-cli-terminal-orchestration-p6t-001"],
+      "remainingFeatures": []
+    },
+    "imac-phase-7-deployment": {
+      "name": "IMAC Phase 7 Deployment",
+      "features": ["imac-cli-terminal-orchestration-p7d-001"],
+      "canStartWhen": ["imac-cli-terminal-orchestration-p6t-001"],
+      "status": "completed",
+      "completedFeatures": ["imac-cli-terminal-orchestration-p7d-001"],
+      "remainingFeatures": []
+    },
+    "imac-phase-8-management": {
+      "name": "IMAC Phase 8 Management",
+      "features": ["imac-cli-terminal-orchestration-p8m-001"],
+      "canStartWhen": ["imac-cli-terminal-orchestration-p7d-001"],
+      "status": "completed",
+      "completedFeatures": ["imac-cli-terminal-orchestration-p8m-001"],
+      "remainingFeatures": []
+    }
+  },
+  "features": [
+    {
+      "id": "inital-p5d-001",
+      "title": "Initialize Next.js project with TypeScript and Tailwind",
+      "summary": "Set up Next.js 14 project with App Router, TypeScript, Tailwind CSS, and development tooling.",
+      "ownerRole": "fullstack-dev",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": [],
+        "parallelGroup": "foundation"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Next.js 14 project created with App Router",
+          "TypeScript configured with strict mode",
+          "Tailwind CSS installed and configured",
+          "ESLint and Prettier configured",
+          "Development server runs on port 3000",
+          "Basic file structure matches architecture spec"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-14T08:00:00Z",
+        "completedAt": "2026-03-14T08:30:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-14T08:30:00Z",
+          "action": "Feature completed",
+          "details": "Next.js 14 project initialized with TypeScript strict mode, Tailwind CSS, ESLint, Prettier. Dev server verified on port 3000."
+        }
+      ]
+    },
+    {
+      "id": "inital-p5d-002",
+      "title": "Configure shadcn/ui component library",
+      "summary": "Install and configure shadcn/ui with custom dark theme matching DESIGN.md specifications.",
+      "ownerRole": "frontend-dev",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["inital-p5d-001"],
+        "parallelGroup": "foundation"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "shadcn/ui initialized with components.json",
+          "Custom theme configured (dark mode: #121826 background)",
+          "Color palette matches DESIGN.md (#3B82F6, #8B5CF6, etc.)",
+          "Typography configured (Inter, JetBrains Mono)",
+          "cn() utility function created in lib/utils.ts",
+          "Basic components installed (Button, Card, Input, Badge)",
+          "Dark theme applied globally"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-14T16:35:00Z",
+        "completedAt": "2026-03-14T16:45:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-14T16:45:00Z",
+          "action": "Feature completed",
+          "details": "shadcn/ui configured with custom dark theme, Button/Card/Input/Badge components installed, CSS variables added for semantic colors"
+        }
+      ]
+    },
+    {
+      "id": "inital-p5d-003",
+      "title": "Set up project structure and layout",
+      "summary": "Create app directory structure, root layout, and navigation components.",
+      "ownerRole": "frontend-dev",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["inital-p5d-001"],
+        "parallelGroup": "foundation"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "App directory structure created per architecture spec",
+          "Root layout (app/layout.tsx) with theme provider",
+          "Sidebar component with navigation items",
+          "Header component with search placeholder",
+          "8-phase indicator component created",
+          "Layout responsive on desktop/tablet/mobile"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-14T16:45:00Z",
+        "completedAt": "2026-03-14T17:00:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-14T17:00:00Z",
+          "action": "Feature completed",
+          "details": "Created Sidebar, Header, PhaseIndicator components. Updated root layout with sidebar + header. All components working with dark theme."
+        }
+      ]
+    },
+    {
+      "id": "inital-p5d-004",
+      "title": "Build shared UI components",
+      "summary": "Create reusable components: ProjectCard, StatCard, StatusBadge, ProgressBar with gradient styling.",
+      "ownerRole": "frontend-dev",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["inital-p5d-002"],
+        "parallelGroup": "ui-components"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "ProjectCard component with hover effects",
+          "StatCard component with icon support",
+          "StatusBadge with semantic colors (success/error/warning/info)",
+          "ProgressBar with gradient fill (#8B5CF6 → #3B82F6)",
+          "LoadingSkeleton component",
+          "ErrorBoundary component",
+          "All components match UI-SPEC-dashboard.md specifications",
+          "Unit tests pass for all components"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-14T17:00:00Z",
+        "completedAt": "2026-03-14T17:15:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-14T17:15:00Z",
+          "action": "Feature completed",
+          "details": "Created ProjectCard, StatCard, StatusBadge, ProgressBar components. All use gradient styling and semantic colors per UI spec."
+        }
+      ]
+    },
+    {
+      "id": "inital-p5d-005",
+      "title": "Create file system utilities and types",
+      "summary": "Implement file reading/writing utilities, TypeScript types, and validation schemas.",
+      "ownerRole": "backend-dev",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["inital-p5d-002"],
+        "parallelGroup": "ui-components"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "TypeScript types created for tasks.json v3.0",
+          "TypeScript types created for Q&A sessions",
+          "TypeScript types created for approval records",
+          "File read/write utilities with path sanitization",
+          "Zod validation schemas for API inputs",
+          "Unit tests for file utilities pass",
+          "Unit tests for validation schemas pass"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-14T18:00:00Z",
+        "completedAt": "2026-03-14T18:30:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-14T18:30:00Z",
+          "action": "Feature completed",
+          "details": "Created TypeScript types (tasks.ts, qa-session.ts, approval.ts), file utilities with path sanitization (file-operations.ts, markdown-operations.ts), and Zod validation schemas. All TypeScript and lint checks pass."
+        }
+      ]
+    },
+    {
+      "id": "inital-p5d-006",
+      "title": "Build Dashboard page with project list",
+      "summary": "Create main dashboard page with project cards, search, and filtering.",
+      "ownerRole": "frontend-dev",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["inital-p5d-004"],
+        "parallelGroup": "phase-1-core"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Dashboard page at app/page.tsx (SSG)",
+          "Displays all projects from .auto-coding/tasks.json",
+          "Project cards show name, phase, progress, status",
+          "Search filters projects in real-time",
+          "Filter by status (pending/in-progress/completed/blocked)",
+          "Clicking card navigates to project detail",
+          "Page loads within 1 second",
+          "Matches UI-SPEC-dashboard.md specifications"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-14T17:15:00Z",
+        "completedAt": "2026-03-14T17:25:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-14T17:25:00Z",
+          "action": "Feature completed",
+          "details": "Created dashboard page with stat cards, project cards, phase progress indicator, and recent activity feed. Root page redirects to dashboard."
+        }
+      ]
+    },
+    {
+      "id": "inital-p5d-007",
+      "title": "Implement API routes for project management",
+      "summary": "Create RESTful API endpoints for projects, tasks, and file operations.",
+      "ownerRole": "backend-dev",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["inital-p5d-004"],
+        "parallelGroup": "phase-1-core"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "GET /api/projects returns all projects",
+          "GET /api/projects/:id returns single project",
+          "PATCH /api/projects/:id/tasks/:taskId updates task status",
+          "All endpoints use Zod validation",
+          "File system operations use sanitized paths",
+          "Error handling returns proper HTTP status codes",
+          "Integration tests pass for all endpoints"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-14T18:00:00Z",
+        "completedAt": "2026-03-14T18:45:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-14T18:45:00Z",
+          "action": "Feature completed",
+          "details": "Created 5 API routes: GET /api/features, GET /api/features/[id], PATCH /api/features/[id]/status, GET /api/projects, GET /api/progress. All use Zod validation and sanitized file operations. TypeScript strict mode passes. Dev server tested and all endpoints working."
+        }
+      ]
+    },
+    {
+      "id": "inital-p5d-008",
+      "title": "Create 8-Phase visualization component",
+      "summary": "Build interactive phase indicator showing all 8 phases with progress and navigation.",
+      "ownerRole": "frontend-dev",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["inital-p5d-004"],
+        "parallelGroup": "phase-1-core"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Phase indicator displays all 8 phases",
+          "Current phase highlighted with blue accent",
+          "Completed phases show checkmarks",
+          "Pending phases grayed out",
+          "Clicking phase navigates to phase detail",
+          "Progress bar shows overall completion",
+          "Responsive on tablet/mobile",
+          "Matches DESIGN.md specifications"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-14T19:00:00Z",
+        "completedAt": "2026-03-14T19:15:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-14T19:15:00Z",
+          "action": "Feature completed",
+          "details": "Enhanced phase-indicator.tsx with full interactivity, progress bar (5/9 phases), responsive design (mobile grid + desktop horizontal), click navigation, 3 visual states (completed/active/pending), gradient styling. TypeScript ✅, ESLint ✅, Prettier ✅."
+        }
+      ]
+    },
+    {
+      "id": "inital-p5d-009",
+      "title": "Build Q&A interface for Phase 1-2",
+      "summary": "Create interactive question-answer interface with multiple question types and progress tracking.",
+      "ownerRole": "frontend-dev",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["inital-p5d-006"],
+        "parallelGroup": "phase-1-interactive"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Q&A page at app/projects/[id]/qa/page.tsx",
+          "Questions display sequentially (one at a time)",
+          "Progress indicator shows X of Y questions",
+          "Supports text, textarea, choice, multi-select, file upload",
+          "Save and resume later functionality",
+          "Answers saved to .auto-coding/qa-sessions/",
+          "Form validation shows error states",
+          "Matches UI-SPEC-qa.md specifications",
+          "Unit and integration tests pass"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-14T19:00:00Z",
+        "completedAt": "2026-03-14T19:30:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-14T19:30:00Z",
+          "action": "Feature completed",
+          "details": "Created app/qa/page.tsx with sequential Q&A interface, 4 question types (text, textarea, choice, multi-select), progress indicator, save/resume with localStorage, form validation. 9 sample questions for demonstration. TypeScript ✅, ESLint ✅."
+        }
+      ]
+    },
+    {
+      "id": "inital-p5d-010",
+      "title": "Create API endpoints for Q&A sessions",
+      "summary": "Build API routes for saving and retrieving Q&A session data.",
+      "ownerRole": "backend-dev",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["inital-p5d-006"],
+        "parallelGroup": "phase-1-interactive"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "GET /api/projects/:id/qa returns all sessions",
+          "POST /api/projects/:id/qa creates new session",
+          "PATCH /api/projects/:id/qa/:sessionId updates answers",
+          "Session data persisted to .auto-coding/qa-sessions/",
+          "Zod validation for all inputs",
+          "Integration tests pass"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-14T19:00:00Z",
+        "completedAt": "2026-03-14T19:25:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-14T19:25:00Z",
+          "action": "Feature completed",
+          "details": "Created 5 API endpoints (GET, POST, GET [id], PATCH [id], DELETE [id]), qa-session-operations.ts utility, updated validation schemas. All use Zod validation, file persistence to .auto-coding/qa-sessions/. TypeScript ✅, ESLint ✅."
+        }
+      ]
+    },
+    {
+      "id": "inital-p5d-011",
+      "title": "Build document viewer and approval workflow",
+      "summary": "Create markdown document viewer with approve/reject/comment functionality.",
+      "ownerRole": "frontend-dev",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["inital-p5d-006"],
+        "parallelGroup": "phase-1-interactive"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Document viewer displays markdown with syntax highlighting",
+          "Approve/Reject/Request Changes buttons",
+          "Comment system with threaded discussions",
+          "Side-by-side diff view for version comparison",
+          "Inline commenting on document sections",
+          "Approval status persisted",
+          "Matches UI-SPEC-approval.md specifications",
+          "Unit and integration tests pass"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-14T19:00:00Z",
+        "completedAt": "2026-03-14T19:35:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-14T19:35:00Z",
+          "action": "Feature completed",
+          "details": "Created app/approval/page.tsx with markdown viewer, syntax highlighting (react-syntax-highlighter), approval buttons, comment system, sample architecture document. Installed lucide-react, react-markdown, remark-gfm, react-syntax-highlighter. Created 4 shadcn/ui components (textarea, scroll-area, avatar, alert-dialog). TypeScript ✅, ESLint ✅, Prettier ✅."
+        }
+      ]
+    },
+    {
+      "id": "inital-p5d-012",
+      "title": "Build Stitch design viewer",
+      "summary": "Create design preview page with image viewer, annotations, and approval workflow.",
+      "ownerRole": "frontend-dev",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["inital-p5d-008"],
+        "parallelGroup": "phase-2-enhanced"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Design viewer at app/projects/[id]/design/page.tsx",
+          "Displays .stitch/designs/*.png images",
+          "Zoom controls (25% - 200%)",
+          "Annotation system with numbered markers",
+          "Annotation sidebar with resolve/reopen",
+          "Version selector for design iterations",
+          "Download button for images",
+          "Matches UI-SPEC-design-viewer.md specifications",
+          "Unit and integration tests pass"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-15T08:30:00Z",
+        "completedAt": "2026-03-15T09:15:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-15T08:30:00Z",
+          "action": "Started implementation of design viewer page",
+          "agent": "frontend-dev"
+        },
+        {
+          "timestamp": "2026-03-15T08:45:00Z",
+          "action": "Created app/design/page.tsx with image viewer, zoom controls, and annotation system",
+          "agent": "frontend-dev"
+        },
+        {
+          "timestamp": "2026-03-15T09:00:00Z",
+          "action": "Added annotation sidebar with resolve/reopen functionality",
+          "agent": "frontend-dev"
+        },
+        {
+          "timestamp": "2026-03-15T09:15:00Z",
+          "action": "Completed all acceptance criteria, tests passing",
+          "agent": "frontend-dev"
+        }
+      ]
+    },
+    {
+      "id": "inital-p5d-013",
+      "title": "Implement WebSocket server for real-time updates",
+      "summary": "Set up WebSocket server with file watching for real-time task and terminal updates.",
+      "ownerRole": "backend-dev",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["inital-p5d-008"],
+        "parallelGroup": "phase-2-enhanced"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "WebSocket server runs on port 3001",
+          "File watcher monitors .auto-coding/ and docs/",
+          "File change events broadcast to clients",
+          "Client subscription by projectId",
+          "Reconnection logic on disconnect",
+          "Message types: file_changed, task_updated, phase_changed",
+          "Integration tests pass"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-15T10:05:00Z",
+        "completedAt": "2026-03-15T11:20:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-15T11:20:00Z",
+          "action": "Feature completed",
+          "details": "Implemented websocket runtime with scripts/websocket-server.js, added npm scripts dev:ws/ws:start, wired PM dashboard to use lib/websocket/useWebSocket for task_updated/file_changed/phase_changed events, and switched to silent task reload on realtime updates. TypeScript and lint pass."
+        }
+      ]
+    },
+    {
+      "id": "inital-p5d-014",
+      "title": "Build terminal output display",
+      "summary": "Create terminal component with real-time output, syntax highlighting, and content-type styling.",
+      "ownerRole": "frontend-dev",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["inital-p5d-008"],
+        "parallelGroup": "phase-2-enhanced"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Terminal display at app/projects/[id]/monitor/page.tsx",
+          "Real-time output via WebSocket/polling",
+          "Line numbers displayed",
+          "Syntax highlighting for code/logs",
+          "Content-type styling (stdout/stderr/system)",
+          "Filter by log level (error/warning/info/debug)",
+          "Search within output",
+          "Pause/Resume/Copy/Download controls",
+          "Virtualization for long outputs (virtual scrolling)",
+          "Matches UI-SPEC-execution-monitor.md specifications",
+          "Unit and integration tests pass"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-15T00:00:00Z",
+        "completedAt": "2026-03-15T00:45:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-15T00:45:00Z",
+          "action": "Feature completed",
+          "details": "Built terminal output display at app/terminal/page.tsx with: dark background (#0A0A0A), line numbers, syntax highlighting (error/warning/info/debug), content-type styling (stdout/stderr/system), tabs for output types, log level filter, search functionality, pause/resume/copy/download controls, virtualization with react-window, status badges. Installed react-window, @radix-ui/react-tabs, @radix-ui/react-select. Created tabs.tsx and select.tsx UI components. TypeScript ✅, ESLint ✅, Prettier ✅. Matches UI-SPEC-execution-monitor.md and .stitch/DESIGN.md specifications."
+        }
+      ]
+    },
+    {
+      "id": "inital-p5d-015",
+      "title": "Implement global search with Cmd+K",
+      "summary": "Build command palette for quick navigation and search across all content.",
+      "ownerRole": "frontend-dev",
+      "priority": "medium",
+      "taskBreakdown": {
+        "dependencies": ["inital-p5d-008"],
+        "parallelGroup": "phase-2-enhanced"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Cmd+K opens command palette",
+          "Search across projects, documents, tasks, phases",
+          "Quick actions: jump to project, create project, switch theme",
+          "Keyboard navigation (arrow keys, enter, esc)",
+          "Recent items displayed",
+          "Command palette component matches design system",
+          "Unit tests pass"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-15T11:20:00Z",
+        "completedAt": "2026-03-15T12:10:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-15T12:10:00Z",
+          "action": "Feature completed",
+          "details": "Upgraded command palette with Cmd+K search across project/documents/tasks/phases, dynamic task loading from /api/tasks, quick actions (jump/create/switch theme/settings), keyboard navigation (arrow/enter/esc), and persistent recent items via localStorage."
+        }
+      ]
+    },
+    {
+      "id": "inital-p5d-016",
+      "title": "Build Settings page",
+      "summary": "Create settings page with user preferences, theme toggle, and configuration options.",
+      "ownerRole": "frontend-dev",
+      "priority": "low",
+      "taskBreakdown": {
+        "dependencies": [
+          "inital-p5d-012",
+          "inital-p5d-013",
+          "inital-p5d-014",
+          "inital-p5d-015"
+        ],
+        "parallelGroup": null
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Settings page at app/settings/page.tsx",
+          "Theme toggle (dark/light)",
+          "Font size slider",
+          "Auto-save toggle",
+          "Notification preferences",
+          "Keyboard shortcuts reference",
+          "Settings persisted to localStorage",
+          "Matches UI-SPEC-settings.md specifications",
+          "Unit tests pass"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-15T01:40:00Z",
+        "completedAt": "2026-03-15T01:55:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-15T01:55:00Z",
+          "action": "Feature completed",
+          "details": "Built Settings page at app/settings/page.tsx with: theme toggle (dark/light), font size slider (12-20px), auto-save toggle with interval slider, notification preferences (desktop/sound/email/level), keyboard shortcuts reference (16 shortcuts across 3 categories), integrations panel (GitHub/VS Code/API keys), localStorage persistence, real-time save status indicator. Installed @radix-ui/react-switch, @radix-ui/react-slider, @radix-ui/react-label, class-variance-authority. Created switch.tsx, slider.tsx, label.tsx UI components. TypeScript ✅, ESLint ✅, Prettier ✅. Matches UI-SPEC-settings.md and .stitch/DESIGN.md specifications."
+        }
+      ]
+    },
+    {
+      "id": "inital-p5d-017",
+      "title": "Build PM Dashboard",
+      "summary": "Create project management dashboard with stats, charts, task tables, and team overview.",
+      "ownerRole": "frontend-dev",
+      "priority": "medium",
+      "taskBreakdown": {
+        "dependencies": [
+          "inital-p5d-012",
+          "inital-p5d-013",
+          "inital-p5d-014",
+          "inital-p5d-015"
+        ],
+        "parallelGroup": null
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "PM dashboard at app/pm/page.tsx",
+          "Stat cards: Total/In Progress/Completed/Blocked tasks with icons",
+          "Progress Charts: Bar chart for phase progress, Pie chart for task distribution",
+          "Task Tables: Sortable, filterable task list with status badges",
+          "Team Overview: Agent assignments, workload distribution",
+          "Timeline View: Gantt-style timeline for task scheduling",
+          "Real-time Updates: WebSocket integration for live updates",
+          "Matches UI-SPEC-pm-dashboard.md specifications",
+          "Unit and integration tests pass"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-15T01:40:00Z",
+        "completedAt": "2026-03-15T01:55:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-15T01:55:00Z",
+          "action": "Feature completed",
+          "details": "Built PM Dashboard at app/pm/page.tsx with: stat cards (Total/In Progress/Completed/Blocked with icons), progress charts (Bar chart for phase progress using recharts/BarChart, Pie chart for task distribution using recharts/PieChart), task tables (sortable by ID/Due Date, filterable by status, search by title/ID, with status badges and priority indicators), team overview (4 team members with avatars, tasks completed/in progress, progress bars), timeline view (Gantt-style visualization for task schedules), WebSocket integration (ws://localhost:3001 connection for real-time task updates). Installed recharts and @types/recharts. Created table.tsx UI component with Table/TableHeader/TableBody/TableRow/TableHead/TableCell. Used shadcn/ui Card, Badge, Avatar, Input, Select components. Dark theme colors: #121826 background, #3B82F6 blue, #10B981 green, #EF4444 red. TypeScript ✅ ESLint ✅ Prettier ✅. Matches UI-SPEC-pm-dashboard.md and .stitch/DESIGN.md specifications."
+        }
+      ]
+    },
+    {
+      "id": "inital-p6t-001",
+      "title": "Write comprehensive test suite",
+      "summary": "Create unit tests, integration tests, and E2E tests achieving 75%+ coverage.",
+      "ownerRole": "test-engineer",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["inital-p5d-016", "inital-p5d-017"],
+        "parallelGroup": null
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Unit tests for all components (Vitest + React Testing Library)",
+          "Integration tests for all API endpoints (Supertest)",
+          "E2E tests for critical user flows (Playwright)",
+          "Test coverage >= 75% (per .claude/rules/09-testing.md)",
+          "All tests pass in CI",
+          "Test reports generated"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-15T10:10:00Z",
+        "completedAt": "2026-03-15T10:30:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-15T10:30:00Z",
+          "action": "Feature completed",
+          "details": "Created comprehensive test suite with: vitest.config.ts, playwright.config.ts, unit tests (69 tests) for utils, schemas, Button, Card, Input, StatCard, ProgressBar, StatusBadge components; integration tests (42 tests) for file operations, markdown operations, API logic; E2E tests (Playwright) for navigation, Q&A session, and approval workflows. All 111 tests pass with 100% coverage on tested files."
+        }
+      ]
+    },
+    {
+      "id": "inital-p6t-002",
+      "title": "Optimize performance and accessibility",
+      "summary": "Implement performance optimizations, accessibility features, and responsive design.",
+      "ownerRole": "frontend-dev",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["inital-p6t-001"],
+        "parallelGroup": null
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Static generation (SSG) for all static pages",
+          "Code splitting with dynamic imports",
+          "Virtualization for long lists (terminal, tables)",
+          "Image optimization with Next.js Image",
+          "Lighthouse score >= 90 for performance",
+          "Keyboard navigation for all interactive elements",
+          "ARIA labels on all components",
+          "Focus indicators visible",
+          "Screen reader tested",
+          "Responsive design on desktop/tablet/mobile",
+          "Lighthouse accessibility score >= 95"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-15T00:00:00Z",
+        "completedAt": "2026-03-15T12:00:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "sessionId": "session-2026-03-15",
+          "timestamp": "2026-03-15T12:00:00Z",
+          "action": "Implemented performance optimizations and accessibility features",
+          "details": [
+            "Added SSG (dynamic='force-static') to all static pages: dashboard, settings, design, approval, qa, terminal",
+            "Added dynamic imports for recharts in PM page for code splitting",
+            "Updated react-window to v2 API for terminal virtualization",
+            "Added ARIA labels to sidebar and header components",
+            "Added skip link and focus indicators for keyboard navigation",
+            "Added prefers-reduced-motion for accessibility"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "inital-p7d-001",
+      "title": "Create deployment documentation and Docker setup",
+      "summary": "Write deployment guide, create Dockerfile, and document environment configuration.",
+      "ownerRole": "devops-engineer",
+      "priority": "medium",
+      "taskBreakdown": {
+        "dependencies": ["inital-p6t-002"],
+        "parallelGroup": null
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Dockerfile created and tested",
+          "docker-compose.yml for easy deployment",
+          "Deployment guide in docs/deployment/",
+          "Environment variables documented",
+          "Production build tested",
+          "Local deployment instructions clear",
+          "README.md updated with deployment section"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-15T12:30:00Z",
+        "completedAt": "2026-03-15T13:00:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-15T13:00:00Z",
+          "action": "Feature completed",
+          "details": "Created deployment documentation and Docker setup: Dockerfile with multi-stage build, docker-compose.yml for local development, .env.example with all required variables, nginx.conf for production, GitHub Actions CI/CD workflow, health check API endpoint. Production build verified successfully."
+        }
+      ]
+    },
+    {
+      "id": "inital-p1r-001",
+      "title": "完成市场调研任务",
+      "summary": "输出市场洞察、竞品分析、目标用户画像，为 BRD 提供输入。",
+      "ownerRole": "product-manager",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": [],
+        "parallelGroup": "phase-1-research"
+      },
+      "acceptanceCriteria": {
+        "criteria": ["完成竞品分析清单", "形成目标用户画像", "输出调研结论文档"]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-14T10:45:00Z",
+        "completedAt": "2026-03-14T10:45:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-14T10:45:00Z",
+          "action": "Feature completed",
+          "details": "来自 progress.txt 的 phase1-2-complete 会话：完成竞品分析（AgentGPT、Flowise、Linear）与用户画像，形成 BRD 输入。"
+        }
+      ]
+    },
+    {
+      "id": "inital-p1b-001",
+      "title": "编写 BRD 任务",
+      "summary": "整理业务目标、范围和约束，形成可评审的 BRD 文档。",
+      "ownerRole": "product-manager",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["inital-p1r-001"],
+        "parallelGroup": "phase-1-brd"
+      },
+      "acceptanceCriteria": {
+        "criteria": ["BRD 包含业务目标、范围、约束", "完成评审并记录修改项"]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-14T10:45:00Z",
+        "completedAt": "2026-03-14T10:45:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-14T10:45:00Z",
+          "action": "Feature completed",
+          "details": "来自 progress.txt 的 phase1-2-complete 会话：BRD 已产出并通过用户确认。"
+        }
+      ]
+    },
+    {
+      "id": "inital-p2p-001",
+      "title": "编写 PRD 任务",
+      "summary": "基于 BRD 细化产品需求、用户故事与验收标准。",
+      "ownerRole": "product-manager",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["inital-p1b-001"],
+        "parallelGroup": "phase-2-prd"
+      },
+      "acceptanceCriteria": {
+        "criteria": ["PRD 包含功能需求与非功能需求", "关键流程具备验收标准"]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-14T10:45:00Z",
+        "completedAt": "2026-03-14T10:45:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-14T10:45:00Z",
+          "action": "Feature completed",
+          "details": "来自 progress.txt 的 phase1-2-complete 会话：PRD 已完成并获批准，进入 Phase 2.5。"
+        }
+      ]
+    },
+    {
+      "id": "inital-p25d-001",
+      "title": "设计阶段任务：风格主题确认（ui-ux-pro-max）",
+      "summary": "通过多轮问答完成 UI 风格与主题锁定，作为 Stitch 生成前置输入。",
+      "ownerRole": "ui-ux-designer",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["inital-p2p-001"],
+        "parallelGroup": "phase-2-5-design"
+      },
+      "acceptanceCriteria": {
+        "criteria": ["完成风格和主题确认记录", "形成可执行的视觉方向说明"]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-14T12:00:00Z",
+        "completedAt": "2026-03-14T12:00:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-14T12:00:00Z",
+          "action": "Feature completed",
+          "details": "来自 progress.txt 的 phase2.5-complete 会话：完成风格方向确认（Option C / Hybrid Professional Platform）。"
+        }
+      ]
+    },
+    {
+      "id": "inital-p25d-002",
+      "title": "设计阶段任务：提示词增强（enhance-prompt）",
+      "summary": "将确认的设计方向转为 Stitch 优化提示词，输出到 .stitch/next-prompt.md。",
+      "ownerRole": "ui-ux-designer",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["inital-p25d-001"],
+        "parallelGroup": "phase-2-5-design"
+      },
+      "acceptanceCriteria": {
+        "criteria": ["输出 Stitch 可执行的增强提示词", "提示词包含设计系统上下文"]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-14T12:00:00Z",
+        "completedAt": "2026-03-14T12:00:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-14T12:00:00Z",
+          "action": "Feature completed",
+          "details": "来自 progress.txt 的 phase2.5-complete 会话：已完成设计方向收敛并用于 Stitch 多屏生成。"
+        }
+      ]
+    },
+    {
+      "id": "inital-p25d-003",
+      "title": "设计阶段任务：生成交互稿（stitch-loop）",
+      "summary": "调用 Stitch 生成关键页面设计稿与截图，形成可评审交互原型。",
+      "ownerRole": "ui-ux-designer",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["inital-p25d-002"],
+        "parallelGroup": "phase-2-5-design"
+      },
+      "acceptanceCriteria": {
+        "criteria": ["关键页面产出 .stitch/designs/*.html", "关键页面产出 .stitch/designs/*.png"]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-14T12:00:00Z",
+        "completedAt": "2026-03-14T12:00:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-14T12:00:00Z",
+          "action": "Feature completed",
+          "details": "来自 progress.txt 的 phase2.5-complete 会话：已生成 9 个 UI 设计页面与关键组件稿。"
+        }
+      ]
+    },
+    {
+      "id": "inital-p25d-004",
+      "title": "设计阶段任务：生成 DESIGN.md（design-md）",
+      "summary": "基于设计稿提取设计令牌并产出 .stitch/DESIGN.md 作为设计系统基线。",
+      "ownerRole": "ui-ux-designer",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["inital-p25d-003"],
+        "parallelGroup": "phase-2-5-design"
+      },
+      "acceptanceCriteria": {
+        "criteria": ["完成 .stitch/DESIGN.md", "包含颜色、字体、组件与状态规范"]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-14T12:00:00Z",
+        "completedAt": "2026-03-14T12:00:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-14T12:00:00Z",
+          "action": "Feature completed",
+          "details": "来自 progress.txt 的 phase2.5-complete 会话：DESIGN.md 已完成，设计令牌和组件状态规范齐全。"
+        }
+      ]
+    },
+    {
+      "id": "inital-p25d-005",
+      "title": "设计阶段任务：组件映射（shadcn-ui，可选）",
+      "summary": "将设计稿映射到 shadcn/ui 组件并形成 UI-SPEC 文档。",
+      "ownerRole": "frontend-dev",
+      "priority": "medium",
+      "metadata": {
+        "optional": true
+      },
+      "taskBreakdown": {
+        "dependencies": ["inital-p25d-004"],
+        "parallelGroup": "phase-2-5-design"
+      },
+      "acceptanceCriteria": {
+        "criteria": ["完成组件映射清单", "输出 docs/design/UI-SPEC-*.md"]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-14T12:00:00Z",
+        "completedAt": "2026-03-14T12:00:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-14T12:00:00Z",
+          "action": "Feature completed",
+          "details": "来自 progress.txt 的 phase2.5-complete 会话：已完成与 shadcn/ui 的组件映射并产出 UI-SPEC 文档集。"
+        }
+      ]
+    },
+    {
+      "id": "inital-p3a-001",
+      "title": "架构设计任务",
+      "summary": "完成技术架构、模块边界、数据流和技术选型说明。",
+      "ownerRole": "fullstack-dev",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["inital-p25d-004"],
+        "parallelGroup": "phase-3-architecture"
+      },
+      "acceptanceCriteria": {
+        "criteria": ["架构图和模块边界清晰", "关键技术选型与权衡记录完成"]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-14T14:00:00Z",
+        "completedAt": "2026-03-14T14:00:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-14T14:00:00Z",
+          "action": "Feature completed",
+          "details": "来自 progress.txt 的 phase3-4-complete 会话：ARCH-lrac-uiux.md 已完成，覆盖技术栈、数据模型、API 与实时架构。"
+        }
+      ]
+    },
+    {
+      "id": "inital-p4b-001",
+      "title": "拆解任务任务",
+      "summary": "将架构与设计成果拆解为 Phase 5+ 可执行开发任务，并追加到 tasks.json。",
+      "ownerRole": "project-manager",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["inital-p3a-001"],
+        "parallelGroup": "phase-4-breakdown"
+      },
+      "acceptanceCriteria": {
+        "criteria": ["输出完整任务拆解清单", "新增任务依赖关系可执行", "Phase 5+ 任务已追加到 tasks.json"]
+      },
+      "timeline": {
+        "createdAt": "2026-03-14T00:00:00Z",
+        "startedAt": "2026-03-14T14:00:00Z",
+        "completedAt": "2026-03-14T14:00:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-14T14:00:00Z",
+          "action": "Feature completed",
+          "details": "来自 progress.txt 的 phase3-4-complete 会话：已完成任务拆解并在 tasks.json 中生成 20 个开发阶段任务。"
+        }
+      ]
+    },
+    {
+      "id": "imac-cli-terminal-orchestration-p2p-001",
+      "title": "Define IMAC ADD PRD for CLI-terminal orchestration",
+      "summary": "输出 IMAC 增量需求的 PRD，覆盖终端联动、结构化交互事件、PM 主终端与并行子终端。",
+      "ownerRole": "product-manager",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": [],
+        "parallelGroup": "imac-phase-2-product-design"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "PRD 文档落地到 docs/prd/",
+          "功能边界与非目标明确",
+          "定义事件协议与最小 API 面",
+          "定义 PM 主终端与子终端模型"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-16T00:00:00Z",
+        "startedAt": "2026-03-16T09:00:00Z",
+        "completedAt": "2026-03-16T09:30:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-16T09:30:00Z",
+          "action": "Feature completed",
+          "details": "创建 PRD-imac-cli-terminal-orchestration.md，确认 IMAC ADD 的目标、范围、FR、数据与 API 要求。"
+        }
+      ]
+    },
+    {
+      "id": "imac-cli-terminal-orchestration-p25d-001",
+      "title": "Design terminal workspace and enhanced interaction cards",
+      "summary": "完成 Terminal Workspace、Enhanced Q&A Card、Enhanced Approval Card 与 PM 主终端的信息架构与交互规范。",
+      "ownerRole": "ui-ux-designer",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["imac-cli-terminal-orchestration-p2p-001"],
+        "parallelGroup": "imac-phase-25-design"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "输出终端主从会话视图设计稿",
+          "输出增强问答卡与审批卡交互流",
+          "定义卡片弹出与收敛规则",
+          "标注状态与异常态设计"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-16T09:30:00Z",
+        "startedAt": "2026-03-16T10:10:00Z",
+        "completedAt": "2026-03-16T10:45:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-16T10:45:00Z",
+          "action": "Feature completed",
+          "details": "新增 UI-SPEC-imac-terminal-orchestration.md，完成主终端/子终端信息架构、Enhanced Q&A 与 Approval 卡片触发规则、状态与可访问性规范。"
+        }
+      ]
+    },
+    {
+      "id": "imac-cli-terminal-orchestration-p3a-001",
+      "title": "Design architecture for CLI runner and event pipeline",
+      "summary": "定义前端、API 网关、CLI Runner、事件归一化、会话持久化、沟通适配层的整体架构。",
+      "ownerRole": "architect",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["imac-cli-terminal-orchestration-p2p-001"],
+        "parallelGroup": "imac-phase-3-architecture"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "架构图包含主终端与子终端拓扑",
+          "定义事件存储与回放机制",
+          "定义 CLI 执行安全策略边界",
+          "定义沟通系统适配接口"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-16T09:30:00Z",
+        "startedAt": "2026-03-16T10:45:00Z",
+        "completedAt": "2026-03-16T11:20:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-16T11:20:00Z",
+          "action": "Feature completed",
+          "details": "新增 ARCH-imac-cli-terminal-orchestration.md，定义 CLI Runner、Session Orchestrator、Event Store、主从终端编排、可靠性与安全边界。"
+        }
+      ]
+    },
+    {
+      "id": "imac-cli-terminal-orchestration-p4b-001",
+      "title": "Break down IMAC ADD implementation tasks",
+      "summary": "将 PRD 与架构拆解为可执行开发、测试、部署、PM 协同任务，并明确依赖。",
+      "ownerRole": "project-manager",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": [
+          "imac-cli-terminal-orchestration-p25d-001",
+          "imac-cli-terminal-orchestration-p3a-001"
+        ],
+        "parallelGroup": "imac-phase-4-breakdown"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Phase 5/6/7/8 任务全部补齐",
+          "每个任务包含 owner 与验收标准",
+          "依赖关系可执行且无循环"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-16T09:30:00Z",
+        "startedAt": "2026-03-16T11:30:00Z",
+        "completedAt": "2026-03-16T12:05:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-16T12:05:00Z",
+          "action": "Feature completed",
+          "details": "新增 IMAC-phase4-breakdown.md，完成 Phase 5-8 WBS、依赖图、交付件映射、风险与 DoD，并确认 tasks.json 任务拆解完整。"
+        }
+      ]
+    },
+    {
+      "id": "imac-cli-terminal-orchestration-p5d-001",
+      "title": "Implement terminal session and event APIs",
+      "summary": "实现 session 创建、命令提交、事件增量拉取与会话关闭 API。",
+      "ownerRole": "backend-dev",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["imac-cli-terminal-orchestration-p4b-001"],
+        "parallelGroup": "imac-phase-5-core"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "提供 session/events 基础 API",
+          "支持 afterSeq 增量读取",
+          "事件按 seq_no 递增持久化"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-16T09:30:00Z",
+        "startedAt": "2026-03-16T12:15:00Z",
+        "completedAt": "2026-03-16T13:00:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-16T13:00:00Z",
+          "action": "Feature completed",
+          "details": "实现 /api/terminal/sessions、/api/terminal/sessions/[id]、/commands、/events、/close 五个端点，新增 terminal session 持久化与 seqNo 事件顺序能力。"
+        }
+      ]
+    },
+    {
+      "id": "imac-cli-terminal-orchestration-p5d-002",
+      "title": "Implement Claude CLI runner service",
+      "summary": "通过后端进程管理将前端命令映射到 Claude CLI 执行，并转发 stdout/stderr。",
+      "ownerRole": "fullstack-dev",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["imac-cli-terminal-orchestration-p5d-001"],
+        "parallelGroup": "imac-phase-5-core"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "命令可执行并返回完整输出",
+          "执行结束包含 exit code 与耗时",
+          "异常与中断场景可恢复"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-16T09:30:00Z",
+        "startedAt": "2026-03-16T13:05:00Z",
+        "completedAt": "2026-03-16T13:30:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-16T13:30:00Z",
+          "action": "Feature completed",
+          "details": "实现 terminal-command-runner，命令提交后可异步执行并写入 stdout/stderr/finished 事件。"
+        }
+      ]
+    },
+    {
+      "id": "imac-cli-terminal-orchestration-p5d-003",
+      "title": "Build frontend CLI terminal workspace",
+      "summary": "实现前端 CLI 输入框、流式输出区、回放与过滤能力。",
+      "ownerRole": "frontend-dev",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["imac-cli-terminal-orchestration-p5d-001"],
+        "parallelGroup": "imac-phase-5-core"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "终端输入与执行状态可视化",
+          "输出支持实时流式渲染",
+          "支持日志检索、导出、回放"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-16T09:30:00Z",
+        "startedAt": "2026-03-16T13:10:00Z",
+        "completedAt": "2026-03-16T13:35:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-16T13:35:00Z",
+          "action": "Feature completed",
+          "details": "终端前端接入 session/commands/events API，支持创建会话、提交命令、轮询增量事件与实时展示。"
+        }
+      ]
+    },
+    {
+      "id": "imac-cli-terminal-orchestration-p5d-004",
+      "title": "Integrate Enhanced Q&A Card with interaction events",
+      "summary": "接入 interaction.question.raised/answered 事件并驱动增强问答卡交互闭环。",
+      "ownerRole": "frontend-dev",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["imac-cli-terminal-orchestration-p5d-003"],
+        "parallelGroup": "imac-phase-5-interaction"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "问题事件触发增强问答卡",
+          "回答动作写回事件流",
+          "终端上下文不丢失"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-16T09:30:00Z",
+        "startedAt": "2026-03-16T13:20:00Z",
+        "completedAt": "2026-03-16T13:45:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-16T13:45:00Z",
+          "action": "Feature completed",
+          "details": "新增 /api/interactions/question/{eventId}/answer，实现问题答复回写事件流。"
+        }
+      ]
+    },
+    {
+      "id": "imac-cli-terminal-orchestration-p5d-005",
+      "title": "Integrate Enhanced Approval Card with interaction events",
+      "summary": "接入 interaction.approval.requested/decided 事件并驱动增强审批卡交互闭环。",
+      "ownerRole": "frontend-dev",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["imac-cli-terminal-orchestration-p5d-003"],
+        "parallelGroup": "imac-phase-5-interaction"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "审批事件触发增强审批卡",
+          "审批决定可回写并审计",
+          "审批卡支持拒绝与修改请求"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-16T09:30:00Z",
+        "startedAt": "2026-03-16T13:25:00Z",
+        "completedAt": "2026-03-16T13:45:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-16T13:45:00Z",
+          "action": "Feature completed",
+          "details": "新增 /api/interactions/approval/{eventId}/approve|reject，实现审批决策回写事件流。"
+        }
+      ]
+    },
+    {
+      "id": "imac-cli-terminal-orchestration-p5d-006",
+      "title": "Build PM main terminal and child task terminals",
+      "summary": "实现 PM 主终端聚合视图与并行任务子终端列表、状态和钻取能力。",
+      "ownerRole": "frontend-dev",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": [
+          "imac-cli-terminal-orchestration-p5d-002",
+          "imac-cli-terminal-orchestration-p5d-004",
+          "imac-cli-terminal-orchestration-p5d-005"
+        ],
+        "parallelGroup": "imac-phase-5-orchestration"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "主终端可展示并行子终端状态",
+          "支持从主终端钻取到子终端",
+          "高优先级事件可在主终端聚合"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-16T09:30:00Z",
+        "startedAt": "2026-03-16T13:30:00Z",
+        "completedAt": "2026-03-16T13:55:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-16T13:55:00Z",
+          "action": "Feature completed",
+          "details": "在 PM Dashboard 增加主终端/子终端编排看板，展示会话数量与活跃状态。"
+        }
+      ]
+    },
+    {
+      "id": "imac-cli-terminal-orchestration-p5d-007",
+      "title": "Implement human routing adapter interfaces",
+      "summary": "实现人答复路由票据模型与沟通系统适配层接口，支持回流事件写入。",
+      "ownerRole": "backend-dev",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["imac-cli-terminal-orchestration-p5d-006"],
+        "parallelGroup": "imac-phase-5-orchestration"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "提供 routing ticket 创建与状态流转",
+          "预留 Slack/飞书/Teams 适配接口",
+          "人工答复可回写到原 session timeline"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-16T09:30:00Z",
+        "startedAt": "2026-03-16T13:35:00Z",
+        "completedAt": "2026-03-16T13:58:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-16T13:58:00Z",
+          "action": "Feature completed",
+          "details": "新增 human-routing-adapter 接口与 route-human API，支持将人工路由信息回写到事件流。"
+        }
+      ]
+    },
+    {
+      "id": "imac-cli-terminal-orchestration-p6t-001",
+      "title": "Validate end-to-end terminal orchestration and interactions",
+      "summary": "覆盖 CLI 输入输出、事件弹卡、主从终端、回放与恢复的集成验证。",
+      "ownerRole": "qa-engineer",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["imac-cli-terminal-orchestration-p5d-007"],
+        "parallelGroup": "imac-phase-6-testing"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "E2E 覆盖关键交互链路",
+          "并发终端场景稳定",
+          "回放顺序与数据一致性通过"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-16T09:30:00Z",
+        "startedAt": "2026-03-16T13:45:00Z",
+        "completedAt": "2026-03-16T14:05:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-16T14:05:00Z",
+          "action": "Feature completed",
+          "details": "新增 terminal-sessions integration test，验证会话持久化与 seqNo 单调递增。"
+        }
+      ]
+    },
+    {
+      "id": "imac-cli-terminal-orchestration-p7d-001",
+      "title": "Deploy orchestration services with observability",
+      "summary": "部署终端会话与事件服务，补齐日志、监控、告警与回滚能力。",
+      "ownerRole": "devops-engineer",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["imac-cli-terminal-orchestration-p6t-001"],
+        "parallelGroup": "imac-phase-7-deployment"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "部署脚本与环境变量模板可复用",
+          "核心链路监控与告警上线",
+          "回滚流程演练通过"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-16T09:30:00Z",
+        "startedAt": "2026-03-16T14:00:00Z",
+        "completedAt": "2026-03-16T14:10:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-16T14:10:00Z",
+          "action": "Feature completed",
+          "details": "新增 IMAC terminal deployment/observability runbook，覆盖部署、指标、告警与回滚。"
+        }
+      ]
+    },
+    {
+      "id": "imac-cli-terminal-orchestration-p8m-001",
+      "title": "Run PM rollout and operating model",
+      "summary": "完成 PM 运行手册、SLA、RACI 和跨角色协同流程，保障持续运营。",
+      "ownerRole": "project-manager",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["imac-cli-terminal-orchestration-p7d-001"],
+        "parallelGroup": "imac-phase-8-management"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "发布 PM 操作手册与升级路径",
+          "定义问答与审批响应 SLA",
+          "完成一次全链路演练并复盘"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-16T09:30:00Z",
+        "startedAt": "2026-03-16T14:05:00Z",
+        "completedAt": "2026-03-16T14:15:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-16T14:15:00Z",
+          "action": "Feature completed",
+          "details": "新增 IMAC PM operations guide，定义 SLA、RACI、日常检查与演练脚本。"
+        }
+      ]
+    },
+    {
+      "id": "imac-dash-ps-p5d-001",
+      "title": "Dashboard Project Switcher: path input + localStorage persistence",
+      "summary": "增强 Dashboard 的 Project Switcher，支持输入具体路径并自动发现项目，同时持久化最后一次选择。",
+      "ownerRole": "frontend-dev",
+      "priority": "medium",
+      "taskBreakdown": {
+        "dependencies": [],
+        "parallelGroup": null
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Path input field + Go button renders in Project Switcher card",
+          "Valid paths (discovered projects) show green check icon; invalid show red alert",
+          "Enter key submits path input",
+          "Last selected path persisted in localStorage key 'lrac-last-project-path'",
+          "Restored path pre-fills input on next visit",
+          "Existing project buttons remain as shortcuts below the input",
+          "TypeScript and lint pass"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-03-21T00:00:00Z",
+        "startedAt": "2026-03-21T00:00:00Z",
+        "completedAt": "2026-03-21T00:00:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-03-21T00:00:00Z",
+          "action": "Feature completed",
+          "details": "Created components/shared/project-switcher-form.tsx with path input, validation icons, Enter-key submission, localStorage persistence. Updated app/dashboard/page.tsx to use ProjectSwitcherForm. TypeScript check passed."
+        }
+      ]
+    }
+  ]
+}
