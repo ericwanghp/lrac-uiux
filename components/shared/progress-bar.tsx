@@ -37,14 +37,24 @@ export function ProgressBar({
   return (
     <div className={cn("w-full", className)}>
       {showLabel && (
-        <div className="flex items-center justify-between text-sm mb-2">
-          <span className="text-muted-foreground">Progress</span>
-          <span className="font-medium">{Math.round(percentage)}%</span>
+        <div className="mb-2 flex items-center justify-between text-sm">
+          <span className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+            Progress
+          </span>
+          <span className="text-xs font-semibold text-foreground">{Math.round(percentage)}%</span>
         </div>
       )}
-      <div className={cn("w-full bg-secondary rounded-full overflow-hidden", sizeStyles[size])}>
+      <div
+        className={cn(
+          "w-full overflow-hidden rounded-full border border-border/70 bg-secondary/75",
+          sizeStyles[size]
+        )}
+      >
         <div
-          className={cn("h-full transition-all duration-300 ease-in-out", variantStyles[variant])}
+          className={cn(
+            "h-full rounded-full transition-all duration-300 ease-in-out",
+            variantStyles[variant]
+          )}
           style={{ width: `${percentage}%` }}
         />
       </div>

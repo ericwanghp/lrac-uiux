@@ -18,3 +18,22 @@ export type {
   TerminalActor,
   TerminalEventPayload,
 } from "./terminal";
+export type {
+  ActivityFeed,
+  ActivityEvent,
+  ActivityFeedsJson,
+  ActivityFeedStatus,
+  ActivityFeedType,
+  ActivityEventType,
+  ActivityStreamType,
+  ActivityActor,
+  ActivityEventPayload,
+} from "./activity-feed";
+export type {
+  ProjectOption,
+  ProjectSignal,
+  ProjectDescriptor,
+  ProjectStatistics,
+  ProjectParallelGroupSummary,
+  ProjectOverview,
+} from "./project";

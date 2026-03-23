@@ -3,7 +3,8 @@ import { readTerminalSessionsFile } from "@/lib/utils/terminal-session-operation
 
 export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const sessionsData = await readTerminalSessionsFile();
+    const projectRoot = _request.nextUrl.searchParams.get("project");
+    const sessionsData = await readTerminalSessionsFile(projectRoot);
     const session = sessionsData.sessions.find((item) => item.id === params.id);
     if (!session) {
       return NextResponse.json(

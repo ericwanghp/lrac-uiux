@@ -11,10 +11,11 @@ const EventsQuerySchema = z.object({
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { searchParams } = new URL(request.url);
+    const projectRoot = searchParams.get("project");
     const validatedQuery = EventsQuerySchema.parse({
       afterSeq: searchParams.get("afterSeq") ?? 0,
     });
-    const sessionsData = await readTerminalSessionsFile();
+    const sessionsData = await readTerminalSessionsFile(projectRoot);
     const session = sessionsData.sessions.find((item) => item.id === params.id);
     if (!session) {
       return NextResponse.json(

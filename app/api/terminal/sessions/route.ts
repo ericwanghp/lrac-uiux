@@ -12,9 +12,10 @@ const CreateSessionSchema = z.object({
   parentSessionId: z.string().optional().nullable(),
 });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const sessionsData = await readTerminalSessionsFile();
+    const projectRoot = request.nextUrl.searchParams.get("project");
+    const sessionsData = await readTerminalSessionsFile(projectRoot);
     return NextResponse.json({
       success: true,
       data: {
@@ -35,12 +36,13 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const projectRoot = request.nextUrl.searchParams.get("project");
     const body = await request.json();
     const validatedInput = CreateSessionSchema.parse(body);
-    const sessionsData = await readTerminalSessionsFile();
+    const sessionsData = await readTerminalSessionsFile(projectRoot);
     const session = createTerminalSession(validatedInput);
     sessionsData.sessions.push(session);
-    await writeTerminalSessionsFile(sessionsData);
+    await writeTerminalSessionsFile(sessionsData, projectRoot);
     return NextResponse.json(
       {
         success: true,

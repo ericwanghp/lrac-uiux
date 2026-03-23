@@ -21,7 +21,7 @@ export interface UserSettingsEnvelope {
 }
 
 export const DEFAULT_USER_SETTINGS: UserSettings = {
-  theme: "dark",
+  theme: "light",
   fontSize: 14,
   autoSave: true,
   autoSaveInterval: 30,

@@ -4,14 +4,14 @@ import {
   readArtifacts,
   readCodeArtifacts,
   readExplicitArtifacts,
-  readTaskLogsByFeatureIds,
+  readTaskLogsByPhase,
 } from "@/lib/utils/phase-view-data";
 
 export async function GET() {
   try {
     const [sessions, taskLogs, designDocs, stitchDocs, prototypes] = await Promise.all([
       loadProgressSessions(),
-      readTaskLogsByFeatureIds(["inital-p5d-012", "inital-p25d-001", "inital-p25d-004"]),
+      readTaskLogsByPhase([2.5]),
       readArtifacts("design"),
       readExplicitArtifacts([".stitch/DESIGN.md", ".stitch/SITE.md", ".stitch/next-prompt.md"]),
       readCodeArtifacts(
@@ -27,7 +27,7 @@ export async function GET() {
     ]);
 
     const phaseSessions = sessions.filter((session) =>
-      ["ux-designer", "frontend-dev"].includes(session.role)
+      ["ui-ux-designer", "ux-designer", "frontend-dev"].includes(session.role)
     );
     const phaseCompleted = stitchDocs.some((artifact) => artifact.name === "DESIGN.md");
 

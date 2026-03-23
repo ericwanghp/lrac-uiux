@@ -1,16 +1,35 @@
-import { NextResponse } from "next/server";
-import { readTasksJson } from "@/lib/utils/file-operations";
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentProjectRoot, readTasksJson } from "@/lib/utils/file-operations";
+import { describeProjectRoot, discoverWorkspaceProjects } from "@/lib/utils/project-discovery";
+import type { TasksJson } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+function createEmptyTasks(projectName: string): TasksJson {
+  return {
+    version: "3.0",
+    project: projectName,
+    parallelGroups: {},
+    features: [],
+  };
+}
 
 /**
  * GET /api/projects
  * Get project overview with summary statistics
  */
-export async function GET() {
+export async function GET(request?: NextRequest) {
   try {
-    // Read tasks.json
-    const tasksData = await readTasksJson();
+    const requestedProjectRoot = request?.nextUrl.searchParams.get("project");
+    const currentProjectRoot = getCurrentProjectRoot(requestedProjectRoot);
+    const [tasksResult, availableProjects, currentProjectDescriptor] = await Promise.all([
+      readTasksJson(currentProjectRoot).catch(() => null),
+      discoverWorkspaceProjects(currentProjectRoot),
+      describeProjectRoot(currentProjectRoot),
+    ]);
+
+    const tasksData =
+      tasksResult || createEmptyTasks(currentProjectDescriptor.name || "current-project");
 
     // Calculate statistics
     const totalFeatures = tasksData.features.length;
@@ -67,6 +86,8 @@ export async function GET() {
       data: {
         project: tasksData.project,
         version: tasksData.version,
+        currentProjectRoot,
+        availableProjects,
         statistics: {
           totalFeatures,
           completedFeatures,

@@ -10,20 +10,25 @@ const AnswerQuestionSchema = z.object({
 
 export async function POST(request: NextRequest, { params }: { params: { eventId: string } }) {
   try {
+    const projectRoot = request.nextUrl.searchParams.get("project");
     const body = await request.json();
     const validatedInput = AnswerQuestionSchema.parse(body);
-    const { event } = await appendEventBySessionId(validatedInput.sessionId, {
-      eventType: "interaction.question.answered",
-      streamType: "system",
-      actor: {
-        type: "user",
-        id: validatedInput.actorId || "frontend-user",
+    const { event } = await appendEventBySessionId(
+      validatedInput.sessionId,
+      {
+        eventType: "interaction.question.answered",
+        streamType: "system",
+        actor: {
+          type: "user",
+          id: validatedInput.actorId || "frontend-user",
+        },
+        payload: {
+          sourceEventId: params.eventId,
+          answer: validatedInput.answer,
+        },
       },
-      payload: {
-        sourceEventId: params.eventId,
-        answer: validatedInput.answer,
-      },
-    });
+      projectRoot
+    );
     return NextResponse.json(
       {
         success: true,

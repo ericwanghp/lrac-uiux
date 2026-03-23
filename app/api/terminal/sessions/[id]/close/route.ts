@@ -4,7 +4,8 @@ import { closeTerminalSession } from "@/lib/services/terminal-command-runner";
 
 export async function POST(_request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const projectRoot = getCurrentProjectRoot();
+    const requestedProjectRoot = _request.nextUrl.searchParams.get("project");
+    const projectRoot = getCurrentProjectRoot(requestedProjectRoot);
     const session = await closeTerminalSession(params.id, projectRoot);
     return NextResponse.json({
       success: true,

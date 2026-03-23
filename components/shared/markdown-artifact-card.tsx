@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { marked } from "marked";
 import TurndownService from "turndown";
 import { gfm } from "turndown-plugin-gfm";
@@ -93,6 +93,17 @@ export function MarkdownArtifactCard({ artifact, className }: MarkdownArtifactCa
     setOpen(true);
     await loadContent();
   };
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open]);
 
   const saveContent = async () => {
     const saveMarkdown =
@@ -252,7 +263,16 @@ export function MarkdownArtifactCard({ artifact, className }: MarkdownArtifactCa
   );
 
   if (!isMarkdown) {
-    return <div className={className || "rounded-md border p-3 space-y-1"}>{cardContent}</div>;
+    return (
+      <div
+        className={
+          className ||
+          "space-y-1 rounded-2xl border border-border/80 bg-background/80 p-3 text-left"
+        }
+      >
+        {cardContent}
+      </div>
+    );
   }
 
   return (
@@ -260,7 +280,8 @@ export function MarkdownArtifactCard({ artifact, className }: MarkdownArtifactCa
       <button
         type="button"
         className={
-          className || "w-full rounded-md border p-3 space-y-1 text-left hover:border-primary"
+          className ||
+          "w-full space-y-1 rounded-2xl border border-border/80 bg-background/80 p-3 text-left transition-colors hover:border-primary/30 hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         }
         onClick={handleOpen}
       >
@@ -268,9 +289,14 @@ export function MarkdownArtifactCard({ artifact, className }: MarkdownArtifactCa
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="flex h-[86vh] w-[96vw] max-w-7xl flex-col rounded-xl border bg-background">
-            <div className="flex items-center justify-between border-b px-4 py-3">
+        <div className="admin-overlay-fixed">
+          <div
+            className="admin-modal-surface flex h-[86vh] w-[96vw] max-w-7xl flex-col rounded-[28px]"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Markdown Editor Dialog"
+          >
+            <div className="flex items-center justify-between border-b border-border/80 px-4 py-3">
               <div>
                 <p className="text-sm font-semibold">Markdown 编辑器</p>
                 <p className="text-xs text-muted-foreground">{artifact.relativePath}</p>
@@ -306,7 +332,7 @@ export function MarkdownArtifactCard({ artifact, className }: MarkdownArtifactCa
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2 border-b px-4 py-2">
+            <div className="flex flex-wrap gap-2 border-b border-border/80 bg-secondary/35 px-4 py-2">
               {toolbar.map((item) => (
                 <Button key={item.label} variant="outline" size="sm" onClick={item.action}>
                   {item.label}
@@ -316,7 +342,7 @@ export function MarkdownArtifactCard({ artifact, className }: MarkdownArtifactCa
 
             <div className="flex-1 overflow-hidden p-4">
               {mode === "source" ? (
-                <div className="h-full overflow-hidden rounded-lg border">
+                <div className="h-full overflow-hidden rounded-2xl border border-border/80 bg-background/80">
                   <Textarea
                     ref={textareaRef}
                     value={content}
@@ -337,11 +363,11 @@ export function MarkdownArtifactCard({ artifact, className }: MarkdownArtifactCa
                       }
                     }}
                     onChange={(e) => setContent(e.target.value)}
-                    className="h-full min-h-full resize-none border-0 font-mono text-sm"
+                    className="h-full min-h-full resize-none border-0 bg-transparent font-mono text-sm"
                   />
                 </div>
               ) : (
-                <ScrollArea className="h-full rounded-lg border">
+                <ScrollArea className="h-full rounded-2xl border border-border/80 bg-background/80">
                   <div
                     ref={editorRef}
                     contentEditable
@@ -363,7 +389,7 @@ export function MarkdownArtifactCard({ artifact, className }: MarkdownArtifactCa
                       }
                     }}
                     onInput={(e) => setEditorHtml((e.target as HTMLDivElement).innerHTML)}
-                    className="prose prose-sm min-h-full max-w-none p-4 outline-none dark:prose-invert"
+                    className="prose prose-slate prose-sm min-h-full max-w-none p-4 outline-none dark:prose-invert"
                     dangerouslySetInnerHTML={{ __html: editorHtml }}
                   />
                 </ScrollArea>
@@ -371,7 +397,9 @@ export function MarkdownArtifactCard({ artifact, className }: MarkdownArtifactCa
             </div>
 
             {message ? (
-              <div className="border-t px-4 py-2 text-xs text-muted-foreground">{message}</div>
+              <div className="border-t border-border/80 px-4 py-2 text-xs text-muted-foreground">
+                {message}
+              </div>
             ) : null}
           </div>
         </div>

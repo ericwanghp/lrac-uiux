@@ -30,9 +30,14 @@ test.describe("Navigation Flows", () => {
     await expect(page).toHaveURL("/design");
   });
 
-  test("should navigate to terminal page", async ({ page }) => {
+  test("should navigate to tasks log page", async ({ page }) => {
+    await page.goto("/tasks-log");
+    await expect(page).toHaveURL("/tasks-log");
+  });
+
+  test("should redirect legacy terminal route to tasks log", async ({ page }) => {
     await page.goto("/terminal");
-    await expect(page).toHaveURL("/terminal");
+    await expect(page).toHaveURL("/tasks-log");
   });
 
   test("should navigate to settings page", async ({ page }) => {

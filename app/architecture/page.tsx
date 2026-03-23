@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   loadProgressSessions,
   readArtifacts,
-  readTaskLogsByFeatureIds,
+  readTaskLogsByPhase,
 } from "@/lib/utils/phase-view-data";
 import { MarkdownArtifactCard } from "@/components/shared/markdown-artifact-card";
 
@@ -24,24 +24,18 @@ export default async function ArchitecturePage() {
   const [archFiles, sessions, taskLogs] = await Promise.all([
     readArtifacts("architecture"),
     loadProgressSessions(),
-    readTaskLogsByFeatureIds([
-      "inital-p5d-005",
-      "inital-p5d-007",
-      "inital-p5d-008",
-      "inital-p5d-013",
-      "inital-p5d-014",
-      "inital-p5d-015",
-    ]),
+    readTaskLogsByPhase([3, 4]),
   ]);
 
   const phaseSessions = sessions.filter((session) => ["architect"].includes(session.role));
   const phaseCompleted = archFiles.length > 0;
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="admin-page">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Phase 3-4 Architecture</h1>
+          <p className="admin-kicker mb-2">Planning Workspace</p>
+          <h1 className="text-3xl font-bold tracking-tight">Phase 3-4 Architecture</h1>
           <p className="text-muted-foreground mt-1">展示架构阶段日志、工具日志与架构产出物</p>
         </div>
         <Badge variant={phaseCompleted ? "success" : "secondary"}>
@@ -50,7 +44,7 @@ export default async function ArchitecturePage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
+        <Card className="admin-panel border-border/80 bg-card/90 lg:col-span-2">
           <CardHeader>
             <CardTitle>阶段执行日志</CardTitle>
             <CardDescription>来源：.auto-coding/progress.txt</CardDescription>
@@ -86,7 +80,7 @@ export default async function ArchitecturePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="admin-panel border-border/80 bg-card/90">
           <CardHeader>
             <CardTitle>AI Coding / IDE 日志</CardTitle>
             <CardDescription>来源：tasks.json executionHistory</CardDescription>
@@ -117,7 +111,7 @@ export default async function ArchitecturePage() {
         </Card>
       </div>
 
-      <Card>
+      <Card className="admin-panel border-border/80 bg-card/90">
         <CardHeader>
           <CardTitle>Architecture 产出物</CardTitle>
           <CardDescription>阶段完成后自动展示</CardDescription>

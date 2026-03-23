@@ -2,11 +2,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
+  inferFeaturePhase,
   loadProgressSessions,
   readArtifacts,
   readCodeArtifacts,
   readExplicitArtifacts,
-  readTaskLogsByFeatureIds,
+  readTaskLogsByPhase,
 } from "@/lib/utils/phase-view-data";
 import { readTasksJson } from "@/lib/utils/file-operations";
 import { MarkdownArtifactCard } from "@/components/shared/markdown-artifact-card";
@@ -23,13 +24,11 @@ function formatTime(iso: string): string {
   });
 }
 
-const TESTING_FEATURE_IDS = ["inital-p6t-001", "inital-p6t-002"];
-
 export default async function TestingPage() {
   const [sessions, taskLogs, tasksData, docArtifacts, testCodeArtifacts, configArtifacts] =
     await Promise.all([
       loadProgressSessions(),
-      readTaskLogsByFeatureIds(TESTING_FEATURE_IDS),
+      readTaskLogsByPhase([6]),
       readTasksJson(),
       readArtifacts("test"),
       readCodeArtifacts(
@@ -43,19 +42,18 @@ export default async function TestingPage() {
   const phaseSessions = sessions.filter((session) =>
     ["test-engineer", "frontend-dev"].includes(session.role)
   );
-  const testingFeatures = tasksData.features.filter((feature) =>
-    TESTING_FEATURE_IDS.includes(feature.id)
-  );
+  const testingFeatures = tasksData.features.filter((feature) => inferFeaturePhase(feature) === 6);
   const pendingFeatures = testingFeatures.filter(
     (feature) => feature.status.status !== "completed"
   );
   const phaseCompleted = pendingFeatures.length === 0 && testingFeatures.length > 0;
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="admin-page">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Phase 6 Testing</h1>
+          <p className="admin-kicker mb-2">Validation Workspace</p>
+          <h1 className="text-3xl font-bold tracking-tight">Phase 6 Testing</h1>
           <p className="text-muted-foreground mt-1">展示测试阶段日志、工具日志与测试产出物</p>
         </div>
         <Badge variant={phaseCompleted ? "success" : "secondary"}>
@@ -64,7 +62,7 @@ export default async function TestingPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
+        <Card className="admin-panel border-border/80 bg-card/90 lg:col-span-2">
           <CardHeader>
             <CardTitle>阶段执行日志</CardTitle>
             <CardDescription>来源：.auto-coding/progress.txt</CardDescription>
@@ -100,7 +98,7 @@ export default async function TestingPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="admin-panel border-border/80 bg-card/90">
           <CardHeader>
             <CardTitle>AI Coding / IDE 日志</CardTitle>
             <CardDescription>来源：tasks.json executionHistory</CardDescription>
@@ -132,7 +130,7 @@ export default async function TestingPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card>
+        <Card className="admin-panel border-border/80 bg-card/90">
           <CardHeader>
             <CardTitle>测试文档产出物</CardTitle>
             <CardDescription>docs/test 与显式配置</CardDescription>
@@ -156,7 +154,7 @@ export default async function TestingPage() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2">
+        <Card className="admin-panel border-border/80 bg-card/90 lg:col-span-2">
           <CardHeader>
             <CardTitle>测试代码产出物</CardTitle>
             <CardDescription>tests 目录中的 test/spec 文件</CardDescription>

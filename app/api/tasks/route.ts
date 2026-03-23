@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { readTasksJson } from "@/lib/utils/file-operations";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const tasksData = await readTasksJson();
+    const projectRoot = request.nextUrl.searchParams.get("project");
+    const tasksData = await readTasksJson(projectRoot);
     return NextResponse.json({
       success: true,
       data: {

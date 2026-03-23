@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/navigation/sidebar";
 import { Header } from "@/components/layout/header";
 import { CommandPalette } from "@/components/ui/command-palette";
 import { ProjectRealtimeStatusProvider } from "@/components/providers/project-realtime-status-provider";
+import { UiSettingsProvider } from "@/components/providers/ui-settings-provider";
 import "./globals.css";
 
 export default function RootLayout({
@@ -28,32 +29,34 @@ export default function RootLayout({
   }, []);
 
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased">
-        <ProjectRealtimeStatusProvider>
-          <a href="#main-content" className="skip-link focus-indicator">
-            Skip to main content
-          </a>
+        <UiSettingsProvider>
+          <ProjectRealtimeStatusProvider>
+            <a href="#main-content" className="skip-link focus-indicator">
+              Skip to main content
+            </a>
 
-          <div className="flex h-screen overflow-hidden">
-            <Sidebar />
+            <div className="admin-shell flex h-screen overflow-hidden">
+              <Sidebar />
 
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <Header />
-              <main
-                id="main-content"
-                className="flex-1 overflow-y-auto bg-background"
-                tabIndex={-1}
-              >
-                {children}
-              </main>
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <Header />
+                <main
+                  id="main-content"
+                  className="admin-main flex-1 overflow-y-auto bg-transparent"
+                  tabIndex={-1}
+                >
+                  {children}
+                </main>
+              </div>
             </div>
-          </div>
-          <CommandPalette
-            isOpen={isCommandPaletteOpen}
-            onClose={() => setIsCommandPaletteOpen(false)}
-          />
-        </ProjectRealtimeStatusProvider>
+            <CommandPalette
+              isOpen={isCommandPaletteOpen}
+              onClose={() => setIsCommandPaletteOpen(false)}
+            />
+          </ProjectRealtimeStatusProvider>
+        </UiSettingsProvider>
       </body>
     </html>
   );

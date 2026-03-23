@@ -5,14 +5,9 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FolderOpen, CheckCircle2, AlertCircle } from "lucide-react";
-import { PROJECT_ROOT_COOKIE_KEY } from "@/lib/constants/project-context";
-
-type ProjectOption = {
-  root: string;
-  name: string;
-};
-
-const LOCALSTORAGE_KEY = "lrac-last-project-path";
+import type { ProjectOption } from "@/lib/types";
+import { PROJECT_ROOT_LOCAL_STORAGE_KEY } from "@/lib/constants/project-context";
+import { buildProjectNavigationPath, persistProjectSelection } from "@/lib/utils/project-selection";
 
 type ValidationState = "idle" | "valid" | "invalid";
 
@@ -28,14 +23,10 @@ export function ProjectSwitcherForm({
   const router = useRouter();
   const [pathValue, setPathValue] = useState("");
   const [validationState, setValidationState] = useState<ValidationState>("idle");
-  const persistProjectSelection = useCallback((projectRoot: string) => {
-    localStorage.setItem(LOCALSTORAGE_KEY, projectRoot);
-    document.cookie = `${PROJECT_ROOT_COOKIE_KEY}=${encodeURIComponent(projectRoot)}; path=/; max-age=31536000; samesite=lax`;
-  }, []);
 
   // Restore last saved path on mount
   useEffect(() => {
-    const saved = localStorage.getItem(LOCALSTORAGE_KEY);
+    const saved = localStorage.getItem(PROJECT_ROOT_LOCAL_STORAGE_KEY);
     if (saved) {
       setPathValue(saved);
     }
@@ -67,19 +58,19 @@ export function ProjectSwitcherForm({
       const matched = availableProjects.find((p) => p.root === trimmed);
       if (matched) {
         persistProjectSelection(matched.root);
-        router.push("/dashboard");
+        router.push(buildProjectNavigationPath("/dashboard", matched.root));
         router.refresh();
       } else {
         // Try prefix match — find project root that starts with this path
         const prefixMatch = availableProjects.find((p) => p.root.startsWith(trimmed + "/"));
         if (prefixMatch) {
           persistProjectSelection(prefixMatch.root);
-          router.push("/dashboard");
+          router.push(buildProjectNavigationPath("/dashboard", prefixMatch.root));
           router.refresh();
         }
       }
     }
-  }, [pathValue, validationState, availableProjects, persistProjectSelection, router]);
+  }, [pathValue, validationState, availableProjects, router]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -90,7 +81,7 @@ export function ProjectSwitcherForm({
 
   const handleProjectSelect = (root: string) => {
     persistProjectSelection(root);
-    router.push("/dashboard");
+    router.push(buildProjectNavigationPath("/dashboard", root));
     router.refresh();
   };
 
@@ -115,7 +106,7 @@ export function ProjectSwitcherForm({
           {ValidationIcon && (
             <ValidationIcon
               className={`absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 ${
-                validationState === "valid" ? "text-green-500" : "text-destructive"
+                validationState === "valid" ? "text-success" : "text-destructive"
               }`}
             />
           )}

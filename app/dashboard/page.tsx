@@ -1,8 +1,10 @@
 import fs from "fs/promises";
 import path from "path";
+import Link from "next/link";
 import { ClipboardList, BarChart3, Settings, BookOpen, GitBranch } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   ProjectCard,
   StatCard,
@@ -11,8 +13,17 @@ import {
   ProjectSwitcherForm,
 } from "@/components/shared";
 import { PhaseIndicator } from "@/components/indicators/phase-indicator";
-import { PROJECT_ROOT, getCurrentProjectRoot } from "@/lib/utils/file-operations";
+import {
+  deriveBlockerQueue,
+  deriveWaitingInbox,
+  type WaitingInboxItem,
+} from "@/lib/utils/control-plane";
+import { syncApprovalsWithProject } from "@/lib/utils/approval-operations";
+import { getCurrentProjectRoot } from "@/lib/utils/file-operations";
+import { readActivityFeedsFile } from "@/lib/utils/activity-feed-operations";
 import { getPhaseFromParallelGroup, getPhaseFromTaskId } from "@/lib/constants/task-id";
+import { discoverWorkspaceProjects } from "@/lib/utils/project-discovery";
+import { buildProjectScopedPath } from "@/lib/utils/project-selection";
 import type { TasksJson } from "@/lib/types";
 import type { QASessionJson } from "@/lib/types/qa-session";
 
@@ -49,11 +60,6 @@ type MilestoneTrack = {
   currentPhase: number;
   completedPhases: number[];
   minVisiblePhase: number;
-};
-
-type ProjectOption = {
-  root: string;
-  name: string;
 };
 
 function inferPhaseFromFeature(
@@ -103,6 +109,26 @@ function getImacProgramKey(featureId: string): string {
   return "imac";
 }
 
+function getActionQueueHref(item: WaitingInboxItem, projectRoot: string): string {
+  if (item.kind === "approval") {
+    return buildProjectScopedPath("/approval", projectRoot);
+  }
+  if (item.kind === "question") {
+    const base = item.featureId
+      ? `/tasks-log?feature=${encodeURIComponent(item.featureId)}`
+      : "/tasks-log";
+    return buildProjectScopedPath(base, projectRoot);
+  }
+  const base = item.featureId ? `/pm?feature=${encodeURIComponent(item.featureId)}` : "/pm";
+  return buildProjectScopedPath(base, projectRoot);
+}
+
+function getActionTypeLabel(kind: WaitingInboxItem["kind"]): string {
+  if (kind === "approval") return "approval";
+  if (kind === "question") return "question";
+  return "human";
+}
+
 async function readJsonSafely<T>(filePath: string, fallback: T): Promise<T> {
   try {
     const content = await fs.readFile(filePath, "utf-8");
@@ -118,49 +144,6 @@ async function readTextSafely(filePath: string, fallback: string): Promise<strin
   } catch {
     return fallback;
   }
-}
-
-async function discoverProjectOptions(currentProjectRoot: string): Promise<ProjectOption[]> {
-  const workspaceRoot = path.dirname(PROJECT_ROOT);
-  const options: ProjectOption[] = [];
-  try {
-    const dirs = await fs.readdir(workspaceRoot, { withFileTypes: true });
-    const directoryNames = dirs.filter((entry) => entry.isDirectory()).map((entry) => entry.name);
-    const discovered = await Promise.all(
-      directoryNames.map(async (dirName) => {
-        const candidateRoot = path.join(workspaceRoot, dirName);
-        const tasksPath = path.join(candidateRoot, ".auto-coding", "tasks.json");
-        try {
-          await fs.access(tasksPath);
-          const tasksData = await readJsonSafely<{ project?: string } | null>(tasksPath, null);
-          return {
-            root: candidateRoot,
-            name: tasksData?.project || dirName,
-          };
-        } catch {
-          return null;
-        }
-      })
-    );
-    options.push(...discovered.filter((option): option is ProjectOption => Boolean(option)));
-  } catch {
-    options.push({
-      root: currentProjectRoot,
-      name: path.basename(currentProjectRoot),
-    });
-  }
-  const hasCurrent = options.some((option) => option.root === currentProjectRoot);
-  if (!hasCurrent) {
-    options.unshift({
-      root: currentProjectRoot,
-      name: path.basename(currentProjectRoot),
-    });
-  }
-  return options.sort((a, b) => {
-    if (a.root === currentProjectRoot) return -1;
-    if (b.root === currentProjectRoot) return 1;
-    return a.name.localeCompare(b.name);
-  });
 }
 
 async function loadDashboardData(projectParam: string | undefined) {
@@ -189,7 +172,7 @@ async function loadDashboardData(projectParam: string | undefined) {
           }
         })
       ),
-      discoverProjectOptions(projectRoot),
+      discoverWorkspaceProjects(projectRoot),
     ]);
 
   const tasksData = tasksResult.status === "fulfilled" ? tasksResult.value : null;
@@ -206,7 +189,14 @@ async function loadDashboardData(projectParam: string | undefined) {
           },
         ];
 
+  const [approvalsResult, activityFeedsResult] = await Promise.allSettled([
+    syncApprovalsWithProject(projectRoot),
+    readActivityFeedsFile(projectRoot),
+  ]);
   const features = tasksData?.features ?? [];
+  const approvals = approvalsResult.status === "fulfilled" ? approvalsResult.value : [];
+  const activityFeeds =
+    activityFeedsResult.status === "fulfilled" ? activityFeedsResult.value.sessions : [];
   const totalFeatures = features.length;
   const completedFeatures = features.filter(
     (f) => f.status.status === "completed" && f.status.passes
@@ -321,6 +311,12 @@ async function loadDashboardData(projectParam: string | undefined) {
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
     .slice(0, 6)
     .map(({ action, item, time }) => ({ action, item, time }));
+  const waitingInbox = deriveWaitingInbox({
+    features,
+    approvals,
+    sessions: activityFeeds,
+  }).slice(0, 6);
+  const blockerQueue = deriveBlockerQueue(features).slice(0, 6);
 
   return {
     projectRoot,
@@ -341,6 +337,8 @@ async function loadDashboardData(projectParam: string | undefined) {
     currentPhase,
     completedPhases,
     activity,
+    waitingInbox,
+    blockerQueue,
     branches,
     hasImacBranch,
     milestoneTracks,
@@ -365,18 +363,21 @@ export default async function DashboardPage({
       value: `${data.completedFeatures}/${data.totalFeatures}`,
       description: "From .auto-coding/tasks.json",
       variant: "success" as const,
+      icon: <ClipboardList className="h-5 w-5" />,
     },
     {
       title: "Current Phase",
       value: phaseLabel,
       description: phaseDescription,
       variant: "primary" as const,
+      icon: <GitBranch className="h-5 w-5" />,
     },
     {
       title: "Progress",
       value: `${data.overallProgress}%`,
       description: "Overall completion",
       variant: "default" as const,
+      icon: <BarChart3 className="h-5 w-5" />,
     },
     {
       title: "Branch Topology",
@@ -385,6 +386,7 @@ export default async function DashboardPage({
         ? `Initial ${data.branches.find((branch) => branch.key === "initial")?.total || 0} · IMAC ${data.branches.find((branch) => branch.key === "imac")?.total || 0}`
         : "Only initial task track",
       variant: data.hasImacBranch ? ("primary" as const) : ("default" as const),
+      icon: <GitBranch className="h-5 w-5" />,
     },
   ];
 
@@ -406,18 +408,19 @@ export default async function DashboardPage({
   ];
   const getTrackBackgroundClass = (track: MilestoneTrack) => {
     if (track.key === "initial") return "bg-background/40";
-    if (track.currentPhase <= 2) return "bg-amber-500/10 border-amber-500/40";
-    if (track.currentPhase <= 4) return "bg-cyan-500/10 border-cyan-500/40";
-    if (track.currentPhase === 5) return "bg-indigo-500/10 border-indigo-500/40";
-    if (track.currentPhase === 6) return "bg-emerald-500/10 border-emerald-500/40";
-    return "bg-violet-500/10 border-violet-500/40";
+    if (track.currentPhase <= 2) return "bg-warning/10 border-warning/40";
+    if (track.currentPhase <= 4) return "bg-primary/10 border-primary/35";
+    if (track.currentPhase === 5) return "bg-primary/10 border-primary/45";
+    if (track.currentPhase === 6) return "bg-success/10 border-success/40";
+    return "bg-secondary/70 border-border/80";
   };
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="admin-page">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <p className="admin-kicker mb-2">Control Tower</p>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground mt-1">
             Project path resolved and persistence loaded from docs/.auto-coding
           </p>
@@ -427,7 +430,7 @@ export default async function DashboardPage({
         </Button>
       </div>
 
-      <Card>
+      <Card className="admin-panel border-border/80 bg-card/90">
         <CardHeader>
           <CardTitle>Project Switcher</CardTitle>
           <CardDescription>
@@ -442,13 +445,13 @@ export default async function DashboardPage({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="admin-panel border-border/80 bg-card/90">
         <CardHeader>
           <CardTitle>Development Progress</CardTitle>
           <CardDescription>Current phase is inferred from persisted project state</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <details open className="rounded-lg border p-3 bg-muted/20">
+          <details open className="admin-panel-soft rounded-2xl p-3">
             <summary className="cursor-pointer list-none flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <GitBranch className="h-4 w-4 text-primary" />
@@ -491,15 +494,18 @@ export default async function DashboardPage({
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <StatCard key={index} {...stat} />
-        ))}
+      <div>
+        <p className="admin-kicker mb-3">Project Metrics</p>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {stats.map((stat) => (
+            <StatCard key={stat.title} {...stat} className="min-h-[156px]" />
+          ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <Card>
+          <Card className="admin-panel border-border/80 bg-card/90">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -517,7 +523,7 @@ export default async function DashboardPage({
               {projects.map((project, index) => (
                 <ProjectCard key={index} {...project} />
               ))}
-              <div className="rounded-lg border p-3 bg-muted/20">
+              <div className="admin-panel-soft rounded-2xl p-3">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <GitBranch className="h-4 w-4 text-primary" />
@@ -533,7 +539,7 @@ export default async function DashboardPage({
                   {data.branches.map((branch) => (
                     <div
                       key={branch.key}
-                      className="rounded border px-2 py-2 bg-background/40 flex items-center justify-between gap-2"
+                      className="rounded-2xl border border-border/80 bg-background/70 px-2 py-2 flex items-center justify-between gap-2"
                     >
                       <div>
                         <p className="text-xs font-medium">{branch.label}</p>
@@ -560,13 +566,13 @@ export default async function DashboardPage({
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="admin-panel border-border/80 bg-card/90">
             <CardHeader>
               <CardTitle>Persistence Snapshot</CardTitle>
               <CardDescription>docs and .auto-coding analysis</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
+              <div className="admin-panel-soft rounded-2xl p-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium">Project Root</span>
                   <StatusBadge status="active" size="sm" label="Resolved" />
@@ -574,7 +580,7 @@ export default async function DashboardPage({
                 <p className="text-xs text-muted-foreground break-all">{data.projectRoot}</p>
               </div>
 
-              <div>
+              <div className="admin-panel-soft rounded-2xl p-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium">docs Path</span>
                   <StatusBadge status="completed" size="sm" />
@@ -582,7 +588,7 @@ export default async function DashboardPage({
                 <p className="text-xs text-muted-foreground break-all">{data.docsRoot}</p>
               </div>
 
-              <div>
+              <div className="admin-panel-soft rounded-2xl p-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium">.auto-coding Path</span>
                   <StatusBadge status="completed" size="sm" />
@@ -590,7 +596,7 @@ export default async function DashboardPage({
                 <p className="text-xs text-muted-foreground break-all">{data.autoCodingPath}</p>
               </div>
 
-              <div>
+              <div className="admin-panel-soft rounded-2xl p-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium">Docs Coverage</span>
                   <span className="text-xs text-muted-foreground">
@@ -606,7 +612,7 @@ export default async function DashboardPage({
                   {data.docs.map((doc) => (
                     <div
                       key={doc.dir}
-                      className="flex items-center justify-between rounded border px-2 py-1"
+                      className="flex items-center justify-between rounded-2xl border border-border/80 bg-secondary/60 px-2 py-1"
                     >
                       <span>{doc.dir}</span>
                       <span>{doc.markdownCount}</span>
@@ -615,11 +621,11 @@ export default async function DashboardPage({
                 </div>
               </div>
 
-              <div>
+              <div className="admin-panel-soft rounded-2xl p-3">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Runtime Persistence</span>
+                  <span className="text-sm font-medium">Process Persistence</span>
                   <span className="text-xs text-muted-foreground">
-                    {data.qaSessionCount} QA sessions · {data.progressSessions} progress sessions
+                    {data.qaSessionCount} QA records · {data.progressSessions} progress snapshots
                   </span>
                 </div>
                 <ProgressBar
@@ -634,7 +640,7 @@ export default async function DashboardPage({
                 />
               </div>
 
-              <div>
+              <div className="admin-panel-soft rounded-2xl p-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium">Pending Features</span>
                   <span className="text-xs text-muted-foreground">
@@ -642,7 +648,7 @@ export default async function DashboardPage({
                   </span>
                 </div>
                 {data.pendingFeatureIds.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">No pending features</p>
+                  <p className="admin-empty-state admin-empty-state-sm">No pending features</p>
                 ) : (
                   <p className="text-xs text-muted-foreground">
                     {data.pendingFeatureIds.join(", ")}
@@ -654,7 +660,82 @@ export default async function DashboardPage({
         </div>
 
         <div className="space-y-6">
-          <Card>
+          <Card className="admin-panel border-border/80 bg-card/90">
+            <CardHeader>
+              <CardTitle>Action Queue</CardTitle>
+              <CardDescription>Items that need human or PM attention</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {data.waitingInbox.length === 0 ? (
+                  <p className="admin-empty-state admin-empty-state-md">No pending inbox items</p>
+                ) : (
+                  data.waitingInbox.map((item) => (
+                    <Link
+                      key={item.id}
+                      href={getActionQueueHref(item, data.projectRoot)}
+                      className="admin-panel-soft block rounded-2xl p-3 transition-all duration-150 hover:border-primary/25 hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm font-medium">{item.title}</p>
+                        <div className="flex items-center gap-2">
+                          <StatusBadge
+                            status={item.kind === "blocked" ? "blocked" : "pending"}
+                            size="sm"
+                            label={item.kind === "blocked" ? "blocked" : "pending"}
+                          />
+                          <Badge
+                            variant="outline"
+                            className="border-border/80 text-muted-foreground"
+                          >
+                            {getActionTypeLabel(item.kind)}
+                          </Badge>
+                        </div>
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">{item.summary}</p>
+                      <p className="mt-2 text-[11px] text-muted-foreground">
+                        {item.featureId || item.sessionId || "project"} ·{" "}
+                        {getRelativeTime(item.timestamp)}
+                      </p>
+                    </Link>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="admin-panel border-border/80 bg-card/90">
+            <CardHeader>
+              <CardTitle>Blocker Queue</CardTitle>
+              <CardDescription>Blocked tasks prioritized for intervention</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {data.blockerQueue.length === 0 ? (
+                  <p className="admin-empty-state admin-empty-state-md">No active blockers</p>
+                ) : (
+                  data.blockerQueue.map((item) => (
+                    <div key={item.featureId} className="admin-panel-soft rounded-2xl p-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm font-medium">{item.title}</p>
+                        <StatusBadge
+                          status={item.needsHumanIntervention ? "blocked" : "pending"}
+                          size="sm"
+                          label={item.needsHumanIntervention ? "human" : "queued"}
+                        />
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">{item.summary}</p>
+                      <p className="mt-2 text-[11px] text-muted-foreground">
+                        {item.featureId} · {item.reportedBy} · {getRelativeTime(item.reportedAt)}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="admin-panel border-border/80 bg-card/90">
             <CardHeader>
               <CardTitle>Recent Activity</CardTitle>
               <CardDescription>Latest updates and completions</CardDescription>
@@ -662,8 +743,8 @@ export default async function DashboardPage({
             <CardContent>
               <div className="space-y-4">
                 {data.activity.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    No execution history found in tasks.json
+                  <p className="admin-empty-state admin-empty-state-md">
+                    No workflow history found in tasks.json
                   </p>
                 ) : (
                   data.activity.map((activity, index) => (
@@ -683,7 +764,7 @@ export default async function DashboardPage({
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="admin-panel border-border/80 bg-card/90">
             <CardHeader>
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>

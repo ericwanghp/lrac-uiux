@@ -16,8 +16,9 @@ interface RouteParams {
 
 export async function GET(_request: NextRequest, { params }: RouteParams) {
   try {
+    const projectRoot = _request.nextUrl.searchParams.get("project");
     const { id } = await params;
-    const approvals = await syncApprovalsWithProject();
+    const approvals = await syncApprovalsWithProject(projectRoot);
     const approval = approvals.find((record) => record.id === id);
 
     if (!approval) {
@@ -47,12 +48,13 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
 
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
+    const projectRoot = request.nextUrl.searchParams.get("project");
     const { id } = await params;
     const body = await request.json();
     const validatedInput = UpdateApprovalInputSchema.parse(body);
-    await syncApprovalsWithProject();
+    await syncApprovalsWithProject(projectRoot);
 
-    const approvalsData = await readApprovalsFile();
+    const approvalsData = await readApprovalsFile(projectRoot);
     const approvalIndex = approvalsData.approvals.findIndex((record) => record.id === id);
 
     if (approvalIndex === -1) {
@@ -104,7 +106,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
           : existingApproval.decidedAt,
     };
 
-    await writeApprovalsFile(approvalsData);
+    await writeApprovalsFile(approvalsData, projectRoot);
 
     return NextResponse.json({
       success: true,

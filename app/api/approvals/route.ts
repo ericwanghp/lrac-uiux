@@ -5,7 +5,8 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
-    const approvals = await syncApprovalsWithProject();
+    const projectRoot = request.nextUrl.searchParams.get("project");
+    const approvals = await syncApprovalsWithProject(projectRoot);
     const documentPath = request.nextUrl.searchParams.get("documentPath");
     const status = request.nextUrl.searchParams.get("status");
 

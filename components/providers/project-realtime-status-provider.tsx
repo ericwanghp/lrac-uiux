@@ -1,8 +1,10 @@
 "use client";
 
 import * as React from "react";
+import { useSearchParams } from "next/navigation";
 import { useWebSocket } from "@/lib/websocket/useWebSocket";
 import { getPhaseFromTaskId } from "@/lib/constants/task-id";
+import { buildProjectScopedPath } from "@/lib/utils/project-selection";
 
 type FeatureStatus = "pending" | "in_progress" | "completed" | "blocked";
 
@@ -96,19 +98,24 @@ function buildSnapshot(features: FeatureFromApi[]): ProjectRealtimeSnapshot {
 }
 
 export function ProjectRealtimeStatusProvider({ children }: { children: React.ReactNode }) {
+  const searchParams = useSearchParams();
+  const projectRoot = searchParams.get("project");
   const [snapshot, setSnapshot] = React.useState<ProjectRealtimeSnapshot>(DEFAULT_SNAPSHOT);
 
   const refresh = React.useCallback(async () => {
     try {
-      const response = await fetch("/api/tasks", { cache: "no-store" });
+      const response = await fetch(buildProjectScopedPath("/api/tasks", projectRoot), {
+        cache: "no-store",
+      });
       const payload = await response.json();
       if (!response.ok || !payload?.success) return;
       const features = (payload.data?.features || []) as FeatureFromApi[];
       setSnapshot(buildSnapshot(features));
     } catch {}
-  }, []);
+  }, [projectRoot]);
 
   const { isConnected, isConnecting, reconnectAttempts } = useWebSocket({
+    projectId: projectRoot || undefined,
     channels: ["task_updated", "phase_changed", "file_changed"],
     onTaskUpdated: () => {
       void refresh();
@@ -129,7 +136,7 @@ export function ProjectRealtimeStatusProvider({ children }: { children: React.Re
       void refresh();
     }, 15000);
     return () => clearInterval(timer);
-  }, [refresh]);
+  }, [refresh, projectRoot]);
 
   const contextValue = React.useMemo(
     () => ({

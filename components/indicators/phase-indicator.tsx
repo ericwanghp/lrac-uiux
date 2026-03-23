@@ -87,7 +87,7 @@ export function PhaseIndicator({
         </div>
         <div className="relative h-2 w-full overflow-hidden rounded-full bg-secondary">
           <div
-            className="h-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-500 ease-out"
+            className="gradient-progress h-full transition-all duration-500 ease-out"
             style={{ width: `${progressPercentage}%` }}
           />
         </div>
@@ -103,9 +103,10 @@ export function PhaseIndicator({
             return (
               <button
                 key={phase.number}
+                type="button"
                 onClick={() => handlePhaseClick(phase.number, phase.route)}
                 className={cn(
-                  "flex flex-col items-center gap-2 rounded-lg p-3 transition-all",
+                  "flex flex-col items-center gap-2 rounded-lg p-3 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                   "hover:scale-105 hover:bg-accent/10",
                   status === "active" && "bg-primary/10"
                 )}
@@ -150,9 +151,10 @@ export function PhaseIndicator({
               <React.Fragment key={phase.number}>
                 {/* Phase Circle */}
                 <button
+                  type="button"
                   onClick={() => handlePhaseClick(phase.number, phase.route)}
                   className={cn(
-                    "group flex flex-col items-center gap-2 transition-all",
+                    "group flex flex-col items-center gap-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md",
                     "hover:scale-110",
                     status === "pending" && "cursor-not-allowed opacity-50"
                   )}

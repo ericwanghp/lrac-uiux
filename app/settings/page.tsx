@@ -23,6 +23,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DEFAULT_USER_SETTINGS } from "@/lib/types/settings";
 import type { UserSettings } from "@/lib/types/settings";
+import { applyDocumentUiSettings } from "@/lib/utils/theme";
 
 interface TaskIdSchemaData {
   format: string;
@@ -56,6 +57,12 @@ const keyboardShortcuts: KeyboardShortcut[] = [
   { action: "Next search result", keys: ["Cmd", "G"], category: "Search" },
   { action: "Previous search result", keys: ["Shift", "Cmd", "G"], category: "Search" },
 ];
+
+const panelClassName = "admin-panel border-border/80 bg-card/90";
+const triggerClassName =
+  "justify-start rounded-2xl px-4 py-3 w-full text-muted-foreground transition-all hover:bg-accent/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/15";
+const rowClassName = "flex items-center justify-between gap-4 py-4 border-b border-border/80";
+const codeSurfaceClassName = "rounded-xl border border-border/80 bg-secondary/70 px-3 py-2";
 
 async function fetchJson<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
   const response = await fetch(input, {
@@ -106,17 +113,8 @@ export default function SettingsPage() {
   }, []);
 
   useEffect(() => {
-    const root = document.documentElement;
-    if (settings.theme === "dark") {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
-  }, [settings.theme]);
-
-  useEffect(() => {
-    document.documentElement.style.fontSize = `${settings.fontSize}px`;
-  }, [settings.fontSize]);
+    applyDocumentUiSettings(settings);
+  }, [settings]);
 
   useEffect(() => {
     if (saveStatus === "idle") {
@@ -142,6 +140,12 @@ export default function SettingsPage() {
         body: JSON.stringify(nextSettings),
       });
       setSettings(payload.settings);
+      applyDocumentUiSettings(payload.settings);
+      window.dispatchEvent(
+        new CustomEvent("lrac:settings-updated", {
+          detail: payload.settings,
+        })
+      );
       setSaveStatus("saved");
       setSaveMessage("Settings saved");
     } catch (error) {
@@ -157,18 +161,19 @@ export default function SettingsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3B82F6]"></div>
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="admin-page min-h-screen">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8 flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Settings</h1>
-            <p className="text-[#A0A0A0]">
+            <p className="admin-kicker mb-2">Workspace Preferences</p>
+            <h1 className="mb-2 text-3xl font-bold tracking-tight text-foreground">Settings</h1>
+            <p className="text-muted-foreground">
               Project-scoped preferences are now persisted through the admin backend.
             </p>
           </div>
@@ -176,8 +181,8 @@ export default function SettingsPage() {
             <div
               className={
                 saveStatus === "error"
-                  ? "rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm text-red-300"
-                  : "rounded-lg border border-white/10 bg-[#1A1A1A] px-4 py-2 text-sm text-[#A0A0A0]"
+                  ? "rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-2 text-sm text-destructive"
+                  : "rounded-xl border border-border/80 bg-card/90 px-4 py-2 text-sm text-muted-foreground shadow-sm"
               }
             >
               {saveMessage}
@@ -187,38 +192,23 @@ export default function SettingsPage() {
 
         <Tabs defaultValue="general" orientation="vertical" className="flex gap-6">
           <TabsList className="flex h-auto w-64 flex-col gap-1 bg-transparent">
-            <TabsTrigger
-              value="general"
-              className="justify-start px-4 py-3 w-full data-[state=active]:bg-[#3B82F6]/10 data-[state=active]:text-[#3B82F6] text-[#A0A0A0] hover:bg-white/5 transition-all rounded-lg"
-            >
+            <TabsTrigger value="general" className={triggerClassName}>
               <Settings className="mr-3 h-4 w-4" />
               General
             </TabsTrigger>
-            <TabsTrigger
-              value="appearance"
-              className="justify-start px-4 py-3 w-full data-[state=active]:bg-[#3B82F6]/10 data-[state=active]:text-[#3B82F6] text-[#A0A0A0] hover:bg-white/5 transition-all rounded-lg"
-            >
+            <TabsTrigger value="appearance" className={triggerClassName}>
               <Palette className="mr-3 h-4 w-4" />
               Appearance
             </TabsTrigger>
-            <TabsTrigger
-              value="notifications"
-              className="justify-start px-4 py-3 w-full data-[state=active]:bg-[#3B82F6]/10 data-[state=active]:text-[#3B82F6] text-[#A0A0A0] hover:bg-white/5 transition-all rounded-lg"
-            >
+            <TabsTrigger value="notifications" className={triggerClassName}>
               <Bell className="mr-3 h-4 w-4" />
               Notifications
             </TabsTrigger>
-            <TabsTrigger
-              value="shortcuts"
-              className="justify-start px-4 py-3 w-full data-[state=active]:bg-[#3B82F6]/10 data-[state=active]:text-[#3B82F6] text-[#A0A0A0] hover:bg-white/5 transition-all rounded-lg"
-            >
+            <TabsTrigger value="shortcuts" className={triggerClassName}>
               <Keyboard className="mr-3 h-4 w-4" />
               Shortcuts
             </TabsTrigger>
-            <TabsTrigger
-              value="integrations"
-              className="justify-start px-4 py-3 w-full data-[state=active]:bg-[#3B82F6]/10 data-[state=active]:text-[#3B82F6] text-[#A0A0A0] hover:bg-white/5 transition-all rounded-lg"
-            >
+            <TabsTrigger value="integrations" className={triggerClassName}>
               <Plug className="mr-3 h-4 w-4" />
               Integrations
             </TabsTrigger>
@@ -226,21 +216,19 @@ export default function SettingsPage() {
 
           <div className="flex-1">
             <TabsContent value="general" className="space-y-6">
-              <Card className="bg-[#1A1A1A] border-white/5">
+              <Card className={panelClassName}>
                 <CardHeader>
-                  <CardTitle className="text-white">General Settings</CardTitle>
-                  <CardDescription className="text-[#A0A0A0]">
-                    Configure your general preferences
-                  </CardDescription>
+                  <CardTitle>General Settings</CardTitle>
+                  <CardDescription>Configure your general preferences</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="flex items-center justify-between py-4 border-b border-white/5">
+                  <div className={rowClassName}>
                     <div className="space-y-0.5">
-                      <Label className="text-white flex items-center gap-2">
+                      <Label className="flex items-center gap-2 text-foreground">
                         <Save className="h-4 w-4" />
                         Auto-save
                       </Label>
-                      <p className="text-sm text-[#A0A0A0]">
+                      <p className="text-sm text-muted-foreground">
                         Automatically save changes as you work
                       </p>
                     </div>
@@ -251,10 +239,10 @@ export default function SettingsPage() {
                   </div>
 
                   {settings.autoSave ? (
-                    <div className="py-4 border-b border-white/5">
+                    <div className="border-b border-border/80 py-4">
                       <div className="flex items-center justify-between mb-3">
-                        <Label className="text-white">Auto-save Interval</Label>
-                        <span className="text-sm text-[#3B82F6]">
+                        <Label className="text-foreground">Auto-save Interval</Label>
+                        <span className="text-sm font-medium text-primary">
                           {settings.autoSaveInterval} seconds
                         </span>
                       </div>
@@ -275,57 +263,57 @@ export default function SettingsPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-[#1A1A1A] border-white/5">
+              <Card className={panelClassName}>
                 <CardHeader>
-                  <CardTitle className="text-white">Task ID Schema</CardTitle>
-                  <CardDescription className="text-[#A0A0A0]">
+                  <CardTitle>Task ID Schema</CardTitle>
+                  <CardDescription>
                     Naming convention shared by tasks.json, templates, and IMAC tasks
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {taskIdSchemaError ? (
-                    <p className="text-sm text-red-400">{taskIdSchemaError}</p>
+                    <p className="text-sm text-destructive">{taskIdSchemaError}</p>
                   ) : !taskIdSchema ? (
-                    <p className="text-sm text-[#A0A0A0]">Loading schema...</p>
+                    <p className="text-sm text-muted-foreground">Loading schema...</p>
                   ) : (
                     <>
-                      <div className="rounded-md border border-white/10 bg-[#0F1117] px-3 py-2">
-                        <p className="text-xs text-[#A0A0A0]">Format</p>
-                        <p className="font-mono text-sm text-[#3B82F6]">{taskIdSchema.format}</p>
+                      <div className={codeSurfaceClassName}>
+                        <p className="text-xs text-muted-foreground">Format</p>
+                        <p className="font-mono text-sm text-primary">{taskIdSchema.format}</p>
                       </div>
-                      <div className="rounded-md border border-white/10 bg-[#0F1117] px-3 py-2">
-                        <p className="text-xs text-[#A0A0A0]">First Iteration</p>
-                        <p className="font-mono text-sm text-white">
+                      <div className={codeSurfaceClassName}>
+                        <p className="text-xs text-muted-foreground">First Iteration</p>
+                        <p className="font-mono text-sm text-foreground">
                           {taskIdSchema.firstIteration}
                         </p>
                       </div>
-                      <div className="rounded-md border border-white/10 bg-[#0F1117] px-3 py-2">
-                        <p className="text-xs text-[#A0A0A0]">Regex</p>
-                        <p className="font-mono text-xs text-white break-all">
+                      <div className={codeSurfaceClassName}>
+                        <p className="text-xs text-muted-foreground">Regex</p>
+                        <p className="font-mono text-xs text-foreground break-all">
                           /{taskIdSchema.regex}/
                         </p>
                       </div>
                       <div className="space-y-2">
-                        <p className="text-sm text-white">Phase Symbols</p>
+                        <p className="text-sm font-medium text-foreground">Phase Symbols</p>
                         <div className="grid grid-cols-2 gap-2">
                           {Object.entries(taskIdSchema.phaseSymbolMap).map(([symbol, phase]) => (
                             <div
                               key={symbol}
-                              className="rounded-md border border-white/10 bg-[#0F1117] px-3 py-2 flex items-center justify-between"
+                              className={`${codeSurfaceClassName} flex items-center justify-between`}
                             >
-                              <span className="font-mono text-xs text-[#3B82F6]">{symbol}</span>
-                              <span className="text-xs text-[#A0A0A0]">Phase {phase}</span>
+                              <span className="font-mono text-xs text-primary">{symbol}</span>
+                              <span className="text-xs text-muted-foreground">Phase {phase}</span>
                             </div>
                           ))}
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <p className="text-sm text-white">Examples</p>
+                        <p className="text-sm font-medium text-foreground">Examples</p>
                         <div className="space-y-1">
                           {taskIdSchema.examples.map((example) => (
                             <p
                               key={example}
-                              className="font-mono text-xs text-[#A0A0A0] rounded bg-[#0F1117] px-2 py-1 border border-white/10"
+                              className="rounded-lg border border-border/80 bg-secondary/70 px-2 py-1 font-mono text-xs text-muted-foreground"
                             >
                               {example}
                             </p>
@@ -339,17 +327,15 @@ export default function SettingsPage() {
             </TabsContent>
 
             <TabsContent value="appearance" className="space-y-6">
-              <Card className="bg-[#1A1A1A] border-white/5">
+              <Card className={panelClassName}>
                 <CardHeader>
-                  <CardTitle className="text-white">Appearance</CardTitle>
-                  <CardDescription className="text-[#A0A0A0]">
-                    Customize the look and feel of the application
-                  </CardDescription>
+                  <CardTitle>Appearance</CardTitle>
+                  <CardDescription>Customize the look and feel of the application</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="flex items-center justify-between py-4 border-b border-white/5">
+                  <div className={rowClassName}>
                     <div className="space-y-0.5">
-                      <Label className="text-white flex items-center gap-2">
+                      <Label className="flex items-center gap-2 text-foreground">
                         {settings.theme === "dark" ? (
                           <Moon className="h-4 w-4" />
                         ) : (
@@ -357,18 +343,16 @@ export default function SettingsPage() {
                         )}
                         Theme
                       </Label>
-                      <p className="text-sm text-[#A0A0A0]">Choose between dark and light mode</p>
+                      <p className="text-sm text-muted-foreground">
+                        Choose the default shell theme for the full admin console
+                      </p>
                     </div>
                     <div className="flex gap-2">
                       <Button
                         size="sm"
                         variant={settings.theme === "dark" ? "default" : "outline"}
                         onClick={() => updateSetting("theme", "dark")}
-                        className={
-                          settings.theme === "dark"
-                            ? "bg-[#3B82F6] text-white"
-                            : "border-white/20 text-[#A0A0A0]"
-                        }
+                        className="min-w-24"
                       >
                         <Moon className="h-4 w-4 mr-2" />
                         Dark
@@ -377,11 +361,7 @@ export default function SettingsPage() {
                         size="sm"
                         variant={settings.theme === "light" ? "default" : "outline"}
                         onClick={() => updateSetting("theme", "light")}
-                        className={
-                          settings.theme === "light"
-                            ? "bg-[#3B82F6] text-white"
-                            : "border-white/20 text-[#A0A0A0]"
-                        }
+                        className="min-w-24"
                       >
                         <Sun className="h-4 w-4 mr-2" />
                         Light
@@ -389,10 +369,12 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
-                  <div className="py-4 border-b border-white/5">
+                  <div className="border-b border-border/80 py-4">
                     <div className="flex items-center justify-between mb-3">
-                      <Label className="text-white">Terminal Font Size</Label>
-                      <span className="text-sm text-[#3B82F6]">{settings.fontSize}px</span>
+                      <Label className="text-foreground">Terminal Font Size</Label>
+                      <span className="text-sm font-medium text-primary">
+                        {settings.fontSize}px
+                      </span>
                     </div>
                     <Slider
                       value={[settings.fontSize]}
@@ -408,13 +390,13 @@ export default function SettingsPage() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-between py-4 border-b border-white/5">
+                  <div className={rowClassName}>
                     <div className="space-y-0.5">
-                      <Label className="text-white flex items-center gap-2">
+                      <Label className="flex items-center gap-2 text-foreground">
                         <Monitor className="h-4 w-4" />
                         Compact Mode
                       </Label>
-                      <p className="text-sm text-[#A0A0A0]">
+                      <p className="text-sm text-muted-foreground">
                         Reduce spacing for denser information display
                       </p>
                     </div>
@@ -426,11 +408,13 @@ export default function SettingsPage() {
 
                   <div className="flex items-center justify-between py-4">
                     <div className="space-y-0.5">
-                      <Label className="text-white flex items-center gap-2">
+                      <Label className="flex items-center gap-2 text-foreground">
                         <Smartphone className="h-4 w-4" />
                         Show Line Numbers
                       </Label>
-                      <p className="text-sm text-[#A0A0A0]">Display line numbers in code editors</p>
+                      <p className="text-sm text-muted-foreground">
+                        Display line numbers in code editors
+                      </p>
                     </div>
                     <Switch
                       checked={settings.showLineNumbers}
@@ -442,21 +426,19 @@ export default function SettingsPage() {
             </TabsContent>
 
             <TabsContent value="notifications" className="space-y-6">
-              <Card className="bg-[#1A1A1A] border-white/5">
+              <Card className={panelClassName}>
                 <CardHeader>
-                  <CardTitle className="text-white">Notifications</CardTitle>
-                  <CardDescription className="text-[#A0A0A0]">
-                    Configure how you receive notifications
-                  </CardDescription>
+                  <CardTitle>Notifications</CardTitle>
+                  <CardDescription>Configure how you receive notifications</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="flex items-center justify-between py-4 border-b border-white/5">
+                  <div className={rowClassName}>
                     <div className="space-y-0.5">
-                      <Label className="text-white flex items-center gap-2">
+                      <Label className="flex items-center gap-2 text-foreground">
                         <Monitor className="h-4 w-4" />
                         Desktop Notifications
                       </Label>
-                      <p className="text-sm text-[#A0A0A0]">
+                      <p className="text-sm text-muted-foreground">
                         Show desktop notifications for important events
                       </p>
                     </div>
@@ -466,13 +448,13 @@ export default function SettingsPage() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-between py-4 border-b border-white/5">
+                  <div className={rowClassName}>
                     <div className="space-y-0.5">
-                      <Label className="text-white flex items-center gap-2">
+                      <Label className="flex items-center gap-2 text-foreground">
                         <Volume2 className="h-4 w-4" />
                         Sound
                       </Label>
-                      <p className="text-sm text-[#A0A0A0]">Play sounds for notifications</p>
+                      <p className="text-sm text-muted-foreground">Play sounds for notifications</p>
                     </div>
                     <Switch
                       checked={settings.soundEnabled}
@@ -480,13 +462,13 @@ export default function SettingsPage() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-between py-4 border-b border-white/5">
+                  <div className={rowClassName}>
                     <div className="space-y-0.5">
-                      <Label className="text-white flex items-center gap-2">
+                      <Label className="flex items-center gap-2 text-foreground">
                         <Mail className="h-4 w-4" />
                         Email Notifications
                       </Label>
-                      <p className="text-sm text-[#A0A0A0]">
+                      <p className="text-sm text-muted-foreground">
                         Receive email updates for critical events
                       </p>
                     </div>
@@ -497,7 +479,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="py-4">
-                    <Label className="text-white mb-3 block">Notification Level</Label>
+                    <Label className="mb-3 block text-foreground">Notification Level</Label>
                     <div className="grid grid-cols-3 gap-3">
                       {(["all", "important", "critical"] as const).map((level) => (
                         <Button
@@ -505,17 +487,13 @@ export default function SettingsPage() {
                           size="sm"
                           variant={settings.notificationLevel === level ? "default" : "outline"}
                           onClick={() => updateSetting("notificationLevel", level)}
-                          className={
-                            settings.notificationLevel === level
-                              ? "bg-[#3B82F6] text-white capitalize"
-                              : "border-white/20 text-[#A0A0A0] capitalize"
-                          }
+                          className="capitalize"
                         >
                           {level}
                         </Button>
                       ))}
                     </div>
-                    <p className="text-sm text-[#6B7280] mt-2">
+                    <p className="mt-2 text-sm text-muted-foreground">
                       {settings.notificationLevel === "all" && "Receive all notifications"}
                       {settings.notificationLevel === "important" && "Only important notifications"}
                       {settings.notificationLevel === "critical" && "Only critical notifications"}
@@ -526,18 +504,16 @@ export default function SettingsPage() {
             </TabsContent>
 
             <TabsContent value="shortcuts" className="space-y-6">
-              <Card className="bg-[#1A1A1A] border-white/5">
+              <Card className={panelClassName}>
                 <CardHeader>
-                  <CardTitle className="text-white">Keyboard Shortcuts</CardTitle>
-                  <CardDescription className="text-[#A0A0A0]">
-                    View all available keyboard shortcuts
-                  </CardDescription>
+                  <CardTitle>Keyboard Shortcuts</CardTitle>
+                  <CardDescription>View all available keyboard shortcuts</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {Array.from(new Set(keyboardShortcuts.map((shortcut) => shortcut.category))).map(
                     (category) => (
                       <div key={category} className="mb-6 last:mb-0">
-                        <h3 className="text-sm font-semibold text-[#A0A0A0] uppercase mb-3">
+                        <h3 className="mb-3 text-sm font-semibold uppercase text-muted-foreground">
                           {category}
                         </h3>
                         <div className="space-y-2">
@@ -546,14 +522,14 @@ export default function SettingsPage() {
                             .map((shortcut) => (
                               <div
                                 key={`${shortcut.category}-${shortcut.action}`}
-                                className="flex items-center justify-between py-2 border-b border-white/5 last:border-0"
+                                className="flex items-center justify-between border-b border-border/80 py-2 last:border-0"
                               >
-                                <span className="text-sm text-white">{shortcut.action}</span>
+                                <span className="text-sm text-foreground">{shortcut.action}</span>
                                 <div className="flex gap-1">
                                   {shortcut.keys.map((key) => (
                                     <kbd
                                       key={`${shortcut.action}-${key}`}
-                                      className="px-2 py-1 text-xs font-mono bg-[#0A0A0A] border border-white/10 rounded text-[#A0A0A0]"
+                                      className="rounded-lg border border-border/80 bg-secondary/70 px-2 py-1 text-xs font-mono text-muted-foreground"
                                     >
                                       {key}
                                     </kbd>
@@ -570,36 +546,40 @@ export default function SettingsPage() {
             </TabsContent>
 
             <TabsContent value="integrations" className="space-y-6">
-              <Card className="bg-[#1A1A1A] border-white/5">
+              <Card className={panelClassName}>
                 <CardHeader>
-                  <CardTitle className="text-white">Integrations</CardTitle>
-                  <CardDescription className="text-[#A0A0A0]">
-                    Manage third-party integrations and connections
-                  </CardDescription>
+                  <CardTitle>Integrations</CardTitle>
+                  <CardDescription>Manage third-party integrations and connections</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="flex items-center justify-between py-4 border-b border-white/5">
+                  <div className={rowClassName}>
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-[#0A0A0A] flex items-center justify-center">
-                        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <div className="admin-icon-surface h-12 w-12">
+                        <svg
+                          className="h-6 w-6 text-foreground"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
                           <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z" />
                         </svg>
                       </div>
                       <div>
-                        <p className="font-medium text-white">GitHub</p>
-                        <p className="text-sm text-[#A0A0A0]">Connect to GitHub repositories</p>
+                        <p className="font-medium text-foreground">GitHub</p>
+                        <p className="text-sm text-muted-foreground">
+                          Connect to GitHub repositories
+                        </p>
                       </div>
                     </div>
-                    <Button size="sm" variant="outline" className="border-white/20 text-[#A0A0A0]">
+                    <Button size="sm" variant="outline">
                       Connect
                     </Button>
                   </div>
 
-                  <div className="flex items-center justify-between py-4 border-b border-white/5">
+                  <div className={rowClassName}>
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-[#0A0A0A] flex items-center justify-center">
+                      <div className="admin-icon-surface h-12 w-12">
                         <svg
-                          className="w-6 h-6 text-[#3B82F6]"
+                          className="h-6 w-6 text-primary"
                           fill="currentColor"
                           viewBox="0 0 24 24"
                         >
@@ -607,29 +587,28 @@ export default function SettingsPage() {
                         </svg>
                       </div>
                       <div>
-                        <p className="font-medium text-white">VS Code</p>
-                        <p className="text-sm text-[#A0A0A0]">Connect to VS Code editor</p>
+                        <p className="font-medium text-foreground">VS Code</p>
+                        <p className="text-sm text-muted-foreground">Connect to VS Code editor</p>
                       </div>
                     </div>
-                    <Button size="sm" variant="outline" className="border-white/20 text-[#A0A0A0]">
+                    <Button size="sm" variant="outline">
                       Connect
                     </Button>
                   </div>
 
                   <div className="py-4">
                     <div className="flex items-center gap-4 mb-4">
-                      <div className="w-12 h-12 rounded-lg bg-[#0A0A0A] flex items-center justify-center">
-                        <Settings className="w-6 h-6 text-[#8B5CF6]" />
+                      <div className="admin-icon-surface h-12 w-12">
+                        <Settings className="h-6 w-6 text-primary" />
                       </div>
                       <div>
-                        <p className="font-medium text-white">API Keys</p>
-                        <p className="text-sm text-[#A0A0A0]">Manage API keys for integrations</p>
+                        <p className="font-medium text-foreground">API Keys</p>
+                        <p className="text-sm text-muted-foreground">
+                          Manage API keys for integrations
+                        </p>
                       </div>
                     </div>
-                    <Button
-                      size="sm"
-                      className="bg-gradient-to-r from-[#8B5CF6] to-[#3B82F6] text-white"
-                    >
+                    <Button size="sm" className="gradient-primary text-white">
                       Manage API Keys
                     </Button>
                   </div>

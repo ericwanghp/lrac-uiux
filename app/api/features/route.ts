@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
+    const projectRoot = searchParams.get("project");
 
     // Parse query parameters
     const input = {
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
     const validatedInput = ListFeaturesInputSchema.parse(input);
 
     // Read tasks.json
-    const tasksData = await readTasksJson();
+    const tasksData = await readTasksJson(projectRoot);
 
     // Filter features
     let filteredFeatures = tasksData.features;

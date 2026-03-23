@@ -129,13 +129,13 @@ function validateAnswer(question: Question, value: AnswerValue | undefined): str
 function getStatusBadgeVariant(status: QASession["status"]) {
   switch (status) {
     case "completed":
-      return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
+      return "bg-success/15 text-success border-success/30";
     case "in_progress":
-      return "bg-blue-500/15 text-blue-400 border-blue-500/30";
+      return "bg-primary/15 text-primary border-primary/30";
     case "cancelled":
-      return "bg-red-500/15 text-red-400 border-red-500/30";
+      return "bg-destructive/15 text-destructive border-destructive/30";
     default:
-      return "bg-amber-500/15 text-amber-400 border-amber-500/30";
+      return "bg-warning/15 text-warning border-warning/30";
   }
 }
 
@@ -417,7 +417,7 @@ export default function QAPage() {
             value={currentValue as string}
             onChange={(event) => handleAnswerChange(question.id, event.target.value)}
             placeholder="Enter your answer..."
-            className="bg-[#0A0A0A] border-[#334155] focus:border-[#3B82F6]"
+            className="border-border/80 bg-background/80 focus-visible:ring-primary"
           />
         );
 
@@ -435,9 +435,9 @@ export default function QAPage() {
                   value={option.value}
                   checked={currentValue === option.value}
                   onChange={(event) => handleAnswerChange(question.id, event.target.value)}
-                  className="w-4 h-4 text-[#3B82F6] border-[#334155] bg-[#0A0A0A] focus:ring-[#3B82F6] focus:ring-offset-0"
+                  className="h-4 w-4 border-border bg-background text-primary focus:ring-primary focus:ring-offset-0"
                 />
-                <span className="text-sm group-hover:text-[#3B82F6] transition-colors">
+                <span className="text-sm transition-colors group-hover:text-primary">
                   {option.label}
                 </span>
               </label>
@@ -465,9 +465,9 @@ export default function QAPage() {
                         : selectedValues.filter((value) => value !== option.value);
                       handleAnswerChange(question.id, nextValues);
                     }}
-                    className="w-4 h-4 rounded text-[#3B82F6] border-[#334155] bg-[#0A0A0A] focus:ring-[#3B82F6] focus:ring-offset-0"
+                    className="h-4 w-4 rounded border-border bg-background text-primary focus:ring-primary focus:ring-offset-0"
                   />
-                  <span className="text-sm group-hover:text-[#3B82F6] transition-colors">
+                  <span className="text-sm transition-colors group-hover:text-primary">
                     {option.label}
                   </span>
                 </label>
@@ -483,7 +483,7 @@ export default function QAPage() {
             value={currentValue as string}
             onChange={(event) => handleAnswerChange(question.id, event.target.value)}
             placeholder="Describe your requirements..."
-            className="min-h-[120px] w-full rounded-md border border-[#334155] bg-[#0A0A0A] px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-[#3B82F6] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 disabled:cursor-not-allowed disabled:opacity-50"
+            className="min-h-[120px] w-full rounded-md border border-border/80 bg-background/80 px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
           />
         );
     }
@@ -506,7 +506,7 @@ export default function QAPage() {
       <div className="p-8">
         <Card>
           <CardContent className="py-10 space-y-4">
-            <p className="text-center text-red-400">{loadError || "No questions available."}</p>
+            <p className="text-center text-destructive">{loadError || "No questions available."}</p>
             <div className="flex justify-center">
               <Button onClick={() => window.location.reload()}>Retry</Button>
             </div>
@@ -517,10 +517,11 @@ export default function QAPage() {
   }
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="admin-page">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Q&A Session</h1>
+          <p className="admin-kicker mb-2">Intake Workspace</p>
+          <h1 className="text-3xl font-bold tracking-tight">Q&A Session</h1>
           <p className="text-muted-foreground mt-1">
             Capture project requirements in a persisted Phase 1 intake session.
           </p>
@@ -539,24 +540,24 @@ export default function QAPage() {
       </div>
 
       {taskIdSchema ? (
-        <Card>
+        <Card className="admin-panel border-border/80 bg-card/90">
           <CardHeader>
             <CardTitle className="text-base">IMAC Task Naming Guide</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-muted-foreground">
               New follow-up tasks should use{" "}
-              <span className="font-mono text-[#3B82F6]">{taskIdSchema.format}</span> and the first
+              <span className="font-mono text-primary">{taskIdSchema.format}</span> and the first
               iteration remains{" "}
-              <span className="font-mono text-[#3B82F6]">{taskIdSchema.firstIteration}</span>.
+              <span className="font-mono text-primary">{taskIdSchema.firstIteration}</span>.
             </p>
             <div className="grid grid-cols-2 gap-2">
               {Object.entries(taskIdSchema.phaseSymbolMap).map(([symbol, phase]) => (
                 <div
                   key={symbol}
-                  className="rounded border border-white/10 bg-white/5 px-2 py-1 flex items-center justify-between"
+                  className="rounded-xl border border-border/80 bg-secondary/70 px-2 py-1 flex items-center justify-between"
                 >
-                  <span className="font-mono text-xs text-[#3B82F6]">{symbol}</span>
+                  <span className="font-mono text-xs text-primary">{symbol}</span>
                   <span className="text-xs text-muted-foreground">Phase {phase}</span>
                 </div>
               ))}
@@ -572,27 +573,27 @@ export default function QAPage() {
         </Card>
       ) : null}
 
-      <Card>
+      <Card className="admin-panel border-border/80 bg-card/90">
         <CardContent className="pt-6">
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-[#A0A0A0]">Progress</span>
-              <span className="text-[#3B82F6]">
+              <span className="text-muted-foreground">Progress</span>
+              <span className="text-primary">
                 {answeredCount}/{totalQuestions} answered
               </span>
             </div>
-            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+            <div className="h-2 overflow-hidden rounded-full bg-secondary/90">
               <div
-                className="h-full bg-gradient-to-r from-[#8B5CF6] to-[#3B82F6] transition-all duration-300"
+                className="gradient-progress h-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
             </div>
-            {feedback ? <p className="text-xs text-[#3B82F6]">{feedback}</p> : null}
+            {feedback ? <p className="text-xs text-primary">{feedback}</p> : null}
           </div>
         </CardContent>
       </Card>
 
-      <Card className="border-l-4 border-l-[#3B82F6]">
+      <Card className="admin-panel border-border/80 border-l-4 border-l-primary bg-card/90">
         <CardHeader>
           <div className="flex items-center gap-3">
             <Badge variant="outline" className="text-sm">
@@ -609,7 +610,7 @@ export default function QAPage() {
           ) : null}
 
           {errors[currentQuestion.id] ? (
-            <p className="text-xs text-red-500">{errors[currentQuestion.id]}</p>
+            <p className="text-xs text-destructive">{errors[currentQuestion.id]}</p>
           ) : null}
         </CardContent>
       </Card>
@@ -638,7 +639,7 @@ export default function QAPage() {
         </div>
       </div>
 
-      <Card>
+      <Card className="admin-panel border-border/80 bg-card/90">
         <CardHeader>
           <CardTitle className="text-sm">Question Navigator</CardTitle>
         </CardHeader>
@@ -655,13 +656,14 @@ export default function QAPage() {
               return (
                 <button
                   key={question.id}
+                  type="button"
                   onClick={() => setCurrentQuestionIndex(index)}
                   className={
                     isCurrent
-                      ? "w-10 h-10 rounded-lg text-sm font-medium transition-all bg-[#3B82F6] text-white"
+                      ? "h-10 w-10 rounded-lg bg-primary text-sm font-medium text-primary-foreground transition-all shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       : isAnswered
-                        ? "w-10 h-10 rounded-lg text-sm font-medium transition-all bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30"
-                        : "w-10 h-10 rounded-lg text-sm font-medium transition-all bg-white/5 text-muted-foreground border border-white/10 hover:bg-white/10"
+                        ? "h-10 w-10 rounded-lg border border-success/30 bg-success/10 text-sm font-medium text-success transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        : "h-10 w-10 rounded-lg border border-border/80 bg-secondary/70 text-sm font-medium text-muted-foreground transition-all hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   }
                 >
                   {index + 1}

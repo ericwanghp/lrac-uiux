@@ -19,6 +19,8 @@ import {
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { DEFAULT_USER_SETTINGS, type ThemeMode } from "@/lib/types/settings";
+import { applyDocumentUiSettings } from "@/lib/utils/theme";
 
 interface SearchResult {
   id: string;
@@ -35,7 +37,7 @@ interface QuickAction {
   title: string;
   subtitle: string;
   icon: React.ReactNode;
-  action: () => void;
+  action: () => void | Promise<void>;
 }
 
 interface CommandPaletteProps {
@@ -100,6 +102,48 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   const [projectName, setProjectName] = useState("Current Project");
   const [features, setFeatures] = useState<FeatureRecord[]>([]);
   const inputRef = React.useRef<HTMLInputElement>(null);
+
+  const toggleSavedTheme = useCallback(async () => {
+    try {
+      const readResponse = await fetch("/api/settings", { cache: "no-store" });
+      const readPayload = await readResponse.json().catch(() => null);
+      const currentSettings = {
+        ...DEFAULT_USER_SETTINGS,
+        ...readPayload?.data?.settings,
+      };
+      const nextTheme: ThemeMode = currentSettings.theme === "dark" ? "light" : "dark";
+
+      const updateResponse = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ theme: nextTheme }),
+      });
+      const updatePayload = await updateResponse.json().catch(() => null);
+
+      if (!updateResponse.ok || !updatePayload?.success || !updatePayload?.data?.settings) {
+        throw new Error(updatePayload?.error || "Failed to persist theme");
+      }
+
+      const nextSettings = {
+        ...DEFAULT_USER_SETTINGS,
+        ...updatePayload.data.settings,
+      };
+      applyDocumentUiSettings(nextSettings);
+      window.dispatchEvent(new CustomEvent("lrac:settings-updated", { detail: nextSettings }));
+    } catch {
+      const nextTheme: ThemeMode = document.documentElement.classList.contains("dark")
+        ? "light"
+        : "dark";
+      const fallbackSettings = {
+        ...DEFAULT_USER_SETTINGS,
+        theme: nextTheme,
+      };
+      applyDocumentUiSettings(fallbackSettings);
+      window.dispatchEvent(new CustomEvent("lrac:settings-updated", { detail: fallbackSettings }));
+    } finally {
+      onClose();
+    }
+  }, [onClose]);
 
   useEffect(() => {
     const load = async () => {
@@ -234,13 +278,9 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       {
         id: "action-theme",
         title: "Switch Theme",
-        subtitle: "Toggle dark/light mode",
+        subtitle: "Toggle saved light/dark mode",
         icon: <Palette className="w-4 h-4" />,
-        action: () => {
-          const html = document.documentElement;
-          html.classList.toggle("dark");
-          onClose();
-        },
+        action: toggleSavedTheme,
       },
       {
         id: "action-settings",
@@ -253,7 +293,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
         },
       },
     ],
-    [onClose, router]
+    [onClose, router, toggleSavedTheme]
   );
 
   const getFilteredResults = useCallback((): SearchResult[] => {
@@ -374,13 +414,18 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
+      <div className="admin-overlay-fixed bg-background/55" onClick={onClose} />
 
       {/* Modal */}
-      <div className="fixed left-1/2 top-20 z-50 w-full max-w-2xl -translate-x-1/2">
-        <div className="bg-card border border-border rounded-xl shadow-2xl overflow-hidden">
+      <div
+        className="fixed left-1/2 top-20 z-50 w-full max-w-2xl -translate-x-1/2"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Command Palette"
+      >
+        <div className="admin-panel admin-modal-surface overflow-hidden rounded-3xl border border-border/80 bg-card/95">
           {/* Search Input */}
-          <div className="flex items-center border-b border-border px-4">
+          <div className="flex items-center border-b border-border/80 px-4">
             <Search className="w-5 h-5 text-muted-foreground mr-3" />
             <Input
               ref={inputRef}
@@ -391,9 +436,9 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                 setSearchQuery(e.target.value);
                 setSelectedIndex(0);
               }}
-              className="border-0 focus-visible:ring-0 text-base"
+              className="border-0 bg-transparent text-base focus-visible:ring-0"
             />
-            <kbd className="hidden sm:inline-flex h-6 items-center gap-1 rounded border border-border bg-secondary px-2 font-mono text-xs text-muted-foreground">
+            <kbd className="hidden h-6 items-center gap-1 rounded-full border border-border/80 bg-secondary/80 px-2 font-mono text-xs text-muted-foreground sm:inline-flex">
               ESC
             </kbd>
           </div>
@@ -404,7 +449,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
               /* Search Results */
               <div className="py-2">
                 {filtered.length === 0 ? (
-                  <div className="px-4 py-8 text-center text-muted-foreground">
+                  <div className="admin-empty-state admin-empty-state-md mx-4 my-3">
                     No results found for &quot;{searchQuery}&quot;
                   </div>
                 ) : (
@@ -455,21 +500,31 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
               <div className="py-2">
                 {/* Quick Actions */}
                 <div className="px-3 py-2">
-                  <div className="mb-2 px-3 text-xs font-semibold text-muted-foreground uppercase">
+                  <div className="mb-2 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                     Quick Actions
                   </div>
                   {quickActions.map((action, idx) => (
                     <button
                       key={action.id}
-                      onClick={() => action.action()}
+                      type="button"
+                      onClick={() => void action.action()}
                       className={cn(
-                        "w-full flex items-center px-3 py-2 rounded-md text-sm transition-colors",
+                        "w-full flex items-center rounded-xl px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                         selectedIndex === idx
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-accent"
+                          ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                          : "hover:bg-accent/70"
                       )}
                     >
-                      <span className="mr-3 text-muted-foreground">{action.icon}</span>
+                      <span
+                        className={cn(
+                          "mr-3",
+                          selectedIndex === idx
+                            ? "text-primary-foreground/80"
+                            : "text-muted-foreground"
+                        )}
+                      >
+                        {action.icon}
+                      </span>
                       <div className="flex-1 text-left">
                         <div className="font-medium">{action.title}</div>
                         <div className="text-xs text-muted-foreground">{action.subtitle}</div>
@@ -480,22 +535,32 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
 
                 {/* Recent Items */}
                 {recentItems.length > 0 && (
-                  <div className="px-3 py-2 border-t border-border">
-                    <div className="mb-2 px-3 text-xs font-semibold text-muted-foreground uppercase">
+                  <div className="border-t border-border/80 px-3 py-2">
+                    <div className="mb-2 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                       Recent
                     </div>
                     {recentItems.map((item, idx) => (
                       <button
                         key={item.id}
+                        type="button"
                         onClick={() => handleSelect(quickActions.length + idx)}
                         className={cn(
-                          "w-full flex items-center px-3 py-2 rounded-md text-sm transition-colors",
+                          "w-full flex items-center rounded-xl px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                           selectedIndex === quickActions.length + idx
-                            ? "bg-primary text-primary-foreground"
-                            : "hover:bg-accent"
+                            ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                            : "hover:bg-accent/70"
                         )}
                       >
-                        <span className="mr-3 text-muted-foreground">{item.icon}</span>
+                        <span
+                          className={cn(
+                            "mr-3",
+                            selectedIndex === quickActions.length + idx
+                              ? "text-primary-foreground/80"
+                              : "text-muted-foreground"
+                          )}
+                        >
+                          {item.icon}
+                        </span>
                         <div className="flex-1 text-left">
                           <div className="font-medium">{item.title}</div>
                           {item.subtitle && (
@@ -509,7 +574,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
 
                 {/* Empty State */}
                 {recentItems.length === 0 && (
-                  <div className="px-4 py-8 text-center text-muted-foreground text-sm">
+                  <div className="admin-empty-state admin-empty-state-md mx-4 my-3">
                     Start typing to search across projects, documents, tasks, and phases
                   </div>
                 )}
@@ -518,26 +583,26 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
           </ScrollArea>
 
           {/* Footer */}
-          <div className="border-t border-border px-4 py-2 flex items-center justify-between text-xs text-muted-foreground">
+          <div className="flex items-center justify-between border-t border-border/80 bg-secondary/35 px-4 py-2 text-xs text-muted-foreground">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1">
-                <kbd className="inline-flex h-5 items-center rounded border border-border bg-secondary px-1.5 font-mono text-xs">
+                <kbd className="inline-flex h-5 items-center rounded-full border border-border/80 bg-background/80 px-1.5 font-mono text-xs">
                   ↑
                 </kbd>
-                <kbd className="inline-flex h-5 items-center rounded border border-border bg-secondary px-1.5 font-mono text-xs">
+                <kbd className="inline-flex h-5 items-center rounded-full border border-border/80 bg-background/80 px-1.5 font-mono text-xs">
                   ↓
                 </kbd>
                 <span className="ml-1">to navigate</span>
               </div>
               <div className="flex items-center gap-1">
-                <kbd className="inline-flex h-5 items-center rounded border border-border bg-secondary px-1.5 font-mono text-xs">
+                <kbd className="inline-flex h-5 items-center rounded-full border border-border/80 bg-background/80 px-1.5 font-mono text-xs">
                   ↵
                 </kbd>
                 <span className="ml-1">to select</span>
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <kbd className="inline-flex h-5 items-center rounded border border-border bg-secondary px-1.5 font-mono text-xs">
+              <kbd className="inline-flex h-5 items-center rounded-full border border-border/80 bg-background/80 px-1.5 font-mono text-xs">
                 ESC
               </kbd>
               <span className="ml-1">to close</span>
@@ -561,7 +626,9 @@ interface ResultSectionProps {
 function ResultSection({ title, items, selectedIndex, onSelect, startIndex }: ResultSectionProps) {
   return (
     <div className="px-3 py-2">
-      <div className="mb-2 px-3 text-xs font-semibold text-muted-foreground uppercase">{title}</div>
+      <div className="mb-2 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+        {title}
+      </div>
       {items.map((item, idx) => {
         const globalIndex = startIndex + idx;
         const isSelected = selectedIndex === globalIndex;
@@ -569,13 +636,23 @@ function ResultSection({ title, items, selectedIndex, onSelect, startIndex }: Re
         return (
           <button
             key={item.id}
+            type="button"
             onClick={() => onSelect(globalIndex)}
             className={cn(
-              "w-full flex items-center px-3 py-2 rounded-md text-sm transition-colors",
-              isSelected ? "bg-primary text-primary-foreground" : "hover:bg-accent"
+              "w-full flex items-center rounded-xl px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              isSelected
+                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                : "hover:bg-accent/70"
             )}
           >
-            <span className="mr-3 text-muted-foreground">{item.icon}</span>
+            <span
+              className={cn(
+                "mr-3",
+                isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
+              )}
+            >
+              {item.icon}
+            </span>
             <div className="flex-1 text-left">
               <div className="font-medium">{item.title}</div>
               {item.subtitle && (

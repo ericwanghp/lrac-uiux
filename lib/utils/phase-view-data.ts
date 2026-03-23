@@ -1,6 +1,8 @@
 import fs from "fs/promises";
 import path from "path";
-import { PROJECT_ROOT, readProgressTxt, readTasksJson } from "@/lib/utils/file-operations";
+import { getPhaseFromParallelGroup, getPhaseFromTaskId } from "@/lib/constants/task-id";
+import type { Feature } from "@/lib/types";
+import { getCurrentProjectRoot, readProgressTxt, readTasksJson } from "@/lib/utils/file-operations";
 
 export type Artifact = {
   name: string;
@@ -25,8 +27,41 @@ type TaskLog = {
   action: string;
 };
 
-export async function readArtifacts(subdir: string): Promise<Artifact[]> {
-  const dir = path.join(PROJECT_ROOT, "docs", subdir);
+function resolveProjectRoot(projectRoot?: string | null): string {
+  return getCurrentProjectRoot(projectRoot);
+}
+
+export function inferFeaturePhase(
+  feature: Pick<Feature, "id" | "taskBreakdown">
+): number | undefined {
+  return (
+    getPhaseFromParallelGroup(feature.taskBreakdown?.parallelGroup) ||
+    getPhaseFromTaskId(feature.id)
+  );
+}
+
+function matchesPhase(feature: Pick<Feature, "id" | "taskBreakdown">, phases: number[]): boolean {
+  const phase = inferFeaturePhase(feature);
+  return phase !== undefined && phases.includes(phase);
+}
+
+function toExcerpt(content: string, includeMarkdownHeadings = false): string {
+  return content
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && (includeMarkdownHeadings || !line.startsWith("#")))
+    .slice(0, 3)
+    .join(" ")
+    .slice(0, 260);
+}
+
+export async function readArtifacts(
+  subdir: string,
+  projectRoot?: string | null
+): Promise<Artifact[]> {
+  const resolvedProjectRoot = resolveProjectRoot(projectRoot);
+  const dir = path.join(resolvedProjectRoot, "docs", subdir);
+
   try {
     const entries = await fs.readdir(dir, { withFileTypes: true });
     const files = entries.filter(
@@ -35,22 +70,14 @@ export async function readArtifacts(subdir: string): Promise<Artifact[]> {
     const artifacts = await Promise.all(
       files.map(async (file) => {
         const absolutePath = path.join(dir, file.name);
-        const relativePath = path.relative(PROJECT_ROOT, absolutePath);
         const stat = await fs.stat(absolutePath);
         const content = await fs.readFile(absolutePath, "utf-8");
-        const excerpt = content
-          .split("\n")
-          .map((line) => line.trim())
-          .filter((line) => line.length > 0 && !line.startsWith("#"))
-          .slice(0, 3)
-          .join(" ")
-          .slice(0, 260);
         return {
           name: file.name,
           absolutePath,
-          relativePath,
+          relativePath: path.relative(resolvedProjectRoot, absolutePath),
           updatedAt: stat.mtime.toISOString(),
-          excerpt,
+          excerpt: toExcerpt(content),
         };
       })
     );
@@ -115,8 +142,11 @@ function collectSectionItems(chunk: string, startTitle: string, endTitle: string
     );
 }
 
-export async function readTaskLogsByFeatureIds(featureIds: string[]): Promise<TaskLog[]> {
-  const tasks = await readTasksJson();
+export async function readTaskLogsByFeatureIds(
+  featureIds: string[],
+  projectRoot?: string | null
+): Promise<TaskLog[]> {
+  const tasks = await readTasksJson(projectRoot);
   const logs = tasks.features
     .filter((feature) => featureIds.includes(feature.id))
     .flatMap((feature) =>
@@ -130,32 +160,49 @@ export async function readTaskLogsByFeatureIds(featureIds: string[]): Promise<Ta
   return logs.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
 }
 
-export async function loadProgressSessions(): Promise<ProgressSession[]> {
-  const progressText = await readProgressTxt();
+export async function readTaskLogsByPhase(
+  phases: number[],
+  projectRoot?: string | null
+): Promise<TaskLog[]> {
+  const tasks = await readTasksJson(projectRoot);
+  const logs = tasks.features
+    .filter((feature) => matchesPhase(feature, phases))
+    .flatMap((feature) =>
+      feature.executionHistory.map((history) => ({
+        featureId: feature.id,
+        featureTitle: feature.title,
+        timestamp: history.timestamp,
+        action: history.action,
+      }))
+    );
+  return logs.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+}
+
+export async function loadProgressSessions(
+  projectRoot?: string | null
+): Promise<ProgressSession[]> {
+  const progressText = await readProgressTxt(projectRoot);
   return parseProgressSessions(progressText);
 }
 
-export async function readExplicitArtifacts(relativePaths: string[]): Promise<Artifact[]> {
+export async function readExplicitArtifacts(
+  relativePaths: string[],
+  projectRoot?: string | null
+): Promise<Artifact[]> {
+  const resolvedProjectRoot = resolveProjectRoot(projectRoot);
   const artifacts = await Promise.all(
     relativePaths.map(async (relativePath) => {
-      const absolutePath = path.join(PROJECT_ROOT, relativePath);
+      const absolutePath = path.join(resolvedProjectRoot, relativePath);
       try {
         const stat = await fs.stat(absolutePath);
         if (!stat.isFile()) return null;
         const content = await fs.readFile(absolutePath, "utf-8");
-        const excerpt = content
-          .split("\n")
-          .map((line) => line.trim())
-          .filter((line) => line.length > 0)
-          .slice(0, 3)
-          .join(" ")
-          .slice(0, 260);
         return {
           name: path.basename(absolutePath),
           absolutePath,
           relativePath,
           updatedAt: stat.mtime.toISOString(),
-          excerpt,
+          excerpt: toExcerpt(content, true),
         };
       } catch {
         return null;
@@ -170,29 +217,23 @@ export async function readExplicitArtifacts(relativePaths: string[]): Promise<Ar
 export async function readCodeArtifacts(
   relativeDir: string,
   matcher: (fileName: string) => boolean,
-  limit = 30
+  limit = 30,
+  projectRoot?: string | null
 ): Promise<Artifact[]> {
-  const rootDir = path.join(PROJECT_ROOT, relativeDir);
+  const resolvedProjectRoot = resolveProjectRoot(projectRoot);
+  const rootDir = path.join(resolvedProjectRoot, relativeDir);
   const filePaths = await collectFiles(rootDir);
   const filtered = filePaths.filter((filePath) => matcher(path.basename(filePath))).slice(0, limit);
   const artifacts = await Promise.all(
     filtered.map(async (absolutePath) => {
       const stat = await fs.stat(absolutePath);
-      const relativePath = path.relative(PROJECT_ROOT, absolutePath);
       const content = await fs.readFile(absolutePath, "utf-8");
-      const excerpt = content
-        .split("\n")
-        .map((line) => line.trim())
-        .filter((line) => line.length > 0)
-        .slice(0, 3)
-        .join(" ")
-        .slice(0, 260);
       return {
         name: path.basename(absolutePath),
         absolutePath,
-        relativePath,
+        relativePath: path.relative(resolvedProjectRoot, absolutePath),
         updatedAt: stat.mtime.toISOString(),
-        excerpt,
+        excerpt: toExcerpt(content, true),
       };
     })
   );

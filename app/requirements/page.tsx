@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   readArtifacts,
   loadProgressSessions,
-  readTaskLogsByFeatureIds,
+  readTaskLogsByPhase,
 } from "@/lib/utils/phase-view-data";
 import { MarkdownArtifactCard } from "@/components/shared/markdown-artifact-card";
 
@@ -25,14 +25,7 @@ export default async function RequirementsPage() {
     readArtifacts("brd"),
     readArtifacts("prd"),
     loadProgressSessions(),
-    readTaskLogsByFeatureIds([
-      "inital-p5d-006",
-      "inital-p5d-007",
-      "inital-p5d-008",
-      "inital-p5d-009",
-      "inital-p5d-010",
-      "inital-p5d-011",
-    ]),
+    readTaskLogsByPhase([1, 2]),
   ]);
 
   const phaseSessions = sessions.filter((session) =>
@@ -41,10 +34,11 @@ export default async function RequirementsPage() {
   const phaseCompleted = brdFiles.length > 0 && prdFiles.length > 0;
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="admin-page">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Phase 1-2 Requirements</h1>
+          <p className="admin-kicker mb-2">Discovery Workspace</p>
+          <h1 className="text-3xl font-bold tracking-tight">Phase 1-2 Requirements</h1>
           <p className="text-muted-foreground mt-1">
             展示需求阶段执行日志、AI Coding/IDE日志与产出物
           </p>
@@ -55,7 +49,7 @@ export default async function RequirementsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
+        <Card className="admin-panel border-border/80 bg-card/90 lg:col-span-2">
           <CardHeader>
             <CardTitle>阶段执行日志</CardTitle>
             <CardDescription>来源：.auto-coding/progress.txt</CardDescription>
@@ -91,7 +85,7 @@ export default async function RequirementsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="admin-panel border-border/80 bg-card/90">
           <CardHeader>
             <CardTitle>AI Coding / IDE 日志</CardTitle>
             <CardDescription>来源：tasks.json executionHistory</CardDescription>
@@ -123,7 +117,7 @@ export default async function RequirementsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card className="admin-panel border-border/80 bg-card/90">
           <CardHeader>
             <CardTitle>BRD 产出物</CardTitle>
             <CardDescription>阶段完成后自动展示</CardDescription>
@@ -147,7 +141,7 @@ export default async function RequirementsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="admin-panel border-border/80 bg-card/90">
           <CardHeader>
             <CardTitle>PRD 产出物</CardTitle>
             <CardDescription>阶段完成后自动展示</CardDescription>

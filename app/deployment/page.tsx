@@ -2,10 +2,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
+  inferFeaturePhase,
   loadProgressSessions,
   readArtifacts,
   readExplicitArtifacts,
-  readTaskLogsByFeatureIds,
+  readTaskLogsByPhase,
 } from "@/lib/utils/phase-view-data";
 import { readTasksJson } from "@/lib/utils/file-operations";
 import { MarkdownArtifactCard } from "@/components/shared/markdown-artifact-card";
@@ -22,12 +23,10 @@ function formatTime(iso: string): string {
   });
 }
 
-const DEPLOYMENT_FEATURE_IDS = ["inital-p7d-001"];
-
 export default async function DeploymentPage() {
   const [sessions, taskLogs, tasksData, deploymentDocs, deploymentArtifacts] = await Promise.all([
     loadProgressSessions(),
-    readTaskLogsByFeatureIds(DEPLOYMENT_FEATURE_IDS),
+    readTaskLogsByPhase([7]),
     readTasksJson(),
     readArtifacts("deployment"),
     readExplicitArtifacts([
@@ -40,8 +39,8 @@ export default async function DeploymentPage() {
   ]);
 
   const phaseSessions = sessions.filter((session) => ["devops-engineer"].includes(session.role));
-  const deploymentFeatures = tasksData.features.filter((feature) =>
-    DEPLOYMENT_FEATURE_IDS.includes(feature.id)
+  const deploymentFeatures = tasksData.features.filter(
+    (feature) => inferFeaturePhase(feature) === 7
   );
   const pendingFeatures = deploymentFeatures.filter(
     (feature) => feature.status.status !== "completed"
@@ -49,10 +48,11 @@ export default async function DeploymentPage() {
   const phaseCompleted = pendingFeatures.length === 0 && deploymentFeatures.length > 0;
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="admin-page">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Phase 7 Deployment</h1>
+          <p className="admin-kicker mb-2">Launch Workspace</p>
+          <h1 className="text-3xl font-bold tracking-tight">Phase 7 Deployment</h1>
           <p className="text-muted-foreground mt-1">展示部署阶段日志、工具日志与交付产出物</p>
         </div>
         <Badge variant={phaseCompleted ? "success" : "secondary"}>
@@ -61,7 +61,7 @@ export default async function DeploymentPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
+        <Card className="admin-panel border-border/80 bg-card/90 lg:col-span-2">
           <CardHeader>
             <CardTitle>阶段执行日志</CardTitle>
             <CardDescription>来源：.auto-coding/progress.txt</CardDescription>
@@ -97,7 +97,7 @@ export default async function DeploymentPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="admin-panel border-border/80 bg-card/90">
           <CardHeader>
             <CardTitle>AI Coding / IDE 日志</CardTitle>
             <CardDescription>来源：tasks.json executionHistory</CardDescription>
@@ -129,7 +129,7 @@ export default async function DeploymentPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card className="admin-panel border-border/80 bg-card/90">
           <CardHeader>
             <CardTitle>部署文档产出物</CardTitle>
             <CardDescription>docs/deployment</CardDescription>
@@ -153,7 +153,7 @@ export default async function DeploymentPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="admin-panel border-border/80 bg-card/90">
           <CardHeader>
             <CardTitle>部署配置产出物</CardTitle>
             <CardDescription>Docker / CI / Env 配置</CardDescription>

@@ -10,26 +10,8 @@ import { Download, Grid as GridIcon, Check, ChevronLeft, ChevronRight, X } from 
 import { cn } from "@/lib/utils";
 import { MarkdownArtifactCard } from "@/components/shared/markdown-artifact-card";
 
-// Available designs from .stitch/designs/
-const availableDesigns = [
-  { id: "dashboard", name: "Dashboard", filename: "dashboard.png" },
-  { id: "design-viewer", name: "Design Viewer", filename: "design-viewer.png" },
-  { id: "qa-interface", name: "Q&A Interface", filename: "qa-interface.png" },
-  {
-    id: "execution-monitor-v2",
-    name: "Execution Monitor V2",
-    filename: "execution-monitor-v2.png",
-  },
-  { id: "settings-page", name: "Settings Page", filename: "settings-page.png" },
-  { id: "pm-team-dashboard", name: "PM Team Dashboard", filename: "pm-team-dashboard.png" },
-  { id: "enhanced-qa-card", name: "Enhanced Q&A Card", filename: "enhanced-qa-card.png" },
-  {
-    id: "enhanced-approval-card",
-    name: "Enhanced Approval Card",
-    filename: "enhanced-approval-card.png",
-  },
-  { id: "qa-question-card", name: "Question Card", filename: "qa-question-card.png" },
-];
+const panelClassName = "admin-panel border-border/80 bg-card/90";
+const softPanelClassName = "rounded-2xl border border-border/80 bg-secondary/70";
 
 interface PhaseSession {
   name: string;
@@ -63,8 +45,32 @@ interface DesignPhaseData {
   };
 }
 
+type DesignAssetOption = {
+  id: string;
+  name: string;
+  filename: string;
+};
+
+function isPreviewableDesign(name: string) {
+  return [".png", ".jpg", ".jpeg", ".webp"].some((ext) => name.toLowerCase().endsWith(ext));
+}
+
+function toDesignOption(fileName: string): DesignAssetOption {
+  const ext = fileName.split(".").pop() || "";
+  const baseName = ext ? fileName.slice(0, -(ext.length + 1)) : fileName;
+  return {
+    id: baseName,
+    name: baseName
+      .split(/[-_]/)
+      .filter(Boolean)
+      .map((segment) => segment[0]?.toUpperCase() + segment.slice(1))
+      .join(" "),
+    filename: fileName,
+  };
+}
+
 export default function DesignViewerPage() {
-  const [selectedDesign, setSelectedDesign] = useState(availableDesigns[0]);
+  const [selectedDesign, setSelectedDesign] = useState<DesignAssetOption | null>(null);
   const [showGrid, setShowGrid] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewHeightVh, setPreviewHeightVh] = useState(60);
@@ -74,6 +80,9 @@ export default function DesignViewerPage() {
   const resizeStartHeightRef = useRef(60);
   const [phaseData, setPhaseData] = useState<DesignPhaseData | null>(null);
   const [phaseError, setPhaseError] = useState<string | null>(null);
+  const availableDesigns = (phaseData?.artifacts.prototypes || [])
+    .filter((artifact) => isPreviewableDesign(artifact.name))
+    .map((artifact) => toDesignOption(artifact.name));
 
   useEffect(() => {
     let cancelled = false;
@@ -130,6 +139,15 @@ export default function DesignViewerPage() {
     };
   }, [isResizingPreview]);
 
+  useEffect(() => {
+    setSelectedDesign((current) => {
+      if (current && availableDesigns.some((design) => design.id === current.id)) {
+        return current;
+      }
+      return availableDesigns[0] ?? null;
+    });
+  }, [availableDesigns]);
+
   const formatTime = (iso: string) =>
     new Date(iso).toLocaleString("zh-CN", {
       year: "numeric",
@@ -157,42 +175,45 @@ export default function DesignViewerPage() {
       direction === "prev"
         ? Math.max(0, currentIndex - 1)
         : Math.min(availableDesigns.length - 1, currentIndex + 1);
-    setSelectedDesign(availableDesigns[newIndex]);
+    setSelectedDesign(availableDesigns[newIndex] ?? null);
   };
 
   return (
-    <div className="min-h-screen bg-[#121826] text-white">
+    <div className="admin-page min-h-screen text-foreground">
       <div className="flex min-h-screen flex-col">
         <div className="order-4 grid grid-cols-1 gap-4 p-4 lg:grid-cols-3">
-          <Card className="border-[#334155] bg-[#1A1A1A] lg:col-span-2">
+          <Card className={`${panelClassName} lg:col-span-2`}>
             <CardHeader>
-              <CardTitle className="text-white">设计阶段执行日志</CardTitle>
+              <CardTitle>设计阶段执行日志</CardTitle>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-44 pr-4">
                 <div className="space-y-3">
                   {phaseError ? (
-                    <p className="text-sm text-red-400">{phaseError}</p>
+                    <p className="text-sm text-destructive">{phaseError}</p>
                   ) : !phaseData ? (
-                    <p className="text-sm text-[#A0A0A0]">正在加载设计阶段日志...</p>
+                    <p className="text-sm text-muted-foreground">正在加载设计阶段日志...</p>
                   ) : phaseData.sessions.length === 0 ? (
-                    <p className="text-sm text-[#A0A0A0]">暂无设计阶段会话日志</p>
+                    <p className="text-sm text-muted-foreground">暂无设计阶段会话日志</p>
                   ) : (
                     phaseData.sessions.map((session) => (
                       <div
                         key={`${session.name}-${session.timestamp}`}
-                        className="rounded-md border border-[#334155] p-3"
+                        className={`${softPanelClassName} p-3`}
                       >
                         <div className="mb-1 flex items-center justify-between">
-                          <p className="text-sm font-medium text-white">{session.name}</p>
-                          <Badge variant="outline" className="border-[#334155] text-[#A1A1AA]">
+                          <p className="text-sm font-medium text-foreground">{session.name}</p>
+                          <Badge
+                            variant="outline"
+                            className="border-border/80 text-muted-foreground"
+                          >
                             {session.role}
                           </Badge>
                         </div>
-                        <p className="mb-2 text-xs text-[#71717A]">
+                        <p className="mb-2 text-xs text-muted-foreground">
                           {formatTime(session.timestamp)}
                         </p>
-                        <ul className="space-y-1 text-xs text-[#A0A0A0]">
+                        <ul className="space-y-1 text-xs text-muted-foreground">
                           {session.executionItems.slice(0, 3).map((item, index) => (
                             <li key={`${session.name}-item-${index}`}>• {item}</li>
                           ))}
@@ -205,28 +226,28 @@ export default function DesignViewerPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-[#334155] bg-[#1A1A1A]">
+          <Card className={panelClassName}>
             <CardHeader>
-              <CardTitle className="text-white">AI Coding / IDE 日志</CardTitle>
+              <CardTitle>AI Coding / IDE 日志</CardTitle>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-44 pr-4">
                 <div className="space-y-3">
                   {phaseError ? (
-                    <p className="text-sm text-red-400">{phaseError}</p>
+                    <p className="text-sm text-destructive">{phaseError}</p>
                   ) : !phaseData ? (
-                    <p className="text-sm text-[#A0A0A0]">正在加载工具日志...</p>
+                    <p className="text-sm text-muted-foreground">正在加载工具日志...</p>
                   ) : phaseData.taskLogs.length === 0 ? (
-                    <p className="text-sm text-[#A0A0A0]">暂无工具日志</p>
+                    <p className="text-sm text-muted-foreground">暂无工具日志</p>
                   ) : (
                     phaseData.taskLogs.map((log, index) => (
                       <div
                         key={`${log.featureId}-${log.timestamp}-${index}`}
-                        className="rounded-md border border-[#334155] p-3"
+                        className={`${softPanelClassName} p-3`}
                       >
-                        <p className="text-xs font-medium text-white">{log.featureId}</p>
-                        <p className="text-xs text-[#71717A]">{formatTime(log.timestamp)}</p>
-                        <p className="mt-1 text-xs text-[#A0A0A0]">{log.action}</p>
+                        <p className="text-xs font-medium text-foreground">{log.featureId}</p>
+                        <p className="text-xs text-muted-foreground">{formatTime(log.timestamp)}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">{log.action}</p>
                       </div>
                     ))
                   )}
@@ -237,15 +258,15 @@ export default function DesignViewerPage() {
         </div>
 
         <div className="order-5 grid grid-cols-1 gap-4 px-4 pb-4 lg:grid-cols-3">
-          <Card className="border-[#334155] bg-[#1A1A1A]">
+          <Card className={panelClassName}>
             <CardHeader>
-              <CardTitle className="text-white">设计文档</CardTitle>
+              <CardTitle>设计文档</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               {!phaseData ? (
-                <p className="text-sm text-[#A0A0A0]">正在加载...</p>
+                <p className="text-sm text-muted-foreground">正在加载...</p>
               ) : phaseData.artifacts.designDocs.length === 0 ? (
-                <p className="text-sm text-[#A0A0A0]">暂无设计文档</p>
+                <p className="text-sm text-muted-foreground">暂无设计文档</p>
               ) : (
                 phaseData.artifacts.designDocs
                   .slice(0, 5)
@@ -253,38 +274,38 @@ export default function DesignViewerPage() {
                     <MarkdownArtifactCard
                       key={artifact.relativePath}
                       artifact={artifact}
-                      className="w-full rounded-md border border-[#334155] p-2 text-left"
+                      className="w-full rounded-2xl border border-border/80 bg-secondary/70 p-2 text-left"
                     />
                   ))
               )}
             </CardContent>
           </Card>
 
-          <Card className="border-[#334155] bg-[#1A1A1A]">
+          <Card className={panelClassName}>
             <CardHeader>
-              <CardTitle className="text-white">设计系统产出</CardTitle>
+              <CardTitle>设计系统产出</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               {!phaseData ? (
-                <p className="text-sm text-[#A0A0A0]">正在加载...</p>
+                <p className="text-sm text-muted-foreground">正在加载...</p>
               ) : phaseData.artifacts.stitchDocs.length === 0 ? (
-                <p className="text-sm text-[#A0A0A0]">暂无设计系统文档</p>
+                <p className="text-sm text-muted-foreground">暂无设计系统文档</p>
               ) : (
                 phaseData.artifacts.stitchDocs.map((artifact) => (
                   <MarkdownArtifactCard
                     key={artifact.relativePath}
                     artifact={artifact}
-                    className="w-full rounded-md border border-[#334155] p-2 text-left"
+                    className="w-full rounded-2xl border border-border/80 bg-secondary/70 p-2 text-left"
                   />
                 ))
               )}
             </CardContent>
           </Card>
 
-          <Card className="border-[#334155] bg-[#1A1A1A]">
+          <Card className={panelClassName}>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-white">交互稿产出</CardTitle>
+                <CardTitle>交互稿产出</CardTitle>
                 <Badge
                   variant={phaseData?.phaseCompleted ? "success" : "secondary"}
                   className="text-xs"
@@ -295,9 +316,9 @@ export default function DesignViewerPage() {
             </CardHeader>
             <CardContent className="space-y-2">
               {!phaseData ? (
-                <p className="text-sm text-[#A0A0A0]">正在加载...</p>
+                <p className="text-sm text-muted-foreground">正在加载...</p>
               ) : phaseData.artifacts.prototypes.length === 0 ? (
-                <p className="text-sm text-[#A0A0A0]">暂无交互稿</p>
+                <p className="text-sm text-muted-foreground">暂无交互稿</p>
               ) : (
                 phaseData.artifacts.prototypes
                   .slice(0, 8)
@@ -305,7 +326,7 @@ export default function DesignViewerPage() {
                     <MarkdownArtifactCard
                       key={artifact.relativePath}
                       artifact={artifact}
-                      className="w-full rounded-md border border-[#334155] p-2 text-left"
+                      className="w-full rounded-2xl border border-border/80 bg-secondary/70 p-2 text-left"
                     />
                   ))
               )}
@@ -314,17 +335,20 @@ export default function DesignViewerPage() {
         </div>
 
         {/* Header */}
-        <div className="order-1 flex items-center justify-between border-b border-[#334155] px-6 py-4">
+        <div className="admin-topbar order-1 flex items-center justify-between border-b border-border/80 px-6 py-4">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-[#A0A0A0]">
-              <span
-                className="cursor-pointer hover:text-white"
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <button
+                type="button"
+                className="cursor-pointer rounded-sm text-left transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 onClick={() => (window.location.href = "/")}
               >
                 Designs
-              </span>
+              </button>
               <ChevronRight className="h-4 w-4" />
-              <span className="text-white">{selectedDesign?.name}</span>
+              <span className="text-foreground">
+                {selectedDesign?.name || "No previewable design"}
+              </span>
             </div>
 
             {/* Version selector */}
@@ -336,8 +360,10 @@ export default function DesignViewerPage() {
                   setSelectedDesign(design);
                 }
               }}
-              className="rounded-md border border-[#334155] bg-[#1A1A1A] px-3 py-1.5 text-sm text-white"
+              className="rounded-xl border border-border/80 bg-background/80 px-3 py-1.5 text-sm text-foreground"
+              disabled={availableDesigns.length === 0}
             >
+              {availableDesigns.length === 0 ? <option value="">No image assets</option> : null}
               {availableDesigns.map((design) => (
                 <option key={design.id} value={design.id}>
                   {design.name}
@@ -352,18 +378,18 @@ export default function DesignViewerPage() {
               variant="ghost"
               size="icon"
               onClick={() => setShowGrid(!showGrid)}
-              className={cn(showGrid && "bg-[#3B82F6]/20 text-[#3B82F6]")}
+              className={cn(showGrid && "bg-primary/15 text-primary")}
             >
               <GridIcon className="h-4 w-4" />
             </Button>
 
-            <div className="mx-2 h-6 w-px bg-[#334155]" />
+            <div className="mx-2 h-6 w-px bg-border" />
 
             <Button variant="outline" size="sm" onClick={handleDownload}>
               <Download className="mr-2 h-4 w-4" />
               Download
             </Button>
-            <Button className="bg-gradient-to-r from-[#8B5CF6] to-[#3B82F6]" size="sm">
+            <Button className="gradient-primary text-white" size="sm">
               <Check className="mr-2 h-4 w-4" />
               Approve
             </Button>
@@ -381,29 +407,38 @@ export default function DesignViewerPage() {
               variant="ghost"
               size="icon"
               onClick={() => navigateDesign("prev")}
-              disabled={availableDesigns.findIndex((d) => d.id === selectedDesign?.id) === 0}
+              disabled={
+                !selectedDesign ||
+                availableDesigns.findIndex((d) => d.id === selectedDesign.id) === 0
+              }
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
           </div>
 
           {/* Image Viewer */}
-          <div className="relative flex-1 overflow-hidden bg-[#0A0A0A]">
+          <div className="relative flex-1 overflow-hidden rounded-[28px] border border-border/80 bg-card/60 shadow-2xl">
             <div className="flex h-full w-full items-center justify-center p-6">
               <div ref={imageRef} className="relative h-full w-full max-w-[1800px]">
                 <div className="relative h-full w-full min-h-[432px]">
-                  <Image
-                    src={getDesignAssetUrl(selectedDesign?.filename)}
-                    alt={selectedDesign?.name || "Design"}
-                    fill
-                    sizes="(max-width: 1280px) 100vw, 80vw"
-                    className={cn(
-                      "cursor-zoom-in rounded-lg object-contain shadow-2xl",
-                      showGrid && "bg-[url('/grid.png')]"
-                    )}
-                    onClick={() => setPreviewOpen(true)}
-                    priority
-                  />
+                  {selectedDesign ? (
+                    <Image
+                      src={getDesignAssetUrl(selectedDesign.filename)}
+                      alt={selectedDesign.name || "Design"}
+                      fill
+                      sizes="(max-width: 1280px) 100vw, 80vw"
+                      className={cn(
+                        "cursor-zoom-in rounded-lg object-contain shadow-2xl",
+                        showGrid && "bg-[url('/grid.png')]"
+                      )}
+                      onClick={() => setPreviewOpen(true)}
+                      priority
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted-foreground">
+                      当前项目下暂无可预览的设计图片
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -416,8 +451,9 @@ export default function DesignViewerPage() {
               size="icon"
               onClick={() => navigateDesign("next")}
               disabled={
-                availableDesigns.findIndex((d) => d.id === selectedDesign?.id) ===
-                availableDesigns.length - 1
+                !selectedDesign ||
+                availableDesigns.findIndex((d) => d.id === selectedDesign.id) ===
+                  availableDesigns.length - 1
               }
             >
               <ChevronRight className="h-5 w-5" />
@@ -436,18 +472,22 @@ export default function DesignViewerPage() {
             }}
             className="group flex h-6 cursor-row-resize items-center justify-center"
           >
-            <div className="h-1 w-24 rounded-full bg-[#334155] transition-all group-hover:w-32 group-hover:bg-[#3B82F6]" />
+            <div className="h-1 w-24 rounded-full bg-border transition-all group-hover:w-32 group-hover:bg-primary" />
           </div>
         </div>
 
         {previewOpen && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
+            className="admin-overlay-fixed"
             onClick={() => setPreviewOpen(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Design Preview Dialog"
           >
             <button
               type="button"
-              className="absolute right-6 top-6 rounded-md border border-[#334155] bg-[#1A1A1A]/80 p-2 text-white hover:bg-[#1A1A1A]"
+              aria-label="Close preview"
+              className="absolute right-6 top-6 rounded-md border border-border/80 bg-card/90 p-2 text-foreground hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               onClick={(event) => {
                 event.stopPropagation();
                 setPreviewOpen(false);

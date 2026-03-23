@@ -26,11 +26,13 @@ import { Textarea } from "@/components/ui/textarea";
 import type { ApprovalComment, ApprovalRecord, ApprovalStatus } from "@/lib/types/approval";
 
 const statusColors: Record<ApprovalStatus, string> = {
-  pending: "bg-amber-500/15 text-amber-500 border-amber-500",
-  approved: "bg-green-500/15 text-green-500 border-green-500",
-  rejected: "bg-red-500/15 text-red-500 border-red-500",
-  needs_revision: "bg-blue-500/15 text-blue-500 border-blue-500",
+  pending: "bg-warning/15 text-warning border-warning/40",
+  approved: "bg-success/15 text-success border-success/40",
+  rejected: "bg-destructive/15 text-destructive border-destructive/40",
+  needs_revision: "bg-primary/15 text-primary border-primary/40",
 };
+
+const panelClassName = "admin-panel border-border/80 bg-card/90";
 
 async function fetchJson<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
   const response = await fetch(input, {
@@ -192,10 +194,10 @@ export default function ApprovalPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#121826] p-8">
-        <Card className="border-[#334155] bg-[#1A1A1A]">
+      <div className="admin-page min-h-screen">
+        <Card className={panelClassName}>
           <CardContent className="py-12">
-            <p className="text-center text-[#A0A0A0]">Loading approval queue...</p>
+            <p className="text-center text-muted-foreground">Loading approval queue...</p>
           </CardContent>
         </Card>
       </div>
@@ -204,11 +206,11 @@ export default function ApprovalPage() {
 
   if (!selectedApproval) {
     return (
-      <div className="min-h-screen bg-[#121826] p-8">
-        <Card className="border-[#334155] bg-[#1A1A1A]">
+      <div className="admin-page min-h-screen">
+        <Card className={panelClassName}>
           <CardContent className="py-12 space-y-3">
-            <h1 className="text-2xl font-bold text-white text-center">Approval Review</h1>
-            <p className="text-center text-[#A0A0A0]">
+            <h1 className="text-center text-2xl font-bold text-foreground">Approval Review</h1>
+            <p className="admin-empty-state admin-empty-state-md">
               No approval-ready markdown documents were found under `docs/`.
             </p>
           </CardContent>
@@ -218,43 +220,44 @@ export default function ApprovalPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#121826] p-8 space-y-6">
+    <div className="admin-page min-h-screen">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Approval Review</h1>
-          <p className="text-[#A0A0A0]">
+          <p className="admin-kicker mb-2">Review Workspace</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Approval Review</h1>
+          <p className="text-muted-foreground">
             Review real project documents and persist approval decisions in the admin backend.
           </p>
         </div>
         {feedback ? (
-          <div className="rounded-lg border border-white/10 bg-[#1A1A1A] px-4 py-2 text-sm text-[#A0A0A0]">
+          <div className="rounded-xl border border-border/80 bg-card/90 px-4 py-2 text-sm text-muted-foreground shadow-sm">
             {feedback}
           </div>
         ) : null}
       </div>
 
       {error ? (
-        <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+        <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {error}
         </div>
       ) : null}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <Card className="border-[#334155] bg-[#1A1A1A]">
+          <Card className={panelClassName}>
             <CardHeader>
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-bold text-white mb-2">
+                  <h2 className="mb-2 text-2xl font-bold text-foreground">
                     {selectedApproval.documentType}
                   </h2>
-                  <p className="text-sm text-[#A0A0A0]">{selectedApproval.documentPath}</p>
+                  <p className="text-sm text-muted-foreground">{selectedApproval.documentPath}</p>
                 </div>
                 <Badge className={statusColors[selectedApproval.status]}>
                   {selectedApproval.status.replace("_", " ").toUpperCase()}
                 </Badge>
               </div>
-              <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-[#A0A0A0]">
+              <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                 <span>Requested by {selectedApproval.requester}</span>
                 <span>Approvers: {selectedApproval.approvers.length}</span>
                 <span>Updated {formatDate(selectedApproval.updatedAt)}</span>
@@ -262,7 +265,7 @@ export default function ApprovalPage() {
             </CardHeader>
 
             <CardContent>
-              <article className="prose prose-invert max-w-none">
+              <article className="prose prose-slate max-w-none dark:prose-invert">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
@@ -272,7 +275,7 @@ export default function ApprovalPage() {
 
                       return isInline ? (
                         <code
-                          className="px-1.5 py-0.5 bg-[#0A0A0A] rounded text-[#8B5CF6] text-sm"
+                          className="rounded bg-secondary/80 px-1.5 py-0.5 text-sm text-primary"
                           {...props}
                         >
                           {children}
@@ -289,30 +292,34 @@ export default function ApprovalPage() {
                       );
                     },
                     h1: ({ children }) => (
-                      <h1 className="text-3xl font-bold text-white mt-8 mb-4">{children}</h1>
+                      <h1 className="mb-4 mt-8 text-3xl font-bold text-foreground">{children}</h1>
                     ),
                     h2: ({ children }) => (
-                      <h2 className="text-2xl font-semibold text-white mt-6 mb-3">{children}</h2>
+                      <h2 className="mb-3 mt-6 text-2xl font-semibold text-foreground">
+                        {children}
+                      </h2>
                     ),
                     h3: ({ children }) => (
-                      <h3 className="text-xl font-semibold text-white mt-4 mb-2">{children}</h3>
+                      <h3 className="mb-2 mt-4 text-xl font-semibold text-foreground">
+                        {children}
+                      </h3>
                     ),
                     p: ({ children }) => (
-                      <p className="text-[#A0A0A0] leading-relaxed mb-4">{children}</p>
+                      <p className="mb-4 leading-relaxed text-muted-foreground">{children}</p>
                     ),
                     ul: ({ children }) => (
-                      <ul className="list-disc list-inside text-[#A0A0A0] space-y-2 mb-4">
+                      <ul className="mb-4 list-inside list-disc space-y-2 text-muted-foreground">
                         {children}
                       </ul>
                     ),
                     ol: ({ children }) => (
-                      <ol className="list-decimal list-inside text-[#A0A0A0] space-y-2 mb-4">
+                      <ol className="mb-4 list-inside list-decimal space-y-2 text-muted-foreground">
                         {children}
                       </ol>
                     ),
-                    li: ({ children }) => <li className="text-[#A0A0A0]">{children}</li>,
+                    li: ({ children }) => <li className="text-muted-foreground">{children}</li>,
                     blockquote: ({ children }) => (
-                      <blockquote className="border-l-4 border-[#8B5CF6] pl-4 my-4 text-[#A0A0A0] italic">
+                      <blockquote className="my-4 border-l-4 border-primary pl-4 italic text-muted-foreground">
                         {children}
                       </blockquote>
                     ),
@@ -326,7 +333,7 @@ export default function ApprovalPage() {
             <CardFooter className="gap-2 flex-wrap">
               <Button
                 variant="default"
-                className="bg-gradient-to-r from-[#8B5CF6] to-[#3B82F6] hover:opacity-90"
+                className="gradient-primary text-white hover:opacity-90"
                 onClick={() =>
                   void submitApprovalUpdate({
                     status: "approved",
@@ -340,7 +347,7 @@ export default function ApprovalPage() {
               </Button>
               <Button
                 variant="outline"
-                className="border-[#334155] hover:bg-[#0A0A0A]"
+                className="border-border/80 bg-background/80"
                 onClick={() =>
                   void submitApprovalUpdate({
                     status: "needs_revision",
@@ -364,12 +371,10 @@ export default function ApprovalPage() {
                     Reject
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent className="bg-[#1A1A1A] border-[#334155]">
+                <AlertDialogContent className="border-border/80 bg-card">
                   <AlertDialogHeader>
-                    <AlertDialogTitle className="text-white">
-                      Reject this document?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription className="text-[#A0A0A0]">
+                    <AlertDialogTitle>Reject this document?</AlertDialogTitle>
+                    <AlertDialogDescription>
                       Please provide a reason so the owner can act on it.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
@@ -377,10 +382,10 @@ export default function ApprovalPage() {
                     placeholder="Reason for rejection..."
                     value={decisionComment}
                     onChange={(event) => setDecisionComment(event.target.value)}
-                    className="bg-[#0A0A0A] border-[#334155] text-white min-h-[100px]"
+                    className="min-h-[100px] border-border/80 bg-background/80"
                   />
                   <AlertDialogFooter>
-                    <AlertDialogCancel className="bg-[#0A0A0A] border-[#334155] text-white hover:bg-[#1E2532]">
+                    <AlertDialogCancel className="border-border/80 bg-background/80">
                       Cancel
                     </AlertDialogCancel>
                     <AlertDialogAction
@@ -392,7 +397,7 @@ export default function ApprovalPage() {
                         })
                       }
                       disabled={!decisionComment.trim()}
-                      className="bg-red-500 hover:bg-red-600"
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     >
                       Reject
                     </AlertDialogAction>
@@ -404,10 +409,12 @@ export default function ApprovalPage() {
         </div>
 
         <div className="space-y-6">
-          <Card className="border-[#334155] bg-[#1A1A1A]">
+          <Card className={panelClassName}>
             <CardHeader>
-              <h2 className="text-lg font-semibold text-white">Approval Queue</h2>
-              <p className="text-sm text-[#A0A0A0]">{approvals.length} document(s) available</p>
+              <h2 className="text-lg font-semibold text-foreground">Approval Queue</h2>
+              <p className="text-sm text-muted-foreground">
+                {approvals.length} document(s) available
+              </p>
             </CardHeader>
             <CardContent className="space-y-2">
               {approvals.map((approval) => {
@@ -416,17 +423,22 @@ export default function ApprovalPage() {
                 return (
                   <button
                     key={approval.id}
+                    type="button"
                     onClick={() => setSelectedApprovalId(approval.id)}
                     className={
                       isActive
-                        ? "w-full rounded-lg border border-[#3B82F6]/40 bg-[#3B82F6]/10 p-3 text-left"
-                        : "w-full rounded-lg border border-white/10 bg-[#0F1117] p-3 text-left hover:border-white/20"
+                        ? "w-full rounded-2xl border border-primary/30 bg-primary/10 p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        : "w-full rounded-2xl border border-border/80 bg-secondary/70 p-3 text-left hover:border-primary/20 hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     }
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-sm font-medium text-white">{approval.documentType}</p>
-                        <p className="text-xs text-[#A0A0A0] truncate">{approval.documentPath}</p>
+                        <p className="text-sm font-medium text-foreground">
+                          {approval.documentType}
+                        </p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {approval.documentPath}
+                        </p>
                       </div>
                       <Badge className={statusColors[approval.status]}>
                         {approval.status.replace("_", " ")}
@@ -438,10 +450,10 @@ export default function ApprovalPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-[#334155] bg-[#1A1A1A]">
+          <Card className={panelClassName}>
             <CardHeader>
-              <h2 className="text-lg font-semibold text-white">Comments</h2>
-              <p className="text-sm text-[#A0A0A0]">
+              <h2 className="text-lg font-semibold text-foreground">Comments</h2>
+              <p className="text-sm text-muted-foreground">
                 {selectedApproval.comments.length} discussion
                 {selectedApproval.comments.length !== 1 ? "s" : ""}
               </p>
@@ -450,26 +462,30 @@ export default function ApprovalPage() {
             <CardContent className="space-y-4">
               <ScrollArea className="h-[320px] pr-4">
                 {selectedApproval.comments.length === 0 ? (
-                  <p className="text-sm text-[#A0A0A0]">No comments yet for this document.</p>
+                  <p className="admin-empty-state admin-empty-state-md">
+                    No comments yet for this document.
+                  </p>
                 ) : (
                   selectedApproval.comments.map((comment) => (
                     <div key={comment.id} className="flex gap-3 mb-4">
                       <Avatar className="h-8 w-8">
-                        <AvatarFallback className="bg-[#8B5CF6] text-white text-xs">
+                        <AvatarFallback className="gradient-primary text-xs text-white">
                           {getInitials(comment.author)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-white text-sm">{comment.author}</span>
-                          <span className="text-xs text-[#6B7280]">
+                          <span className="text-sm font-medium text-foreground">
+                            {comment.author}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
                             {formatDate(comment.timestamp)}
                           </span>
                         </div>
-                        <p className="text-sm text-[#A0A0A0]">{comment.content}</p>
+                        <p className="text-sm text-muted-foreground">{comment.content}</p>
                         <Badge
                           variant="outline"
-                          className="text-xs border-[#334155] text-[#A0A0A0]"
+                          className="border-border/80 text-xs text-muted-foreground"
                         >
                           {comment.role}
                         </Badge>
@@ -479,14 +495,14 @@ export default function ApprovalPage() {
                 )}
               </ScrollArea>
 
-              <div className="h-px bg-[#334155]" />
+              <div className="h-px bg-border" />
 
               <div className="space-y-3">
                 <Textarea
                   placeholder="Add a reviewer comment..."
                   value={newComment}
                   onChange={(event) => setNewComment(event.target.value)}
-                  className="min-h-[100px] bg-[#0A0A0A] border-[#334155] text-white resize-none"
+                  className="min-h-[100px] resize-none border-border/80 bg-background/80"
                 />
                 <Button
                   onClick={() =>
@@ -496,7 +512,7 @@ export default function ApprovalPage() {
                     })
                   }
                   disabled={isSubmitting || !newComment.trim()}
-                  className="w-full bg-gradient-to-r from-[#8B5CF6] to-[#3B82F6]"
+                  className="gradient-primary w-full text-white"
                 >
                   <Send className="mr-2 h-4 w-4" />
                   Send Comment

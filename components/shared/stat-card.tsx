@@ -25,11 +25,11 @@ export function StatCard({
   className,
 }: StatCardProps) {
   const variantStyles = {
-    default: "bg-card border-border",
-    primary: "bg-primary/10 border-primary/30",
-    success: "bg-success/10 border-success/30",
-    warning: "bg-warning/10 border-warning/30",
-    error: "bg-error/10 border-error/30",
+    default: "border-border/80 bg-card/88",
+    primary: "border-primary/35 bg-primary/10",
+    success: "border-success/35 bg-success/10",
+    warning: "border-warning/35 bg-warning/10",
+    error: "border-error/35 bg-error/10",
   };
 
   const valueStyles = {
@@ -41,18 +41,33 @@ export function StatCard({
   };
 
   return (
-    <Card className={cn(variantStyles[variant], className)}>
-      <CardContent className="pt-6">
+    <Card
+      className={cn(
+        "admin-panel min-h-[148px] border backdrop-blur-sm transition-all duration-150 hover:-translate-y-0.5",
+        variantStyles[variant],
+        className
+      )}
+    >
+      <CardContent className="p-5">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <p className="text-sm font-medium text-muted-foreground mb-1">{title}</p>
-            <p className={cn("text-3xl font-bold", valueStyles[variant])}>{value}</p>
-            {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              {title}
+            </p>
+            <p
+              className={cn(
+                "mt-2 text-4xl font-bold leading-none tracking-tight",
+                valueStyles[variant]
+              )}
+            >
+              {value}
+            </p>
+            {description && <p className="mt-2 text-xs text-muted-foreground">{description}</p>}
             {trend && (
-              <div className="flex items-center gap-1 mt-2">
+              <div className="mt-3 flex items-center gap-1">
                 <span
                   className={cn(
-                    "text-sm font-medium",
+                    "text-xs font-semibold",
                     trend.value >= 0 ? "text-success" : "text-error"
                   )}
                 >
@@ -64,8 +79,8 @@ export function StatCard({
             )}
           </div>
           {icon && (
-            <div className={cn("p-3 rounded-lg", variantStyles[variant])}>
-              <div className={cn("w-6 h-6", valueStyles[variant])}>{icon}</div>
+            <div className="admin-icon-surface h-11 w-11 rounded-2xl">
+              <div className={cn("h-5 w-5", valueStyles[variant])}>{icon}</div>
             </div>
           )}
         </div>

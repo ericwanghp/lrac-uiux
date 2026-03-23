@@ -1,10 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { GlobalProjectSwitcher } from "@/components/shared/global-project-switcher";
+import { buildProjectScopedPath } from "@/lib/utils/project-selection";
 import {
   Select,
   SelectContent,
@@ -16,8 +18,11 @@ import { useProjectRealtimeStatus } from "@/components/providers/project-realtim
 
 export function Header() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const projectRoot = searchParams.get("project");
   const { snapshot, isConnected, isConnecting, reconnectAttempts } = useProjectRealtimeStatus();
-  const [launcherTarget, setLauncherTarget] = React.useState("terminal");
+  const [launcherTarget, setLauncherTarget] = React.useState("tasks-log");
+  const [isLaunching, setIsLaunching] = React.useState(false);
   const phaseText = `Phase ${Math.min(snapshot.currentPhase, 7)}: ${snapshot.currentPhaseLabel}`;
   const statusText = isConnected
     ? `${snapshot.completed}/${snapshot.total} tasks completed · ${snapshot.overallProgress}%`
@@ -26,9 +31,32 @@ export function Header() {
       : reconnectAttempts > 0
         ? `Realtime disconnected · retry ${reconnectAttempts}`
         : "Realtime offline";
-  const openLauncher = () => {
+  const openLauncher = async () => {
     if (launcherTarget === "terminal") {
-      router.push("/terminal");
+      setIsLaunching(true);
+      try {
+        const response = await fetch(
+          buildProjectScopedPath("/api/launcher/terminal", projectRoot),
+          {
+            method: "POST",
+          }
+        );
+        const payload = await response.json().catch(() => null);
+
+        if (!response.ok || !payload?.success) {
+          throw new Error(payload?.error || "Failed to open Workspace Terminal");
+        }
+      } catch (error) {
+        console.error("Failed to open Workspace Terminal:", error);
+        window.alert(error instanceof Error ? error.message : "Failed to open Workspace Terminal");
+      } finally {
+        setIsLaunching(false);
+      }
+      return;
+    }
+
+    if (launcherTarget === "tasks-log") {
+      router.push(buildProjectScopedPath("/tasks-log", projectRoot));
       return;
     }
     if (launcherTarget === "iterm2") {
@@ -40,38 +68,46 @@ export function Header() {
 
   return (
     <header
-      className="h-16 border-b border-border bg-background px-6 flex items-center justify-between"
+      className="admin-topbar sticky top-0 z-30 h-16 border-b border-border/80 px-6 flex items-center justify-between"
       role="banner"
     >
-      {/* Search */}
-      <div className="flex-1 max-w-md">
-        <label htmlFor="header-search" className="sr-only">
-          Search features, tasks, or docs
-        </label>
-        <Input
-          id="header-search"
-          type="search"
-          placeholder="Search features, tasks, or docs..."
-          className="w-full"
-          aria-label="Search features, tasks, or docs"
-        />
+      <div className="flex flex-1 items-center gap-3 min-w-0">
+        <div className="flex-1 max-w-md min-w-0">
+          <label htmlFor="header-search" className="sr-only">
+            Search features, tasks, or docs
+          </label>
+          <Input
+            id="header-search"
+            type="search"
+            placeholder="Search features, tasks, or docs..."
+            className="admin-input h-10 w-full border-border/80 bg-background/80 shadow-sm"
+            aria-label="Search features, tasks, or docs"
+          />
+        </div>
+        <GlobalProjectSwitcher />
       </div>
 
       {/* Actions */}
-      <div className="flex items-center space-x-4" role="group" aria-label="Header actions">
+      <div className="flex items-center space-x-4 ml-4" role="group" aria-label="Header actions">
         <div className="flex items-center gap-2">
           <Select value={launcherTarget} onValueChange={setLauncherTarget}>
-            <SelectTrigger className="w-[170px] h-8">
+            <SelectTrigger className="admin-input h-9 w-[210px] border-border/80 bg-background/80 shadow-sm">
               <SelectValue placeholder="Launcher" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="terminal">Open Terminal</SelectItem>
+              <SelectItem value="tasks-log">Open Tasks Log</SelectItem>
+              <SelectItem value="terminal">Open Workspace Terminal</SelectItem>
               <SelectItem value="iterm2">Open iTerm2</SelectItem>
               <SelectItem value="vscode">Open VSCode</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" size="sm" onClick={openLauncher}>
-            Open
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void openLauncher()}
+            disabled={isLaunching}
+          >
+            {isLaunching ? "Opening..." : "Open"}
           </Button>
         </div>
 
@@ -86,7 +122,7 @@ export function Header() {
 
         <div className="hidden md:flex items-center space-x-2" role="status" aria-live="polite">
           <div
-            className={`h-2 w-2 rounded-full ${isConnected ? "bg-success animate-pulse" : "bg-amber-500"}`}
+            className={`h-2 w-2 rounded-full ${isConnected ? "bg-success animate-pulse" : "bg-warning"}`}
             aria-hidden="true"
           />
           <span className="text-sm text-muted-foreground">{statusText}</span>
@@ -121,6 +157,7 @@ export function Header() {
           variant="ghost"
           size="icon"
           aria-label="Settings"
+          onClick={() => router.push(buildProjectScopedPath("/settings", projectRoot))}
           className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           <svg

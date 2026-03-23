@@ -105,7 +105,7 @@ export async function runTerminalCommand(
       ...process.env,
       PWD: projectRoot,
     },
-    stdio: ["ignore", "pipe", "pipe"],
+    stdio: ["pipe", "pipe", "pipe"],
   });
   registerProcess(sessionId, projectRoot, child);
 
@@ -190,6 +190,33 @@ export async function runTerminalCommand(
       },
       projectRoot
     );
+  });
+}
+
+export async function submitTerminalInput(
+  sessionId: string,
+  input: string,
+  _actor: TerminalActor,
+  projectRoot: string
+) {
+  const processRef = activeProcesses.get(getProcessKey(sessionId, projectRoot));
+  if (!processRef) {
+    throw new Error(`Terminal process is not active for session: ${sessionId}`);
+  }
+  const stdin = processRef.child.stdin;
+  if (!stdin || stdin.destroyed || !stdin.writable) {
+    throw new Error(`Terminal stdin is unavailable for session: ${sessionId}`);
+  }
+
+  const payload = input.endsWith("\n") ? input : `${input}\n`;
+  await new Promise<void>((resolve, reject) => {
+    stdin.write(payload, "utf-8", (error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve();
+    });
   });
 }
 
