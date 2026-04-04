@@ -47,7 +47,7 @@ describe("POST /api/activity-feeds/[id]/commands", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(terminalCommandsEnabled).mockReturnValue(true);
-    vi.mocked(getCurrentProjectRoot).mockReturnValue("/workspace/demo");
+    vi.mocked(getCurrentProjectRoot).mockResolvedValue("/workspace/demo");
     vi.mocked(mutateTerminalSessions).mockResolvedValue({
       session: { id: "session-1" },
       event: { id: "event-1" },

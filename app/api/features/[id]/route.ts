@@ -6,9 +6,9 @@ import { GetFeatureInputSchema } from "@/lib/validation";
  * GET /api/features/[id]
  * Get single feature by ID
  */
-export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const featureId = params.id;
+    const { id: featureId } = await params;
 
     // Validate input
     const validatedInput = GetFeatureInputSchema.parse({ featureId });

@@ -27,7 +27,7 @@ describe("POST /api/launcher/terminal", () => {
   });
 
   it("launches macOS Terminal for the selected project root", async () => {
-    vi.mocked(getCurrentProjectRoot).mockReturnValue("/workspace/demo");
+    vi.mocked(getCurrentProjectRoot).mockResolvedValue("/workspace/demo");
 
     const response = await POST(createRequest("/workspace/demo"));
     const payload = await response.json();
@@ -38,7 +38,7 @@ describe("POST /api/launcher/terminal", () => {
   });
 
   it("returns an error payload when launching Terminal fails", async () => {
-    vi.mocked(getCurrentProjectRoot).mockReturnValue("/workspace/demo");
+    vi.mocked(getCurrentProjectRoot).mockResolvedValue("/workspace/demo");
     vi.mocked(launchMacTerminalAtPath).mockRejectedValue(new Error("Terminal launch failed"));
 
     const response = await POST(createRequest("/workspace/demo"));

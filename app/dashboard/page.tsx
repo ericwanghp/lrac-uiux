@@ -147,7 +147,7 @@ async function readTextSafely(filePath: string, fallback: string): Promise<strin
 }
 
 async function loadDashboardData(projectParam: string | undefined) {
-  const projectRoot = getCurrentProjectRoot(projectParam);
+  const projectRoot = await getCurrentProjectRoot(projectParam);
   const docsRoot = path.join(projectRoot, "docs");
   const autoCodingPath = path.join(projectRoot, ".auto-coding");
   const tasksPath = path.join(autoCodingPath, "tasks.json");
@@ -349,9 +349,10 @@ async function loadDashboardData(projectParam: string | undefined) {
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams?: { project?: string };
+  searchParams?: Promise<{ project?: string }>;
 }) {
-  const data = await loadDashboardData(searchParams?.project);
+  const { project } = (await searchParams) ?? {};
+  const data = await loadDashboardData(project);
   const phaseLabel = `Phase ${data.currentPhase}`;
   const phaseDescription =
     data.currentPhase === 8

@@ -52,15 +52,15 @@ const APPROVAL_DOCUMENTS: ApprovalDocumentConfig[] = [
   },
 ];
 
-function getApprovalsDir(projectRoot?: string | null): string {
-  return path.join(getCurrentProjectRoot(projectRoot), ".auto-coding", "approvals");
+async function getApprovalsDir(projectRoot?: string | null): Promise<string> {
+  return path.join(await getCurrentProjectRoot(projectRoot), ".auto-coding", "approvals");
 }
 
-function getApprovalsFile(projectRoot?: string | null): string {
-  return path.join(getApprovalsDir(projectRoot), "records.json");
+async function getApprovalsFile(projectRoot?: string | null): Promise<string> {
+  return path.join(await getApprovalsDir(projectRoot), "records.json");
 }
 
-export const APPROVALS_FILE = getApprovalsFile(PROJECT_ROOT);
+export const APPROVALS_FILE = path.join(PROJECT_ROOT, ".auto-coding", "approvals", "records.json");
 
 function createEmptyApprovalJson(): ApprovalJson {
   return {
@@ -132,16 +132,16 @@ async function readDocumentDirectory(
 }
 
 export async function initializeApprovals(projectRoot?: string | null): Promise<void> {
-  const approvalsDir = getApprovalsDir(projectRoot);
+  const approvalsDir = await getApprovalsDir(projectRoot);
   await fs.mkdir(approvalsDir, { recursive: true });
   await fs.writeFile(
-    getApprovalsFile(projectRoot),
+    await getApprovalsFile(projectRoot),
     JSON.stringify(createEmptyApprovalJson(), null, 2)
   );
 }
 
 export async function readApprovalsFile(projectRoot?: string | null): Promise<ApprovalJson> {
-  const approvalsFile = getApprovalsFile(projectRoot);
+  const approvalsFile = await getApprovalsFile(projectRoot);
 
   try {
     await fs.access(approvalsFile);
@@ -161,15 +161,15 @@ export async function writeApprovalsFile(
   data: ApprovalJson,
   projectRoot?: string | null
 ): Promise<void> {
-  const approvalsDir = getApprovalsDir(projectRoot);
+  const approvalsDir = await getApprovalsDir(projectRoot);
   await fs.mkdir(approvalsDir, { recursive: true });
-  await fs.writeFile(getApprovalsFile(projectRoot), JSON.stringify(data, null, 2), "utf-8");
+  await fs.writeFile(await getApprovalsFile(projectRoot), JSON.stringify(data, null, 2), "utf-8");
 }
 
 export async function discoverApprovalDocuments(
   projectRoot?: string | null
 ): Promise<ApprovalDocumentSeed[]> {
-  const resolvedProjectRoot = getCurrentProjectRoot(projectRoot);
+  const resolvedProjectRoot = await getCurrentProjectRoot(projectRoot);
   const discovered = await Promise.all(
     APPROVAL_DOCUMENTS.map((config) => readDocumentDirectory(config, resolvedProjectRoot))
   );

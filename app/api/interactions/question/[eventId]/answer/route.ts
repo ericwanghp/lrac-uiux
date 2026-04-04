@@ -8,7 +8,8 @@ const AnswerQuestionSchema = z.object({
   actorId: z.string().optional(),
 });
 
-export async function POST(request: NextRequest, { params }: { params: { eventId: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ eventId: string }> }) {
+  const { eventId } = await params;
   try {
     const projectRoot = request.nextUrl.searchParams.get("project");
     const body = await request.json();
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest, { params }: { params: { eventId
           id: validatedInput.actorId || "frontend-user",
         },
         payload: {
-          sourceEventId: params.eventId,
+          sourceEventId: eventId,
           answer: validatedInput.answer,
         },
       },

@@ -20,7 +20,7 @@ describe("GET /api/projects", () => {
   });
 
   it("returns current project context and discovered sibling projects", async () => {
-    vi.mocked(getCurrentProjectRoot).mockReturnValue("/workspace/lrac-uiux");
+    vi.mocked(getCurrentProjectRoot).mockResolvedValue("/workspace/lrac-uiux");
     vi.mocked(readTasksJson).mockResolvedValue({
       version: "3.0",
       project: "LRAC UIUX",
@@ -81,7 +81,7 @@ describe("GET /api/projects", () => {
   });
 
   it("returns an empty overview when the selected project has no tasks.json yet", async () => {
-    vi.mocked(getCurrentProjectRoot).mockReturnValue("/workspace/claude-code-scaffold");
+    vi.mocked(getCurrentProjectRoot).mockResolvedValue("/workspace/claude-code-scaffold");
     vi.mocked(readTasksJson).mockRejectedValue(new Error("File not found"));
     vi.mocked(discoverWorkspaceProjects).mockResolvedValue([
       { root: "/workspace/lrac-uiux", name: "LRAC UIUX" },

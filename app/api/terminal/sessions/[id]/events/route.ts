@@ -8,20 +8,21 @@ const EventsQuerySchema = z.object({
   afterSeq: z.coerce.number().int().min(0).optional().default(0),
 });
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const { searchParams } = new URL(request.url);
     const projectRoot = searchParams.get("project");
     const validatedQuery = EventsQuerySchema.parse({
       afterSeq: searchParams.get("afterSeq") ?? 0,
     });
     const sessionsData = await readTerminalSessionsFile(projectRoot);
-    const session = sessionsData.sessions.find((item) => item.id === params.id);
+    const session = sessionsData.sessions.find((item) => item.id === id);
     if (!session) {
       return NextResponse.json(
         {
           success: false,
-          error: `Terminal session not found: ${params.id}`,
+          error: `Terminal session not found: ${id}`,
         },
         { status: 404 }
       );

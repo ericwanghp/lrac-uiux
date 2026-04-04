@@ -13,8 +13,9 @@ const MIME_TYPES: Record<string, string> = {
   ".svg": "image/svg+xml",
 };
 
-export async function GET(_request: Request, { params }: { params: { filename: string } }) {
-  const fileName = path.basename(params.filename || "");
+export async function GET(_request: Request, { params }: { params: Promise<{ filename: string }> }) {
+  const { filename } = await params;
+  const fileName = path.basename(filename || "");
   const ext = path.extname(fileName).toLowerCase();
   if (!fileName || !MIME_TYPES[ext]) {
     return NextResponse.json(
@@ -23,7 +24,7 @@ export async function GET(_request: Request, { params }: { params: { filename: s
     );
   }
 
-  const fullPath = path.join(getCurrentProjectRoot(), ".stitch", "designs", fileName);
+  const fullPath = path.join(await getCurrentProjectRoot(), ".stitch", "designs", fileName);
   try {
     const stat = await fs.stat(fullPath);
     if (!stat.isFile()) {

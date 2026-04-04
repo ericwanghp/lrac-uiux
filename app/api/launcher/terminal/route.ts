@@ -5,7 +5,7 @@ import { launchMacTerminalAtPath } from "@/lib/services/native-terminal-launcher
 export async function POST(request: NextRequest) {
   try {
     const requestedProjectRoot = request.nextUrl.searchParams.get("project");
-    const projectRoot = getCurrentProjectRoot(requestedProjectRoot);
+    const projectRoot = await getCurrentProjectRoot(requestedProjectRoot);
 
     await launchMacTerminalAtPath(projectRoot);
 

@@ -6,9 +6,9 @@ import { UpdateFeatureStatusInputSchema } from "@/lib/validation";
  * PATCH /api/features/[id]/status
  * Update feature status
  */
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const featureId = params.id;
+    const { id: featureId } = await params;
     const body = await request.json();
 
     // Validate input

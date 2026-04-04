@@ -12,19 +12,19 @@ import type {
 } from "@/lib/types/terminal";
 import { PROJECT_ROOT, getCurrentProjectRoot } from "@/lib/utils/file-operations";
 
-function getTerminalSessionsDir(projectRoot?: string | null): string {
-  return path.join(getCurrentProjectRoot(projectRoot), ".auto-coding", "terminal-sessions");
+async function getTerminalSessionsDir(projectRoot?: string | null): Promise<string> {
+  return path.join(await getCurrentProjectRoot(projectRoot), ".auto-coding", "terminal-sessions");
 }
 
-function getTerminalSessionsFile(projectRoot?: string | null): string {
-  return path.join(getTerminalSessionsDir(projectRoot), "sessions.json");
+async function getTerminalSessionsFile(projectRoot?: string | null): Promise<string> {
+  return path.join(await getTerminalSessionsDir(projectRoot), "sessions.json");
 }
-export const TERMINAL_SESSIONS_DIR = getTerminalSessionsDir(PROJECT_ROOT);
-export const TERMINAL_SESSIONS_FILE = getTerminalSessionsFile(PROJECT_ROOT);
+export const TERMINAL_SESSIONS_DIR = path.join(PROJECT_ROOT, ".auto-coding", "terminal-sessions");
+export const TERMINAL_SESSIONS_FILE = path.join(PROJECT_ROOT, ".auto-coding", "terminal-sessions", "sessions.json");
 let mutationQueue: Promise<unknown> = Promise.resolve();
 
 export async function initializeTerminalSessions(projectRoot?: string | null): Promise<void> {
-  const terminalSessionsDir = getTerminalSessionsDir(projectRoot);
+  const terminalSessionsDir = await getTerminalSessionsDir(projectRoot);
   await fs.mkdir(terminalSessionsDir, { recursive: true });
   const data: TerminalSessionsJson = {
     version: "1.0",
@@ -36,7 +36,7 @@ export async function initializeTerminalSessions(projectRoot?: string | null): P
 export async function readTerminalSessionsFile(
   projectRoot?: string | null
 ): Promise<TerminalSessionsJson> {
-  const terminalSessionsFile = getTerminalSessionsFile(projectRoot);
+  const terminalSessionsFile = await getTerminalSessionsFile(projectRoot);
   try {
     await fs.access(terminalSessionsFile);
   } catch (error) {
@@ -54,8 +54,8 @@ export async function writeTerminalSessionsFile(
   data: TerminalSessionsJson,
   projectRoot?: string | null
 ): Promise<void> {
-  const terminalSessionsDir = getTerminalSessionsDir(projectRoot);
-  const terminalSessionsFile = getTerminalSessionsFile(projectRoot);
+  const terminalSessionsDir = await getTerminalSessionsDir(projectRoot);
+  const terminalSessionsFile = await getTerminalSessionsFile(projectRoot);
   await fs.mkdir(terminalSessionsDir, { recursive: true });
   const content = JSON.stringify(data, null, 2);
   await fs.writeFile(terminalSessionsFile, content, "utf-8");

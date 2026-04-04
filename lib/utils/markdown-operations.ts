@@ -31,7 +31,7 @@ export function getDocPath(type: DocType, name: string): string {
  * Read markdown file
  */
 export async function readMarkdownFile(filePath: string): Promise<string> {
-  const sanitizedPath = sanitizePath(filePath);
+  const sanitizedPath = await sanitizePath(filePath);
 
   try {
     return await fs.readFile(sanitizedPath, "utf-8");
@@ -47,7 +47,7 @@ export async function readMarkdownFile(filePath: string): Promise<string> {
  * Write markdown file
  */
 export async function writeMarkdownFile(filePath: string, content: string): Promise<void> {
-  const sanitizedPath = sanitizePath(filePath);
+  const sanitizedPath = await sanitizePath(filePath);
 
   // Ensure directory exists
   const dir = path.dirname(sanitizedPath);

@@ -21,7 +21,7 @@ function createEmptyTasks(projectName: string): TasksJson {
 export async function GET(request?: NextRequest) {
   try {
     const requestedProjectRoot = request?.nextUrl.searchParams.get("project");
-    const currentProjectRoot = getCurrentProjectRoot(requestedProjectRoot);
+    const currentProjectRoot = await getCurrentProjectRoot(requestedProjectRoot);
     const [tasksResult, availableProjects, currentProjectDescriptor] = await Promise.all([
       readTasksJson(currentProjectRoot).catch(() => null),
       discoverWorkspaceProjects(currentProjectRoot),

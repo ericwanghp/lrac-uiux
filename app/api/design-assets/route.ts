@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     );
   }
 
-  const fullPath = path.join(getCurrentProjectRoot(), ".stitch", "designs", fileName);
+  const fullPath = path.join(await getCurrentProjectRoot(), ".stitch", "designs", fileName);
   try {
     const stat = await fs.stat(fullPath);
     if (!stat.isFile()) {

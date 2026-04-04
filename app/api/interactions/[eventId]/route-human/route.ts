@@ -11,16 +11,17 @@ const RouteHumanSchema = z.object({
   actorId: z.string().optional(),
 });
 
-export async function POST(request: NextRequest, { params }: { params: { eventId: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ eventId: string }> }) {
+  const { eventId } = await params;
   try {
     const projectRoot = request.nextUrl.searchParams.get("project");
     const body = await request.json();
     const validatedInput = RouteHumanSchema.parse(body);
     const adapter = createHumanRoutingAdapter();
     const delivery = await adapter.send({
-      ticketId: `${params.eventId}-${Date.now().toString(36)}`,
+      ticketId: `${eventId}-${Date.now().toString(36)}`,
       sessionId: validatedInput.sessionId,
-      eventId: params.eventId,
+      eventId: eventId,
       assignee: validatedInput.assignee,
       channel: validatedInput.channel,
       message: validatedInput.message,
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest, { params }: { params: { eventId
           id: validatedInput.actorId || "frontend-user",
         },
         payload: {
-          sourceEventId: params.eventId,
+          sourceEventId: eventId,
           assignee: validatedInput.assignee,
           channel: validatedInput.channel,
           message: validatedInput.message,

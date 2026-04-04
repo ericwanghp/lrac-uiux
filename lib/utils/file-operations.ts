@@ -21,9 +21,9 @@ export function resolveWorkspaceProjectRoot(projectRoot: string | null | undefin
   return resolved;
 }
 
-function getProjectRootFromCookie(): string {
+async function getProjectRootFromCookie(): Promise<string> {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const selectedRoot = cookieStore.get(PROJECT_ROOT_COOKIE_KEY)?.value;
     return resolveWorkspaceProjectRoot(selectedRoot);
   } catch {
@@ -31,7 +31,7 @@ function getProjectRootFromCookie(): string {
   }
 }
 
-export function getCurrentProjectRoot(projectRoot?: string | null): string {
+export async function getCurrentProjectRoot(projectRoot?: string | null): Promise<string> {
   if (projectRoot) return resolveWorkspaceProjectRoot(projectRoot);
   return getProjectRootFromCookie();
 }
@@ -48,15 +48,15 @@ function pathWithin(basePath: string, targetPath: string): boolean {
   return targetPath === basePath || targetPath.startsWith(`${basePath}${path.sep}`);
 }
 
-function getAutoCodingDir(projectRoot?: string | null): string {
-  return path.join(getCurrentProjectRoot(projectRoot), ".auto-coding");
+async function getAutoCodingDir(projectRoot?: string | null): Promise<string> {
+  return path.join(await getCurrentProjectRoot(projectRoot), ".auto-coding");
 }
 
 /**
  * Sanitize file path to prevent directory traversal attacks
  */
-export function sanitizePath(filePath: string, projectRoot?: string | null): string {
-  const resolvedProjectRoot = getCurrentProjectRoot(projectRoot);
+export async function sanitizePath(filePath: string, projectRoot?: string | null): Promise<string> {
+  const resolvedProjectRoot = await getCurrentProjectRoot(projectRoot);
   // Remove null bytes
   let sanitized = filePath.replace(/\0/g, "");
 
@@ -84,7 +84,7 @@ export function sanitizePath(filePath: string, projectRoot?: string | null): str
  * Read and parse JSON file safely
  */
 export async function readJsonFile<T>(filePath: string, projectRoot?: string | null): Promise<T> {
-  const sanitizedPath = sanitizePath(filePath, projectRoot);
+  const sanitizedPath = await sanitizePath(filePath, projectRoot);
 
   try {
     const content = await fs.readFile(sanitizedPath, "utf-8");
@@ -105,7 +105,7 @@ export async function writeJsonFile<T>(
   data: T,
   projectRoot?: string | null
 ): Promise<void> {
-  const sanitizedPath = sanitizePath(filePath, projectRoot);
+  const sanitizedPath = await sanitizePath(filePath, projectRoot);
 
   // Ensure directory exists
   const dir = path.dirname(sanitizedPath);
@@ -120,7 +120,7 @@ export async function writeJsonFile<T>(
  * Read tasks.json
  */
 export async function readTasksJson(projectRoot?: string | null): Promise<TasksJson> {
-  const filePath = path.join(getAutoCodingDir(projectRoot), "tasks.json");
+  const filePath = path.join(await getAutoCodingDir(projectRoot), "tasks.json");
   return readJsonFile<TasksJson>(filePath, projectRoot);
 }
 
@@ -128,7 +128,7 @@ export async function readTasksJson(projectRoot?: string | null): Promise<TasksJ
  * Write tasks.json
  */
 export async function writeTasksJson(data: TasksJson, projectRoot?: string | null): Promise<void> {
-  const filePath = path.join(getAutoCodingDir(projectRoot), "tasks.json");
+  const filePath = path.join(await getAutoCodingDir(projectRoot), "tasks.json");
   await writeJsonFile(filePath, data, projectRoot);
 }
 
@@ -136,8 +136,8 @@ export async function writeTasksJson(data: TasksJson, projectRoot?: string | nul
  * Read progress.txt
  */
 export async function readProgressTxt(projectRoot?: string | null): Promise<string> {
-  const filePath = path.join(getAutoCodingDir(projectRoot), "progress.txt");
-  const sanitizedPath = sanitizePath(filePath, projectRoot);
+  const filePath = path.join(await getAutoCodingDir(projectRoot), "progress.txt");
+  const sanitizedPath = await sanitizePath(filePath, projectRoot);
 
   try {
     return await fs.readFile(sanitizedPath, "utf-8");
@@ -156,8 +156,8 @@ export async function appendToProgressTxt(
   content: string,
   projectRoot?: string | null
 ): Promise<void> {
-  const filePath = path.join(getAutoCodingDir(projectRoot), "progress.txt");
-  const sanitizedPath = sanitizePath(filePath, projectRoot);
+  const filePath = path.join(await getAutoCodingDir(projectRoot), "progress.txt");
+  const sanitizedPath = await sanitizePath(filePath, projectRoot);
 
   // Ensure directory exists
   const dir = path.dirname(sanitizedPath);
@@ -170,7 +170,7 @@ export async function appendToProgressTxt(
  * Check if file exists
  */
 export async function fileExists(filePath: string, projectRoot?: string | null): Promise<boolean> {
-  const sanitizedPath = sanitizePath(filePath, projectRoot);
+  const sanitizedPath = await sanitizePath(filePath, projectRoot);
 
   try {
     await fs.access(sanitizedPath);
@@ -184,7 +184,7 @@ export async function fileExists(filePath: string, projectRoot?: string | null):
  * Delete file safely
  */
 export async function deleteFile(filePath: string, projectRoot?: string | null): Promise<void> {
-  const sanitizedPath = sanitizePath(filePath, projectRoot);
+  const sanitizedPath = await sanitizePath(filePath, projectRoot);
   await fs.unlink(sanitizedPath);
 }
 
@@ -192,7 +192,7 @@ export async function deleteFile(filePath: string, projectRoot?: string | null):
  * List files in directory
  */
 export async function listFiles(dirPath: string, projectRoot?: string | null): Promise<string[]> {
-  const sanitizedPath = sanitizePath(dirPath, projectRoot);
+  const sanitizedPath = await sanitizePath(dirPath, projectRoot);
 
   try {
     const files = await fs.readdir(sanitizedPath);

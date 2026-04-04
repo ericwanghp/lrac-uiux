@@ -3,15 +3,15 @@ import path from "path";
 import { DEFAULT_USER_SETTINGS, UserSettings, UserSettingsEnvelope } from "@/lib/types/settings";
 import { PROJECT_ROOT, getCurrentProjectRoot } from "@/lib/utils/file-operations";
 
-function getConfigDir(projectRoot?: string | null): string {
-  return path.join(getCurrentProjectRoot(projectRoot), ".auto-coding", "config");
+async function getConfigDir(projectRoot?: string | null): Promise<string> {
+  return path.join(await getCurrentProjectRoot(projectRoot), ".auto-coding", "config");
 }
 
-function getSettingsFile(projectRoot?: string | null): string {
-  return path.join(getConfigDir(projectRoot), "ui-settings.json");
+async function getSettingsFile(projectRoot?: string | null): Promise<string> {
+  return path.join(await getConfigDir(projectRoot), "ui-settings.json");
 }
 
-export const PROJECT_SETTINGS_FILE = getSettingsFile(PROJECT_ROOT);
+export const PROJECT_SETTINGS_FILE = path.join(PROJECT_ROOT, ".auto-coding", "config", "ui-settings.json");
 
 function createDefaultEnvelope(): UserSettingsEnvelope {
   return {
@@ -22,10 +22,10 @@ function createDefaultEnvelope(): UserSettingsEnvelope {
 }
 
 export async function initializeProjectSettings(projectRoot?: string | null): Promise<void> {
-  const configDir = getConfigDir(projectRoot);
+  const configDir = await getConfigDir(projectRoot);
   await fs.mkdir(configDir, { recursive: true });
   await fs.writeFile(
-    getSettingsFile(projectRoot),
+    await getSettingsFile(projectRoot),
     JSON.stringify(createDefaultEnvelope(), null, 2)
   );
 }
@@ -33,7 +33,7 @@ export async function initializeProjectSettings(projectRoot?: string | null): Pr
 export async function readProjectSettings(
   projectRoot?: string | null
 ): Promise<UserSettingsEnvelope> {
-  const settingsFile = getSettingsFile(projectRoot);
+  const settingsFile = await getSettingsFile(projectRoot);
 
   try {
     await fs.access(settingsFile);
@@ -62,7 +62,7 @@ export async function writeProjectSettings(
   settings: UserSettings,
   projectRoot?: string | null
 ): Promise<UserSettingsEnvelope> {
-  const configDir = getConfigDir(projectRoot);
+  const configDir = await getConfigDir(projectRoot);
   const nextEnvelope: UserSettingsEnvelope = {
     version: "1.0",
     settings,
@@ -70,7 +70,7 @@ export async function writeProjectSettings(
   };
 
   await fs.mkdir(configDir, { recursive: true });
-  await fs.writeFile(getSettingsFile(projectRoot), JSON.stringify(nextEnvelope, null, 2), "utf-8");
+  await fs.writeFile(await getSettingsFile(projectRoot), JSON.stringify(nextEnvelope, null, 2), "utf-8");
 
   return nextEnvelope;
 }

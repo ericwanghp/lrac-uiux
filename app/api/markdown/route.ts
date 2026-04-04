@@ -10,12 +10,12 @@ type UpdatePayload = {
   content: string;
 };
 
-function resolveMarkdownPath(relativePath: string): string {
+async function resolveMarkdownPath(relativePath: string): Promise<string> {
   const normalized = relativePath.trim();
   if (!normalized.toLowerCase().endsWith(".md")) {
     throw new Error("Only markdown files are supported");
   }
-  const projectRoot = getCurrentProjectRoot();
+  const projectRoot = await getCurrentProjectRoot();
   return sanitizePath(path.join(projectRoot, normalized), projectRoot);
 }
 
@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ success: false, error: "Missing relativePath" }, { status: 400 });
   }
   try {
-    const fullPath = resolveMarkdownPath(relativePath);
+    const fullPath = await resolveMarkdownPath(relativePath);
     const content = await fs.readFile(fullPath, "utf-8");
     return NextResponse.json({
       success: true,
@@ -59,7 +59,7 @@ export async function PUT(request: Request) {
   }
 
   try {
-    const fullPath = resolveMarkdownPath(payload.relativePath);
+    const fullPath = await resolveMarkdownPath(payload.relativePath);
     await fs.writeFile(fullPath, payload.content ?? "", "utf-8");
     return NextResponse.json({ success: true });
   } catch (error) {

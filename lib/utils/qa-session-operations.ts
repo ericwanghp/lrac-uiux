@@ -8,22 +8,22 @@ import path from "path";
 import { QASessionJson } from "@/lib/types/qa-session";
 import { PROJECT_ROOT, getCurrentProjectRoot } from "@/lib/utils/file-operations";
 
-function getQASessionsDir(projectRoot?: string | null): string {
-  return path.join(getCurrentProjectRoot(projectRoot), ".auto-coding", "qa-sessions");
+function getQASessionsDir(projectRoot?: string | null): Promise<string> {
+  return getCurrentProjectRoot(projectRoot).then((root) => path.join(root, ".auto-coding", "qa-sessions"));
 }
 
-function getQASessionsFile(projectRoot?: string | null): string {
-  return path.join(getQASessionsDir(projectRoot), "sessions.json");
+async function getQASessionsFile(projectRoot?: string | null): Promise<string> {
+  return path.join(await getQASessionsDir(projectRoot), "sessions.json");
 }
-export const QA_SESSIONS_DIR = getQASessionsDir(PROJECT_ROOT);
-export const QA_SESSIONS_FILE = getQASessionsFile(PROJECT_ROOT);
+export const QA_SESSIONS_DIR = path.join(PROJECT_ROOT, ".auto-coding", "qa-sessions");
+export const QA_SESSIONS_FILE = path.join(PROJECT_ROOT, ".auto-coding", "qa-sessions", "sessions.json");
 
 /**
  * Initialize Q&A sessions storage
  * Creates the sessions.json file if it doesn't exist
  */
 export async function initializeQASessions(projectRoot?: string | null): Promise<void> {
-  const qaSessionsDir = getQASessionsDir(projectRoot);
+  const qaSessionsDir = await getQASessionsDir(projectRoot);
   await fs.mkdir(qaSessionsDir, { recursive: true });
   const data: QASessionJson = {
     version: "1.0",
@@ -36,7 +36,7 @@ export async function initializeQASessions(projectRoot?: string | null): Promise
  * Read Q&A sessions file
  */
 export async function readQASessionsFile(projectRoot?: string | null): Promise<QASessionJson> {
-  const qaSessionsFile = getQASessionsFile(projectRoot);
+  const qaSessionsFile = await getQASessionsFile(projectRoot);
   try {
     await fs.access(qaSessionsFile);
   } catch (error) {
@@ -58,8 +58,8 @@ export async function writeQASessionsFile(
   data: QASessionJson,
   projectRoot?: string | null
 ): Promise<void> {
-  const qaSessionsDir = getQASessionsDir(projectRoot);
-  const qaSessionsFile = getQASessionsFile(projectRoot);
+  const qaSessionsDir = await getQASessionsDir(projectRoot);
+  const qaSessionsFile = await getQASessionsFile(projectRoot);
   await fs.mkdir(qaSessionsDir, { recursive: true });
   const content = JSON.stringify(data, null, 2);
   await fs.writeFile(qaSessionsFile, content, "utf-8");

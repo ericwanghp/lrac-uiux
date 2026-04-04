@@ -27,7 +27,7 @@ type TaskLog = {
   action: string;
 };
 
-function resolveProjectRoot(projectRoot?: string | null): string {
+async function resolveProjectRoot(projectRoot?: string | null): Promise<string> {
   return getCurrentProjectRoot(projectRoot);
 }
 
@@ -59,7 +59,7 @@ export async function readArtifacts(
   subdir: string,
   projectRoot?: string | null
 ): Promise<Artifact[]> {
-  const resolvedProjectRoot = resolveProjectRoot(projectRoot);
+  const resolvedProjectRoot = await resolveProjectRoot(projectRoot);
   const dir = path.join(resolvedProjectRoot, "docs", subdir);
 
   try {
@@ -189,7 +189,7 @@ export async function readExplicitArtifacts(
   relativePaths: string[],
   projectRoot?: string | null
 ): Promise<Artifact[]> {
-  const resolvedProjectRoot = resolveProjectRoot(projectRoot);
+  const resolvedProjectRoot = await resolveProjectRoot(projectRoot);
   const artifacts = await Promise.all(
     relativePaths.map(async (relativePath) => {
       const absolutePath = path.join(resolvedProjectRoot, relativePath);
@@ -220,7 +220,7 @@ export async function readCodeArtifacts(
   limit = 30,
   projectRoot?: string | null
 ): Promise<Artifact[]> {
-  const resolvedProjectRoot = resolveProjectRoot(projectRoot);
+  const resolvedProjectRoot = await resolveProjectRoot(projectRoot);
   const rootDir = path.join(resolvedProjectRoot, relativeDir);
   const filePaths = await collectFiles(rootDir);
   const filtered = filePaths.filter((filePath) => matcher(path.basename(filePath))).slice(0, limit);
