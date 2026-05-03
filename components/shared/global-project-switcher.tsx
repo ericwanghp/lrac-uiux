@@ -98,7 +98,7 @@ export function GlobalProjectSwitcher() {
   return (
     <div className="min-w-0 w-[180px] sm:w-[220px]">
       <Select
-        value={currentProjectRoot || undefined}
+        value={currentProjectRoot}
         onValueChange={handleProjectChange}
         disabled={isLoading || projects.length === 0}
       >

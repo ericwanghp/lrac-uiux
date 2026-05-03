@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { ClaudeCliLauncher } from "@/components/claude-cli/claude-cli-launcher";
 import { GlobalProjectSwitcher } from "@/components/shared/global-project-switcher";
 import { buildProjectScopedPath } from "@/lib/utils/project-selection";
 import {
@@ -89,6 +90,8 @@ export function Header() {
 
       {/* Actions */}
       <div className="flex items-center space-x-4 ml-4" role="group" aria-label="Header actions">
+        <ClaudeCliLauncher projectRoot={projectRoot} />
+
         <div className="flex items-center gap-2">
           <Select value={launcherTarget} onValueChange={setLauncherTarget}>
             <SelectTrigger className="admin-input h-9 w-[210px] border-border/80 bg-background/80 shadow-sm">

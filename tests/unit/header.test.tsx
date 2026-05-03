@@ -85,7 +85,7 @@ vi.mock("@/components/ui/select", () => ({
   ),
 }));
 
-import { Header } from "@/components/layout/header";
+import { Header } from "../../components/layout/header";
 
 describe("Header", () => {
   beforeEach(() => {
@@ -101,6 +101,7 @@ describe("Header", () => {
     const user = userEvent.setup();
 
     render(<Header />);
+    expect(screen.getByRole("button", { name: /claude code/i })).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Open" }));
 
     await waitFor(() => {

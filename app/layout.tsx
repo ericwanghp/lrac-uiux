@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/header";
 import { CommandPalette } from "@/components/ui/command-palette";
 import { ProjectRealtimeStatusProvider } from "@/components/providers/project-realtime-status-provider";
 import { UiSettingsProvider } from "@/components/providers/ui-settings-provider";
+import "@xterm/xterm/css/xterm.css";
 import "./globals.css";
 
 export default function RootLayout({
