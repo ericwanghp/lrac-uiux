@@ -5,16 +5,13 @@ import {
   DEFAULT_CLAUDE_CLI_COLS,
   DEFAULT_CLAUDE_CLI_ROWS,
   getClaudeCliProjectName,
-  getClaudeCliSessionId,
+  getPreferredShellCommand,
+  getShellSessionId,
 } from "@/lib/claude-cli/session-utils";
 import { getCurrentProjectRoot } from "@/lib/utils/file-operations";
 
-const ClaudeCliSessionSchema = z.object({
+const ShellSessionSchema = z.object({
   projectRoot: z.string().optional().nullable(),
-  args: z.array(z.string()).optional(),
-  defaultPrompt: z.string().trim().optional().nullable(),
-  continueWithRecentContext: z.boolean().optional(),
-  dangerouslySkipPermissions: z.boolean().optional(),
 });
 
 export const runtime = "nodejs";
@@ -26,29 +23,11 @@ async function resolveProjectRootFromRequest(request: NextRequest): Promise<stri
   return getCurrentProjectRoot(projectRootParam);
 }
 
-function buildClaudeCliArgs(body: z.infer<typeof ClaudeCliSessionSchema>): string[] {
-  const nextArgs = [...(body.args ?? [])];
-
-  if (body.continueWithRecentContext) {
-    nextArgs.push("-c");
-  }
-
-  if (body.dangerouslySkipPermissions) {
-    nextArgs.push("--dangerously-skip-permissions");
-  }
-
-  if (body.defaultPrompt) {
-    nextArgs.push(body.defaultPrompt);
-  }
-
-  return nextArgs;
-}
-
 export async function GET(request: NextRequest) {
   try {
     const projectRoot = await resolveProjectRootFromRequest(request);
     const server = await ensureClaudeCliServer();
-    const sessionId = getClaudeCliSessionId(projectRoot);
+    const sessionId = getShellSessionId(projectRoot);
 
     server.manager.registerSession(sessionId, projectRoot, getClaudeCliProjectName(projectRoot));
 
@@ -60,7 +39,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to load Claude Code session",
+        error: error instanceof Error ? error.message : "Failed to load shell session",
       },
       { status: 500 }
     );
@@ -69,20 +48,19 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = ClaudeCliSessionSchema.parse(await request.json().catch(() => ({})));
+    const body = ShellSessionSchema.parse(await request.json().catch(() => ({})));
     const projectRoot = await getCurrentProjectRoot(body.projectRoot || request.nextUrl.searchParams.get("project"));
     const server = await ensureClaudeCliServer();
-    const sessionId = getClaudeCliSessionId(projectRoot);
+    const sessionId = getShellSessionId(projectRoot);
     const existing = server.manager.getSessionDescriptor(sessionId);
-    const args = buildClaudeCliArgs(body);
 
     if (!existing?.active) {
       server.manager.startSession({
         sessionId,
         projectRoot,
         projectName: getClaudeCliProjectName(projectRoot),
-        command: "claude",
-        args,
+        command: getPreferredShellCommand(),
+        args: [],
         cols: DEFAULT_CLAUDE_CLI_COLS,
         rows: DEFAULT_CLAUDE_CLI_ROWS,
       });
@@ -99,7 +77,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to start Claude Code session",
+        error: error instanceof Error ? error.message : "Failed to start shell session",
       },
       { status: 500 }
     );

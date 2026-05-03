@@ -1,8 +1,7 @@
 "use client";
 
-import * as React from "react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   ClipboardList,
@@ -16,6 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { useProjectQueryParam } from "@/components/providers/use-project-query-param";
 import { useProjectRealtimeStatus } from "@/components/providers/project-realtime-status-provider";
 import { buildProjectScopedPath } from "@/lib/utils/project-selection";
 
@@ -77,8 +77,7 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const projectRoot = searchParams.get("project");
+  const projectRoot = useProjectQueryParam();
   const { snapshot, isConnected } = useProjectRealtimeStatus();
   const phaseLabel = `P${Math.min(snapshot.currentPhase, 7)}`;
 

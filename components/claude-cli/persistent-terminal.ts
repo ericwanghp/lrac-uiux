@@ -2,9 +2,9 @@
 
 import { ClipboardAddon } from "@xterm/addon-clipboard";
 import { FitAddon } from "@xterm/addon-fit";
-import { Unicode11Addon } from "@xterm/addon-unicode11";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import { Terminal, type ITerminalOptions } from "@xterm/xterm";
+import type { ThemeMode } from "@/lib/types/settings";
 
 export type ClaudeCliConnectionState = "disconnected" | "connecting" | "restoring" | "connected";
 
@@ -13,24 +13,30 @@ export interface PersistentTerminalOptions {
   projectRoot: string;
   wsBaseUrl: string;
   container: HTMLElement;
+  themeMode: ThemeMode;
   onStateChange?: (state: ClaudeCliConnectionState) => void;
   onError?: (error: string) => void;
   onSessionExit?: (code: number) => void;
 }
 
-function createTerminalOptions(): ITerminalOptions {
-  return {
-    convertEol: false,
-    cursorBlink: true,
-    fontFamily: 'var(--font-mono), "JetBrains Mono", Menlo, Monaco, Consolas, monospace',
-    fontSize: 13,
-    lineHeight: 1.35,
-    scrollback: 5000,
-    theme: {
-      background: "#111827",
-      foreground: "#f8fafc",
-      cursor: "#fb923c",
-      black: "#111827",
+function cssHslVar(variableName: string, fallback: string): string {
+  if (typeof document === "undefined") {
+    return fallback;
+  }
+
+  const value = getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
+  return value ? `hsl(${value})` : fallback;
+}
+
+function createTerminalTheme(themeMode: ThemeMode): NonNullable<ITerminalOptions["theme"]> {
+  if (themeMode === "dark") {
+    return {
+      background: cssHslVar("--background", "#111827"),
+      foreground: cssHslVar("--foreground", "#f8fafc"),
+      cursor: cssHslVar("--primary", "#fb923c"),
+      cursorAccent: cssHslVar("--background", "#111827"),
+      selectionBackground: "rgba(148, 163, 184, 0.24)",
+      black: "#0f172a",
       red: "#f87171",
       green: "#34d399",
       yellow: "#fbbf24",
@@ -46,12 +52,48 @@ function createTerminalOptions(): ITerminalOptions {
       brightMagenta: "#d8b4fe",
       brightCyan: "#67e8f9",
       brightWhite: "#f8fafc",
-    },
+    };
+  }
+
+  return {
+    background: cssHslVar("--card", "#fffaf2"),
+    foreground: cssHslVar("--foreground", "#1f3340"),
+    cursor: cssHslVar("--primary", "#ea6d2f"),
+    cursorAccent: cssHslVar("--card", "#fffaf2"),
+    selectionBackground: "rgba(234, 109, 47, 0.18)",
+    black: "#334155",
+    red: "#dc2626",
+    green: "#0f766e",
+    yellow: "#ca8a04",
+    blue: "#2563eb",
+    magenta: "#9333ea",
+    cyan: "#0891b2",
+    white: "#e2e8f0",
+    brightBlack: "#64748b",
+    brightRed: "#ef4444",
+    brightGreen: "#14b8a6",
+    brightYellow: "#eab308",
+    brightBlue: "#3b82f6",
+    brightMagenta: "#a855f7",
+    brightCyan: "#06b6d4",
+    brightWhite: "#f8fafc",
+  };
+}
+
+function createTerminalOptions(themeMode: ThemeMode): ITerminalOptions {
+  return {
+    convertEol: false,
+    cursorBlink: true,
+    fontFamily: 'var(--font-mono), "JetBrains Mono", Menlo, Monaco, Consolas, monospace',
+    fontSize: 13,
+    lineHeight: 1.35,
+    scrollback: 5000,
+    theme: createTerminalTheme(themeMode),
   };
 }
 
 export class PersistentTerminal {
-  private terminal = new Terminal(createTerminalOptions());
+  private terminal: Terminal;
   private fitAddon = new FitAddon();
   private ioSocket: WebSocket | null = null;
   private controlSocket: WebSocket | null = null;
@@ -63,10 +105,10 @@ export class PersistentTerminal {
   private connectionState: ClaudeCliConnectionState = "disconnected";
 
   constructor(private options: PersistentTerminalOptions) {
+    this.terminal = new Terminal(createTerminalOptions(options.themeMode));
     this.terminal.loadAddon(this.fitAddon);
     this.terminal.loadAddon(new WebLinksAddon());
     this.terminal.loadAddon(new ClipboardAddon());
-    this.terminal.loadAddon(new Unicode11Addon());
     this.terminal.open(options.container);
     this.terminal.focus();
 
@@ -261,6 +303,10 @@ export class PersistentTerminal {
     if (this.controlSocket?.readyState === WebSocket.OPEN) {
       this.controlSocket.send(JSON.stringify({ type: "resize", cols, rows }));
     }
+  }
+
+  setTheme(themeMode: ThemeMode): void {
+    this.terminal.options.theme = createTerminalTheme(themeMode);
   }
 
   dispose(): void {

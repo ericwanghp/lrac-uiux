@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Cell } from "recharts";
+import { useProjectQueryParam } from "@/components/providers/use-project-query-param";
 import type { ApprovalRecord } from "@/lib/types/approval";
 import type { Feature } from "@/lib/types";
 import type { ActivityFeed } from "@/lib/types/activity-feed";
@@ -249,8 +249,7 @@ function getActionTypeLabel(kind: WaitingInboxItem["kind"]): string {
 }
 
 export default function PMDashboardPage() {
-  const searchParams = useSearchParams();
-  const projectRoot = (searchParams.get("project") || "").trim();
+  const projectRoot = (useProjectQueryParam() || "").trim();
   const scopedPath = useCallback(
     (path: string) => buildProjectScopedPath(path, projectRoot),
     [projectRoot]

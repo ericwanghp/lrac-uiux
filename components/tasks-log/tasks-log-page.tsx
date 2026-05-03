@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +37,7 @@ import {
   type PendingInteraction,
 } from "@/lib/utils/tasks-log-display";
 import { cn } from "@/lib/utils";
+import { useProjectQueryParam } from "@/components/providers/use-project-query-param";
 import { useWebSocket } from "@/lib/websocket/useWebSocket";
 import { PROJECT_ROOT_COOKIE_KEY } from "@/lib/constants/project-context";
 import { buildProjectScopedPath } from "@/lib/utils/project-selection";
@@ -224,8 +224,7 @@ function getActivityFeedStorageKey(projectRootFromQuery?: string) {
 }
 
 export default function TasksLogPage() {
-  const searchParams = useSearchParams();
-  const projectRoot = (searchParams.get("project") || "").trim();
+  const projectRoot = (useProjectQueryParam() || "").trim();
   const scopedPath = useCallback(
     (path: string) => buildProjectScopedPath(path, projectRoot),
     [projectRoot]

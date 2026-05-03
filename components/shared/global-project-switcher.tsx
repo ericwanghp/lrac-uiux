@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useProjectQueryParam } from "@/components/providers/use-project-query-param";
 import {
   Select,
   SelectContent,
@@ -25,8 +26,7 @@ type ProjectsApiResponse = {
 export function GlobalProjectSwitcher() {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const projectFromQuery = searchParams.get("project") || "";
+  const projectFromQuery = useProjectQueryParam() || "";
   const [projects, setProjects] = React.useState<ProjectOption[]>([]);
   const [currentProjectRoot, setCurrentProjectRoot] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(true);
@@ -77,7 +77,7 @@ export function GlobalProjectSwitcher() {
 
       setCurrentProjectRoot(projectRoot);
       persistProjectSelection(projectRoot);
-      const nextPath = buildProjectNavigationPath(pathname, projectRoot, searchParams.toString());
+      const nextPath = buildProjectNavigationPath(pathname, projectRoot, window.location.search);
       router.replace(nextPath);
       router.refresh();
 
@@ -88,7 +88,7 @@ export function GlobalProjectSwitcher() {
         );
       }
     },
-    [currentProjectRoot, pathname, router, searchParams]
+    [currentProjectRoot, pathname, router]
   );
 
   if (!isLoading && projects.length <= 1) {

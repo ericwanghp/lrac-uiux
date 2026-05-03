@@ -1,29 +1,20 @@
 "use client";
 
-import * as React from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ClaudeCliLauncher } from "@/components/claude-cli/claude-cli-launcher";
+import { ShellLauncher } from "@/components/shell/shell-launcher";
+import { useProjectQueryParam } from "@/components/providers/use-project-query-param";
 import { GlobalProjectSwitcher } from "@/components/shared/global-project-switcher";
 import { buildProjectScopedPath } from "@/lib/utils/project-selection";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useProjectRealtimeStatus } from "@/components/providers/project-realtime-status-provider";
 
 export function Header() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const projectRoot = searchParams.get("project");
+  const projectRoot = useProjectQueryParam();
   const { snapshot, isConnected, isConnecting, reconnectAttempts } = useProjectRealtimeStatus();
-  const [launcherTarget, setLauncherTarget] = React.useState("tasks-log");
-  const [isLaunching, setIsLaunching] = React.useState(false);
   const phaseText = `Phase ${Math.min(snapshot.currentPhase, 7)}: ${snapshot.currentPhaseLabel}`;
   const statusText = isConnected
     ? `${snapshot.completed}/${snapshot.total} tasks completed · ${snapshot.overallProgress}%`
@@ -32,40 +23,6 @@ export function Header() {
       : reconnectAttempts > 0
         ? `Realtime disconnected · retry ${reconnectAttempts}`
         : "Realtime offline";
-  const openLauncher = async () => {
-    if (launcherTarget === "terminal") {
-      setIsLaunching(true);
-      try {
-        const response = await fetch(
-          buildProjectScopedPath("/api/launcher/terminal", projectRoot),
-          {
-            method: "POST",
-          }
-        );
-        const payload = await response.json().catch(() => null);
-
-        if (!response.ok || !payload?.success) {
-          throw new Error(payload?.error || "Failed to open Workspace Terminal");
-        }
-      } catch (error) {
-        console.error("Failed to open Workspace Terminal:", error);
-        window.alert(error instanceof Error ? error.message : "Failed to open Workspace Terminal");
-      } finally {
-        setIsLaunching(false);
-      }
-      return;
-    }
-
-    if (launcherTarget === "tasks-log") {
-      router.push(buildProjectScopedPath("/tasks-log", projectRoot));
-      return;
-    }
-    if (launcherTarget === "iterm2") {
-      window.location.href = "iterm2://";
-      return;
-    }
-    window.location.href = "vscode://";
-  };
 
   return (
     <header
@@ -91,28 +48,7 @@ export function Header() {
       {/* Actions */}
       <div className="flex items-center space-x-4 ml-4" role="group" aria-label="Header actions">
         <ClaudeCliLauncher projectRoot={projectRoot} />
-
-        <div className="flex items-center gap-2">
-          <Select value={launcherTarget} onValueChange={setLauncherTarget}>
-            <SelectTrigger className="admin-input h-9 w-[210px] border-border/80 bg-background/80 shadow-sm">
-              <SelectValue placeholder="Launcher" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="tasks-log">Open Tasks Log</SelectItem>
-              <SelectItem value="terminal">Open Workspace Terminal</SelectItem>
-              <SelectItem value="iterm2">Open iTerm2</SelectItem>
-              <SelectItem value="vscode">Open VSCode</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => void openLauncher()}
-            disabled={isLaunching}
-          >
-            {isLaunching ? "Opening..." : "Open"}
-          </Button>
-        </div>
+        <ShellLauncher projectRoot={projectRoot} />
 
         {/* Phase Indicator */}
         <Badge

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useSearchParams } from "next/navigation";
+import { useProjectQueryParam } from "@/components/providers/use-project-query-param";
 import { useWebSocket } from "@/lib/websocket/useWebSocket";
 import { getPhaseFromTaskId } from "@/lib/constants/task-id";
 import { buildProjectScopedPath } from "@/lib/utils/project-selection";
@@ -98,8 +98,7 @@ function buildSnapshot(features: FeatureFromApi[]): ProjectRealtimeSnapshot {
 }
 
 export function ProjectRealtimeStatusProvider({ children }: { children: React.ReactNode }) {
-  const searchParams = useSearchParams();
-  const projectRoot = searchParams.get("project");
+  const projectRoot = useProjectQueryParam();
   const [snapshot, setSnapshot] = React.useState<ProjectRealtimeSnapshot>(DEFAULT_SNAPSHOT);
 
   const refresh = React.useCallback(async () => {

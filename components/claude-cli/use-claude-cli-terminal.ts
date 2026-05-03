@@ -5,11 +5,13 @@ import {
   PersistentTerminal,
   type ClaudeCliConnectionState,
 } from "@/components/claude-cli/persistent-terminal";
+import type { ThemeMode } from "@/lib/types/settings";
 
 interface UseClaudeCliTerminalOptions {
   sessionId: string;
   projectRoot: string;
   wsBaseUrl: string;
+  themeMode: ThemeMode;
   autoConnect?: boolean;
   onSessionExit?: (code: number) => void;
 }
@@ -18,6 +20,7 @@ export function useClaudeCliTerminal({
   sessionId,
   projectRoot,
   wsBaseUrl,
+  themeMode,
   autoConnect = true,
   onSessionExit,
 }: UseClaudeCliTerminalOptions) {
@@ -40,6 +43,7 @@ export function useClaudeCliTerminal({
         sessionId,
         projectRoot,
         wsBaseUrl,
+        themeMode,
         container: node,
         onStateChange: (state) => {
           if (instanceIdRef.current !== instanceId) {
@@ -63,8 +67,12 @@ export function useClaudeCliTerminal({
         terminalRef.current.connect();
       }
     },
-    [autoConnect, onSessionExit, projectRoot, sessionId, wsBaseUrl]
+    [autoConnect, onSessionExit, projectRoot, sessionId, themeMode, wsBaseUrl]
   );
+
+  React.useEffect(() => {
+    terminalRef.current?.setTheme(themeMode);
+  }, [themeMode]);
 
   React.useEffect(() => {
     return () => {
