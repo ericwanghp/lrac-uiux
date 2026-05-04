@@ -320,6 +320,9 @@ code {
 }
 
 .claude-cli-terminal-shell {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
   background:
     radial-gradient(circle at top, hsl(var(--primary) / 0.09), transparent 28%),
     linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--secondary) / 0.82) 100%);
@@ -332,15 +335,24 @@ code {
 }
 
 .claude-cli-terminal-viewport {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
   padding: 0.75rem 0.5rem;
 }
 
 .claude-cli-terminal-viewport .xterm {
   height: 100%;
+  width: 100%;
 }
 
 .claude-cli-terminal-viewport .xterm-viewport {
   border-radius: 1rem;
+}
+
+.claude-cli-terminal-viewport .xterm-screen {
+  min-width: 100%;
 }
 
 /* Reduced motion for accessibility */

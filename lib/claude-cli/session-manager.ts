@@ -216,6 +216,39 @@ export class ClaudeCliSessionManager {
     };
   }
 
+  listSessionDescriptors(options?: {
+    activeOnly?: boolean;
+    projectRoots?: string[];
+  }): ClaudeCliSessionDescriptor[] {
+    const allowedProjectRoots = options?.projectRoots ? new Set(options.projectRoots) : null;
+
+    return Array.from(this.sessions.values())
+      .filter((entry) => {
+        if (options?.activeOnly && !entry.active) {
+          return false;
+        }
+
+        if (allowedProjectRoots && !allowedProjectRoots.has(entry.projectRoot)) {
+          return false;
+        }
+
+        return true;
+      })
+      .map((entry) => ({
+        sessionId: entry.sessionId,
+        projectRoot: entry.projectRoot,
+        projectName: entry.projectName,
+        summary: entry.summary,
+        active: Boolean(entry.active),
+      }))
+      .sort((a, b) => {
+        if (a.active !== b.active) {
+          return a.active ? -1 : 1;
+        }
+        return a.projectName.localeCompare(b.projectName);
+      });
+  }
+
   addListener(
     sessionId: string,
     projectRoot: string,

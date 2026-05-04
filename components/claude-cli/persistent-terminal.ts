@@ -98,6 +98,10 @@ export class PersistentTerminal {
   private ioSocket: WebSocket | null = null;
   private controlSocket: WebSocket | null = null;
   private resizeObserver: ResizeObserver | null = null;
+  private fitRafId: number | null = null;
+  private fitTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private windowResizeHandler: (() => void) | null = null;
+  private viewportResizeHandler: (() => void) | null = null;
   private writeQueue: Promise<void> = Promise.resolve();
   private unacknowledgedBytes = 0;
   private clientId = `client-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -111,12 +115,7 @@ export class PersistentTerminal {
     this.terminal.loadAddon(new ClipboardAddon());
     this.terminal.open(options.container);
     this.terminal.focus();
-
-    requestAnimationFrame(() => {
-      if (!this.disposed) {
-        this.fitAddon.fit();
-      }
-    });
+    this.scheduleFit();
 
     this.setupInputHandlers();
     this.setupResizeObserver();
@@ -125,6 +124,51 @@ export class PersistentTerminal {
   private setConnectionState(nextState: ClaudeCliConnectionState): void {
     this.connectionState = nextState;
     this.options.onStateChange?.(nextState);
+  }
+
+  private fitToContainer(): void {
+    if (this.disposed) {
+      return;
+    }
+
+    const { clientWidth, clientHeight } = this.options.container;
+    if (clientWidth <= 0 || clientHeight <= 0) {
+      return;
+    }
+
+    try {
+      this.fitAddon.fit();
+      this.terminal.refresh(0, Math.max(this.terminal.rows - 1, 0));
+      this.sendResize(this.terminal.cols, this.terminal.rows);
+    } catch {
+      // Ignore fit attempts before the terminal has measurable dimensions.
+    }
+  }
+
+  private scheduleFit(): void {
+    if (this.disposed) {
+      return;
+    }
+
+    if (this.fitRafId !== null) {
+      cancelAnimationFrame(this.fitRafId);
+    }
+    if (this.fitTimeoutId) {
+      clearTimeout(this.fitTimeoutId);
+    }
+
+    this.fitRafId = requestAnimationFrame(() => {
+      this.fitRafId = requestAnimationFrame(() => {
+        this.fitToContainer();
+        this.fitRafId = null;
+      });
+    });
+
+    // Re-fit once the surrounding layout animation settles.
+    this.fitTimeoutId = setTimeout(() => {
+      this.fitToContainer();
+      this.fitTimeoutId = null;
+    }, 180);
   }
 
   private setupInputHandlers(): void {
@@ -142,28 +186,32 @@ export class PersistentTerminal {
   }
 
   private setupResizeObserver(): void {
-    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
-
     this.resizeObserver = new ResizeObserver(() => {
-      if (resizeTimer) {
-        clearTimeout(resizeTimer);
-      }
-
-      resizeTimer = setTimeout(() => {
-        if (this.disposed) {
-          return;
-        }
-
-        try {
-          this.fitAddon.fit();
-          this.sendResize(this.terminal.cols, this.terminal.rows);
-        } catch {
-          // Ignore resize attempts before the terminal is ready.
-        }
-      }, 100);
+      this.scheduleFit();
     });
 
     this.resizeObserver.observe(this.options.container);
+    if (this.options.container.parentElement) {
+      this.resizeObserver.observe(this.options.container.parentElement);
+    }
+
+    this.windowResizeHandler = () => {
+      this.scheduleFit();
+    };
+    window.addEventListener("resize", this.windowResizeHandler);
+
+    if (window.visualViewport) {
+      this.viewportResizeHandler = () => {
+        this.scheduleFit();
+      };
+      window.visualViewport.addEventListener("resize", this.viewportResizeHandler);
+    }
+
+    if (document.fonts) {
+      void document.fonts.ready.then(() => {
+        this.scheduleFit();
+      });
+    }
   }
 
   private getSocketParams(): string {
@@ -259,17 +307,7 @@ export class PersistentTerminal {
         this.controlSocket.send(JSON.stringify({ type: "restore_complete" }));
       }
       this.setConnectionState("connected");
-
-      requestAnimationFrame(() => {
-        if (!this.disposed) {
-          try {
-            this.fitAddon.fit();
-            this.sendResize(this.terminal.cols, this.terminal.rows);
-          } catch {
-            // Ignore fit failures during mount transitions.
-          }
-        }
-      });
+      this.scheduleFit();
     });
   }
 
@@ -307,12 +345,29 @@ export class PersistentTerminal {
 
   setTheme(themeMode: ThemeMode): void {
     this.terminal.options.theme = createTerminalTheme(themeMode);
+    this.scheduleFit();
   }
 
   dispose(): void {
     this.disposed = true;
+    if (this.fitRafId !== null) {
+      cancelAnimationFrame(this.fitRafId);
+      this.fitRafId = null;
+    }
+    if (this.fitTimeoutId) {
+      clearTimeout(this.fitTimeoutId);
+      this.fitTimeoutId = null;
+    }
     this.resizeObserver?.disconnect();
     this.resizeObserver = null;
+    if (this.windowResizeHandler) {
+      window.removeEventListener("resize", this.windowResizeHandler);
+      this.windowResizeHandler = null;
+    }
+    if (this.viewportResizeHandler && window.visualViewport) {
+      window.visualViewport.removeEventListener("resize", this.viewportResizeHandler);
+      this.viewportResizeHandler = null;
+    }
     this.ioSocket?.close();
     this.ioSocket = null;
     this.controlSocket?.close();

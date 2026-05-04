@@ -15,7 +15,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useProjectQueryParam } from "@/components/providers/use-project-query-param";
 import { Textarea } from "@/components/ui/textarea";
+import { queueClaudeCliLaunchIntent } from "@/lib/utils/claude-cli-launch-intent";
 import type { RequirementsIntakeRecord } from "@/lib/utils/requirements-intake";
 
 interface RequirementsIntakeDialogProps {
@@ -30,12 +32,34 @@ interface RequirementsIntakeResponse {
   error?: string;
 }
 
+function buildClaudeRequirementsPrompt(
+  description: string,
+  references: RequirementsIntakeRecord["references"]
+) {
+  const referenceSection =
+    references.length > 0
+      ? references.map((reference) => `- ${reference.relativePath}`).join("\n")
+      : "- No extra reference files uploaded";
+
+  return [
+    "Primary requirement description:",
+    description.trim(),
+    "",
+    "Read and use these project files before taking action:",
+    "- docs/requirements/INPUT-REQUIREMENTS.md",
+    referenceSection,
+    "",
+    "Then prepare the project for execution by reviewing the requirements, summarizing the scope, and waiting for the next explicit user instruction before generating or modifying code.",
+  ].join("\n");
+}
+
 export function RequirementsIntakeDialog({
   autoOpen,
   phaseCompleted,
   initialIntake,
 }: RequirementsIntakeDialogProps) {
   const router = useRouter();
+  const projectRoot = useProjectQueryParam();
   const [open, setOpen] = React.useState(autoOpen);
   const [description, setDescription] = React.useState(initialIntake.description);
   const [references, setReferences] = React.useState(initialIntake.references);
@@ -77,7 +101,14 @@ export function RequirementsIntakeDialog({
 
       setReferences(payload.data.references);
       setSelectedFiles([]);
-      setSuccessMessage("需求已保存，可以开始生成项目。");
+      queueClaudeCliLaunchIntent({
+        projectRoot,
+        activePanel: "current",
+        launchOptions: {
+          defaultPrompt: buildClaudeRequirementsPrompt(description, payload.data.references),
+        },
+      });
+      setSuccessMessage("需求已保存，Claude Code workspace 已为当前项目预填 requirements 上下文。");
       setOpen(false);
       if (typeof window !== "undefined") {
         const url = new URL(window.location.href);
@@ -91,7 +122,7 @@ export function RequirementsIntakeDialog({
     } finally {
       setIsSubmitting(false);
     }
-  }, [description, router, selectedFiles]);
+  }, [description, projectRoot, router, selectedFiles]);
 
   return (
     <div className="space-y-4">

@@ -29,6 +29,11 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import type { ProjectOption } from "@/lib/types";
 import type { ClaudeCliSessionDescriptor } from "@/lib/claude-cli/types";
+import {
+  CLAUDE_CLI_LAUNCH_INTENT_EVENT,
+  consumeClaudeCliLaunchIntent,
+  type ClaudeCliLaunchIntent,
+} from "@/lib/utils/claude-cli-launch-intent";
 import { buildProjectScopedPath } from "@/lib/utils/project-selection";
 import { cn } from "@/lib/utils";
 
@@ -40,6 +45,7 @@ type BootstrapResponse = {
     currentProjectName: string;
     currentSession: ClaudeCliSessionDescriptor | null;
     availableProjects: ProjectOption[];
+    runningSessions: ClaudeCliSessionDescriptor[];
   };
   error?: string;
 };
@@ -59,6 +65,12 @@ type SessionStatusResponse = {
   error?: string;
 };
 
+type RunningSessionsResponse = {
+  success: boolean;
+  data?: ClaudeCliSessionDescriptor[];
+  error?: string;
+};
+
 interface ClaudeCliLauncherProps {
   projectRoot: string | null;
 }
@@ -69,12 +81,17 @@ type ClaudeCliLaunchOptions = {
   continueWithRecentContext: boolean;
   dangerouslySkipPermissions: boolean;
 };
+type StoredClaudeCliLaunchOptions = Omit<ClaudeCliLaunchOptions, "defaultPrompt">;
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "lrac-uiux:claude-cli-sidebar-collapsed";
 const SIDEBAR_PANEL_STORAGE_KEY = "lrac-uiux:claude-cli-sidebar-panel";
 const LAUNCH_OPTIONS_STORAGE_KEY = "lrac-uiux:claude-cli-launch-options";
 const DEFAULT_LAUNCH_OPTIONS: ClaudeCliLaunchOptions = {
   defaultPrompt: "",
+  continueWithRecentContext: false,
+  dangerouslySkipPermissions: false,
+};
+const DEFAULT_STORED_LAUNCH_OPTIONS: StoredClaudeCliLaunchOptions = {
   continueWithRecentContext: false,
   dangerouslySkipPermissions: false,
 };
@@ -126,6 +143,49 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
   const [activeSession, setActiveSession] = React.useState<ClaudeCliSessionDescriptor | null>(null);
   const [launchOptions, setLaunchOptions] =
     React.useState<ClaudeCliLaunchOptions>(DEFAULT_LAUNCH_OPTIONS);
+  const [runningSessions, setRunningSessions] = React.useState<ClaudeCliSessionDescriptor[]>([]);
+  const [isLauncherHovered, setIsLauncherHovered] = React.useState(false);
+
+  const clearManualDefaultPrompt = React.useCallback(() => {
+    setLaunchOptions((current) => ({
+      ...current,
+      defaultPrompt: "",
+    }));
+  }, []);
+
+  const applyLaunchIntent = React.useCallback((intent: ClaudeCliLaunchIntent) => {
+    if (intent.launchOptions) {
+      setLaunchOptions((current) => ({
+        defaultPrompt:
+          typeof intent.launchOptions?.defaultPrompt === "string"
+            ? intent.launchOptions.defaultPrompt
+            : current.defaultPrompt,
+        continueWithRecentContext:
+          typeof intent.launchOptions?.continueWithRecentContext === "boolean"
+            ? intent.launchOptions.continueWithRecentContext
+            : current.continueWithRecentContext,
+        dangerouslySkipPermissions:
+          typeof intent.launchOptions?.dangerouslySkipPermissions === "boolean"
+            ? intent.launchOptions.dangerouslySkipPermissions
+            : current.dangerouslySkipPermissions,
+      }));
+    }
+
+    if (intent.projectRoot && intent.projectRoot !== currentProjectRoot) {
+      setSelectedProjectRoot(intent.projectRoot);
+      setCustomProjectRoot("");
+      setActivePanel(intent.activePanel ?? "projects");
+    } else {
+      setActivePanel(intent.activePanel ?? "current");
+    }
+
+    if (isSidebarCollapsed) {
+      setIsSidebarCollapsed(false);
+    }
+
+    setOpen(true);
+    setError(null);
+  }, [currentProjectRoot, isSidebarCollapsed]);
 
   const loadBootstrap = React.useCallback(async () => {
     setIsBootstrapping(true);
@@ -147,16 +207,37 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
       setAvailableProjects(payload.data.availableProjects);
       setSelectedProjectRoot(payload.data.currentProjectRoot);
       setCurrentProjectSession(payload.data.currentSession);
+      setRunningSessions(payload.data.runningSessions);
       const bootstrapSession = payload.data.currentSession;
-      if (bootstrapSession?.active) {
-        setSessionTabs((current) => upsertSessionTab(current, bootstrapSession));
-        setActiveSession(bootstrapSession);
-        setActiveSessionId(bootstrapSession.sessionId);
-      }
+      const nextSessionTabs = payload.data.runningSessions;
+      const nextActiveSession = bootstrapSession?.active
+        ? bootstrapSession
+        : nextSessionTabs.find((session) => session.sessionId === activeSessionId) ?? nextSessionTabs[0] ?? null;
+
+      setSessionTabs(nextSessionTabs);
+      setActiveSession(nextActiveSession);
+      setActiveSessionId(nextActiveSession?.sessionId ?? null);
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : "Failed to load Claude Code");
     } finally {
       setIsBootstrapping(false);
+    }
+  }, [activeSessionId, projectRoot]);
+
+  const refreshRunningSessions = React.useCallback(async () => {
+    try {
+      const response = await fetch(buildProjectScopedPath("/api/claude-cli/sessions?workspace=1", projectRoot), {
+        cache: "no-store",
+      });
+      const payload = (await response.json()) as RunningSessionsResponse;
+
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.error || "Failed to load Claude Code sessions");
+      }
+
+      setRunningSessions(payload.data ?? []);
+    } catch {
+      setRunningSessions([]);
     }
   }, [projectRoot]);
 
@@ -181,24 +262,47 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
     const storedLaunchOptions = window.localStorage.getItem(LAUNCH_OPTIONS_STORAGE_KEY);
     if (storedLaunchOptions) {
       try {
-        const parsed = JSON.parse(storedLaunchOptions) as Partial<ClaudeCliLaunchOptions>;
+        const parsed = JSON.parse(storedLaunchOptions) as Partial<StoredClaudeCliLaunchOptions>;
         setLaunchOptions({
-          defaultPrompt:
-            typeof parsed.defaultPrompt === "string" ? parsed.defaultPrompt : DEFAULT_LAUNCH_OPTIONS.defaultPrompt,
+          defaultPrompt: DEFAULT_LAUNCH_OPTIONS.defaultPrompt,
           continueWithRecentContext:
             typeof parsed.continueWithRecentContext === "boolean"
               ? parsed.continueWithRecentContext
-              : DEFAULT_LAUNCH_OPTIONS.continueWithRecentContext,
+              : DEFAULT_STORED_LAUNCH_OPTIONS.continueWithRecentContext,
           dangerouslySkipPermissions:
             typeof parsed.dangerouslySkipPermissions === "boolean"
               ? parsed.dangerouslySkipPermissions
-              : DEFAULT_LAUNCH_OPTIONS.dangerouslySkipPermissions,
+              : DEFAULT_STORED_LAUNCH_OPTIONS.dangerouslySkipPermissions,
         });
       } catch (storageError) {
         console.warn("Failed to parse Claude CLI launch options from local storage.", storageError);
       }
     }
   }, []);
+
+  React.useEffect(() => {
+    if (!isMounted || typeof window === "undefined") {
+      return;
+    }
+
+    const pendingIntent = consumeClaudeCliLaunchIntent();
+    if (pendingIntent) {
+      applyLaunchIntent(pendingIntent);
+    }
+
+    const handleLaunchIntent = (event: Event) => {
+      const detail = (event as CustomEvent<ClaudeCliLaunchIntent>).detail;
+      if (detail) {
+        applyLaunchIntent(detail);
+      }
+    };
+
+    window.addEventListener(CLAUDE_CLI_LAUNCH_INTENT_EVENT, handleLaunchIntent as EventListener);
+
+    return () => {
+      window.removeEventListener(CLAUDE_CLI_LAUNCH_INTENT_EVENT, handleLaunchIntent as EventListener);
+    };
+  }, [applyLaunchIntent, isMounted]);
 
   React.useEffect(() => {
     if (!isMounted || typeof window === "undefined") {
@@ -221,7 +325,11 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
       return;
     }
 
-    window.localStorage.setItem(LAUNCH_OPTIONS_STORAGE_KEY, JSON.stringify(launchOptions));
+    const storedLaunchOptions: StoredClaudeCliLaunchOptions = {
+      continueWithRecentContext: launchOptions.continueWithRecentContext,
+      dangerouslySkipPermissions: launchOptions.dangerouslySkipPermissions,
+    };
+    window.localStorage.setItem(LAUNCH_OPTIONS_STORAGE_KEY, JSON.stringify(storedLaunchOptions));
   }, [isMounted, launchOptions]);
 
   React.useEffect(() => {
@@ -231,6 +339,21 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
 
     void loadBootstrap();
   }, [loadBootstrap, open]);
+
+  React.useEffect(() => {
+    if (!isMounted) {
+      return;
+    }
+
+    void refreshRunningSessions();
+    const intervalId = window.setInterval(() => {
+      void refreshRunningSessions();
+    }, 5000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [isMounted, refreshRunningSessions]);
 
   const launchSession = React.useCallback(
     async (targetProjectRoot: string) => {
@@ -268,13 +391,14 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
         if (targetProjectRoot === currentProjectRoot) {
           setCurrentProjectSession(startedSession);
         }
+        void refreshRunningSessions();
       } catch (nextError) {
         setError(nextError instanceof Error ? nextError.message : "Failed to start Claude Code");
       } finally {
         setIsStarting(false);
       }
     },
-    [currentProjectRoot, launchOptions, projectRoot]
+    [currentProjectRoot, launchOptions, projectRoot, refreshRunningSessions]
   );
 
   const loadSessionStatus = React.useCallback(
@@ -353,12 +477,13 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
       if (activeSession.projectRoot === currentProjectRoot) {
         setCurrentProjectSession(payload.data?.session ?? null);
       }
+      void refreshRunningSessions();
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : "Failed to stop Claude Code");
     } finally {
       setIsStopping(false);
     }
-  }, [activeSession, currentProjectRoot, sessionTabs]);
+  }, [activeSession, currentProjectRoot, refreshRunningSessions, sessionTabs]);
 
   const handleSessionExit = React.useCallback(
     async (_code: number) => {
@@ -370,9 +495,10 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
           setActiveSession(null);
           setActiveSessionId((current) => (current === activeSession.sessionId ? null : current));
         }
+        void refreshRunningSessions();
       }
     },
-    [activeSession, loadSessionStatus]
+    [activeSession, loadSessionStatus, refreshRunningSessions]
   );
 
   const sidebarItems = React.useMemo(
@@ -408,6 +534,7 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
   const activeSessionLabel = displayedSession ? `${displayedSession.projectName} connected` : "No active session";
   const toolbarProjectName = activeSession?.projectName || currentProjectName || "Workspace";
   const toolbarProjectRoot = activeSession?.projectRoot || currentProjectRoot || "Loading project context...";
+  const runningSessionCount = runningSessions.length;
   const toolbarStatusTone = activeSession
     ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
     : "border-border/70 bg-background/80 text-muted-foreground";
@@ -850,16 +977,62 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
 
   return (
     <>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => setOpen(true)}
-        className="inline-flex"
+      <div
+        className="relative"
+        onMouseEnter={() => setIsLauncherHovered(true)}
+        onMouseLeave={() => setIsLauncherHovered(false)}
       >
-        <TerminalSquare className="mr-2 h-4 w-4" />
-        Claude Code
-      </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            clearManualDefaultPrompt();
+            setOpen(true);
+          }}
+          className="relative inline-flex"
+        >
+          <TerminalSquare className="mr-2 h-4 w-4" />
+          Claude Code
+          {runningSessionCount > 0 ? (
+            <span className="absolute -right-1.5 -top-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full border border-primary/20 bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground shadow-sm">
+              {runningSessionCount}
+            </span>
+          ) : null}
+        </Button>
+        {isLauncherHovered ? (
+          <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-[1.1rem] border border-border/80 bg-card/95 p-3 shadow-xl backdrop-blur">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Claude Sessions</p>
+              <span className="rounded-full border border-border/70 bg-background/80 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                {runningSessionCount} running
+              </span>
+            </div>
+            {runningSessionCount > 0 ? (
+              <div className="mt-3 space-y-2">
+                {runningSessions.map((session) => (
+                  <div
+                    key={session.sessionId}
+                    className="rounded-2xl border border-border/70 bg-background/75 px-3 py-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-emerald-400" aria-hidden="true" />
+                      <span className="truncate text-sm font-medium text-foreground">{session.projectName}</span>
+                    </div>
+                    <p className="mt-1 truncate text-[11px] text-muted-foreground">
+                      {compactSessionId(session.sessionId)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-3 rounded-2xl border border-border/70 bg-background/75 px-3 py-3 text-sm text-muted-foreground">
+                No Claude Code sessions are running.
+              </p>
+            )}
+          </div>
+        ) : null}
+      </div>
       {isMounted && modalContent ? createPortal(modalContent, document.body) : null}
     </>
   );

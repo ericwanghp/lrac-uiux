@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { ensureClaudeCliServer } from "@/lib/claude-cli/server";
+import { listWorkspaceRunningSessions } from "@/lib/claude-cli/list-workspace-running-sessions";
 import {
   DEFAULT_CLAUDE_CLI_COLS,
   DEFAULT_CLAUDE_CLI_ROWS,
   getClaudeCliProjectName,
   getClaudeCliSessionId,
 } from "@/lib/claude-cli/session-utils";
+import { discoverWorkspaceProjects } from "@/lib/utils/project-discovery";
 import { getCurrentProjectRoot } from "@/lib/utils/file-operations";
 
 const ClaudeCliSessionSchema = z.object({
@@ -48,6 +50,21 @@ export async function GET(request: NextRequest) {
   try {
     const projectRoot = await resolveProjectRootFromRequest(request);
     const server = await ensureClaudeCliServer();
+    const workspaceRequested = request.nextUrl.searchParams.get("workspace") === "1";
+
+    if (workspaceRequested) {
+      const availableProjects = await discoverWorkspaceProjects(projectRoot);
+      const runningSessions = listWorkspaceRunningSessions(
+        server.manager as unknown as Parameters<typeof listWorkspaceRunningSessions>[0],
+        availableProjects.map((project) => project.root)
+      );
+
+      return NextResponse.json({
+        success: true,
+        data: runningSessions,
+      });
+    }
+
     const sessionId = getClaudeCliSessionId(projectRoot);
 
     server.manager.registerSession(sessionId, projectRoot, getClaudeCliProjectName(projectRoot));

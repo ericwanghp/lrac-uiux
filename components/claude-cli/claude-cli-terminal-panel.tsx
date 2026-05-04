@@ -75,7 +75,7 @@ export function ClaudeCliTerminalPanel({
       : "border-border/80 bg-card text-foreground";
 
   return (
-    <div className={`flex h-full min-h-0 flex-col overflow-hidden rounded-[1.4rem] border ${shellClassName}`}>
+    <div className={`flex h-full min-h-0 min-w-0 w-full flex-col overflow-hidden rounded-[1.4rem] border ${shellClassName}`}>
       <div className={`flex items-center justify-between gap-3 border-b px-3 py-2 ${titleBarClassName}`}>
         <div className={`inline-flex min-w-0 items-center gap-2 rounded-full border px-3 py-1 text-xs ${tabClassName}`}>
           <TerminalDot />
@@ -95,7 +95,7 @@ export function ClaudeCliTerminalPanel({
           {error}
         </div>
       ) : null}
-      <div className="claude-cli-terminal-shell min-h-0 flex-1">
+      <div className="claude-cli-terminal-shell min-h-0 min-w-0 flex-1">
         <div ref={containerRef} className="claude-cli-terminal-viewport h-full w-full" />
       </div>
       <div className={`border-t px-4 py-2 text-[11px] ${footerClassName}`}>

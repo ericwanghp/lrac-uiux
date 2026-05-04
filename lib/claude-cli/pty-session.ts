@@ -1,5 +1,6 @@
-import { execFileSync, spawn, type ChildProcessWithoutNullStreams } from "child_process";
+import { execFileSync, spawn, type ChildProcess } from "child_process";
 import * as nodePty from "node-pty";
+import type { Writable } from "stream";
 
 export interface PtySpawnOptions {
   command: string;
@@ -141,10 +142,14 @@ export class PtySession {
 
 const PYTHON_PTY_BRIDGE_CODE = String.raw`
 import fcntl
+import json
 import os
 import pty
 import select
+import signal
+import struct
 import sys
+import termios
 
 command = sys.argv[1:]
 if not command:
@@ -153,6 +158,7 @@ if not command:
 
 stdin_fd = sys.stdin.fileno()
 stdout_fd = sys.stdout.fileno()
+control_fd = 3
 
 pid, fd = pty.fork()
 if pid == 0:
@@ -162,12 +168,34 @@ flags = fcntl.fcntl(fd, fcntl.F_GETFL)
 fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
 
 stdin_open = True
+control_open = True
 exit_status = None
+
+def apply_winsize(cols: int, rows: int) -> None:
+    if cols <= 0 or rows <= 0:
+        return
+    try:
+        winsize = struct.pack("HHHH", rows, cols, 0, 0)
+        fcntl.ioctl(fd, termios.TIOCSWINSZ, winsize)
+        os.kill(pid, signal.SIGWINCH)
+    except OSError:
+        pass
+
+try:
+    initial_cols = int(os.environ.get("COLUMNS", "80"))
+    initial_rows = int(os.environ.get("LINES", "24"))
+except ValueError:
+    initial_cols = 80
+    initial_rows = 24
+
+apply_winsize(initial_cols, initial_rows)
 
 while True:
     read_fds = [fd]
     if stdin_open:
         read_fds.append(stdin_fd)
+    if control_open:
+        read_fds.append(control_fd)
 
     ready, _, _ = select.select(read_fds, [], [], 0.05)
 
@@ -195,6 +223,27 @@ while True:
         else:
             stdin_open = False
 
+    if control_open and control_fd in ready:
+        try:
+            incoming = os.read(control_fd, 4096)
+        except OSError:
+            incoming = b""
+
+        if incoming:
+            for line in incoming.splitlines():
+                try:
+                    message = json.loads(line.decode("utf-8"))
+                except Exception:
+                    continue
+
+                if message.get("type") == "resize":
+                    try:
+                        apply_winsize(int(message.get("cols", 0)), int(message.get("rows", 0)))
+                    except (TypeError, ValueError):
+                        pass
+        else:
+            control_open = False
+
     waited_pid, status = os.waitpid(pid, os.WNOHANG)
     if waited_pid == pid:
         exit_status = status
@@ -213,7 +262,8 @@ sys.exit(1)
 `;
 
 class PythonWrappedSession {
-  private child: ChildProcessWithoutNullStreams;
+  private child: ChildProcess;
+  private controlStream: Writable | null;
   private dataListeners = new Set<(data: string) => void>();
   private exitListeners = new Set<(event: { exitCode: number }) => void>();
 
@@ -221,17 +271,18 @@ class PythonWrappedSession {
     this.child = spawn("python3", ["-u", "-c", PYTHON_PTY_BRIDGE_CODE, options.command, ...options.args], {
       cwd: options.cwd ?? process.cwd(),
       env: options.env as NodeJS.ProcessEnv,
-      stdio: "pipe",
+      stdio: ["pipe", "pipe", "pipe", "pipe"],
     });
+    this.controlStream = (this.child.stdio[3] as Writable | undefined) ?? null;
 
-    this.child.stdout.on("data", (chunk: Buffer) => {
+    this.child.stdout?.on("data", (chunk: Buffer) => {
       const data = chunk.toString("utf-8");
       for (const listener of this.dataListeners) {
         listener(data);
       }
     });
 
-    this.child.stderr.on("data", (chunk: Buffer) => {
+    this.child.stderr?.on("data", (chunk: Buffer) => {
       const data = chunk.toString("utf-8");
       for (const listener of this.dataListeners) {
         listener(data);
@@ -258,11 +309,21 @@ class PythonWrappedSession {
   }
 
   write(data: string): void {
-    this.child.stdin.write(data);
+    this.child.stdin?.write(data);
   }
 
-  resize(_cols: number, _rows: number): void {
-    // `script` allocates its own PTY. Resizing is best-effort only, so ignore for fallback mode.
+  resize(cols: number, rows: number): void {
+    if (!this.controlStream || this.controlStream.destroyed) {
+      return;
+    }
+
+    this.controlStream.write(
+      `${JSON.stringify({
+        type: "resize",
+        cols: Math.max(1, Math.floor(cols)),
+        rows: Math.max(1, Math.floor(rows)),
+      })}\n`
+    );
   }
 
   kill(): void {

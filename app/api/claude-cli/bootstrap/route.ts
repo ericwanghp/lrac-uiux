@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { listWorkspaceRunningSessions } from "@/lib/claude-cli/list-workspace-running-sessions";
 import { ensureClaudeCliServer } from "@/lib/claude-cli/server";
 import { getClaudeCliSessionId } from "@/lib/claude-cli/session-utils";
 import { describeProjectRoot, discoverWorkspaceProjects } from "@/lib/utils/project-discovery";
@@ -16,6 +17,10 @@ export async function GET(request: NextRequest) {
       describeProjectRoot(currentProjectRoot),
       discoverWorkspaceProjects(currentProjectRoot),
     ]);
+    const runningSessions = listWorkspaceRunningSessions(
+      server.manager as unknown as Parameters<typeof listWorkspaceRunningSessions>[0],
+      availableProjects.map((project) => project.root)
+    );
 
     return NextResponse.json({
       success: true,
@@ -27,6 +32,7 @@ export async function GET(request: NextRequest) {
           getClaudeCliSessionId(currentProjectRoot)
         ),
         availableProjects,
+        runningSessions,
       },
     });
   } catch (error) {
