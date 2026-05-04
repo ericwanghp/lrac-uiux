@@ -262,6 +262,15 @@ export function CreateProjectDialog({ workspaceRoot, setupScriptPath }: CreatePr
     router.refresh();
   }, [resetState, result, router]);
 
+  const handleCreateRequirementsNow = React.useCallback(() => {
+    if (!result) return;
+    persistProjectSelection(result.root);
+    setOpen(false);
+    resetState();
+    router.push(buildProjectNavigationPath("/requirements", result.root, "intake=1"));
+    router.refresh();
+  }, [resetState, result, router]);
+
   const handleNextStep = React.useCallback(() => {
     if (!projectPath.trim()) {
       setErrorMessage("请输入项目路径。");
@@ -544,6 +553,15 @@ export function CreateProjectDialog({ workspaceRoot, setupScriptPath }: CreatePr
                   className="mt-3 min-h-[220px] resize-none border-border/80 bg-background/90 font-mono text-xs leading-6"
                 />
               </div>
+
+              {!isSubmitting ? (
+                <div className="rounded-[1.25rem] border border-primary/20 bg-primary/10 p-5">
+                  <p className="text-xs uppercase tracking-[0.16em] text-primary">Next Recommended Step</p>
+                  <p className="mt-2 text-sm text-foreground">
+                    项目脚手架已经创建完成。你可以立刻进入需求收集页，填写需求描述、上传参考文档，并开始生成项目。
+                  </p>
+                </div>
+              ) : null}
             </div>
           ) : null}
 
@@ -573,6 +591,11 @@ export function CreateProjectDialog({ workspaceRoot, setupScriptPath }: CreatePr
                   <FolderPlus className="mr-2 h-4 w-4" />
                 )}
                 {isSubmitting ? "Initializing Project" : "Initialize Project"}
+              </Button>
+            ) : null}
+            {step === "result" ? (
+              <Button variant="outline" onClick={handleCreateRequirementsNow} disabled={isSubmitting}>
+                Create Requirements Now
               </Button>
             ) : null}
             {step === "result" ? (
