@@ -120,17 +120,77 @@ export async function GET(request?: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const requestUrl =
+      (request as NextRequest & { nextUrl?: URL }).nextUrl ?? new URL((request as Request).url);
+    const wantsStream = requestUrl.searchParams.get("stream") === "1";
     const currentProjectRoot = await getCurrentProjectRoot();
     const body = await request.json();
-    const { projectPath } = CreateProjectInputSchema.parse(body);
-    const createdProject = await createWorkspaceProject(projectPath, currentProjectRoot);
+    const { projectPath, options } = CreateProjectInputSchema.parse(body);
+    if (wantsStream) {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream<Uint8Array>({
+        start(controller) {
+          const emitEvent = (event: string, data: unknown) => {
+            controller.enqueue(
+              encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
+            );
+          };
+
+          void (async () => {
+            try {
+              emitEvent("start", {
+                projectPath,
+                options,
+              });
+
+              const bootstrapResult = await createWorkspaceProject(
+                projectPath,
+                currentProjectRoot,
+                options,
+                {
+                  onLine: (line) => emitEvent("log", { line }),
+                }
+              );
+
+              emitEvent("done", {
+                project: bootstrapResult.project.name,
+                root: bootstrapResult.project.root,
+                signals: bootstrapResult.project.signals,
+                command: bootstrapResult.command,
+                output: bootstrapResult.output,
+                generatedPaths: bootstrapResult.generatedPaths,
+              });
+              controller.close();
+            } catch (error) {
+              emitEvent("error", {
+                error: error instanceof Error ? error.message : "Failed to create project",
+              });
+              controller.close();
+            }
+          })();
+        },
+      });
+
+      return new Response(stream, {
+        headers: {
+          "Content-Type": "text/event-stream; charset=utf-8",
+          "Cache-Control": "no-cache, no-transform",
+          Connection: "keep-alive",
+        },
+      });
+    }
+
+    const bootstrapResult = await createWorkspaceProject(projectPath, currentProjectRoot, options);
 
     return NextResponse.json({
       success: true,
       data: {
-        project: createdProject.name,
-        root: createdProject.root,
-        signals: createdProject.signals,
+        project: bootstrapResult.project.name,
+        root: bootstrapResult.project.root,
+        signals: bootstrapResult.project.signals,
+        command: bootstrapResult.command,
+        output: bootstrapResult.output,
+        generatedPaths: bootstrapResult.generatedPaths,
       },
     });
   } catch (error) {

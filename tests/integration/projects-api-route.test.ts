@@ -125,16 +125,30 @@ describe("POST /api/projects", () => {
   it("creates a project inside the workspace root", async () => {
     vi.mocked(getCurrentProjectRoot).mockResolvedValue("/workspace/lrac-uiux");
     vi.mocked(createWorkspaceProject).mockResolvedValue({
-      root: "/workspace/new-studio",
-      name: "new-studio",
-      signals: [".auto-coding", "docs", ".stitch"],
-      hasTasksJson: false,
+      project: {
+        root: "/workspace/new-studio",
+        name: "new-studio",
+        signals: [".auto-coding", "docs", ".stitch"],
+        hasTasksJson: false,
+      },
+      command: "bash /workspace/lrac-uiux/setup.sh new /workspace/new-studio",
+      output: ["[INFO] Creating project directory: /workspace/new-studio", "[SUCCESS] Project initialization complete!"],
+      generatedPaths: [
+        "/workspace/new-studio/.auto-coding",
+        "/workspace/new-studio/.auto-coding/tasks.json",
+      ],
     });
 
     const request = new Request("http://localhost/api/projects", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ projectPath: "/workspace/new-studio" }),
+      body: JSON.stringify({
+        projectPath: "/workspace/new-studio",
+        options: {
+          copyLessonsTemplate: true,
+          runDependencyCheck: false,
+        },
+      }),
     });
 
     const response = await POST(request as any);
@@ -145,8 +159,17 @@ describe("POST /api/projects", () => {
       project: "new-studio",
       root: "/workspace/new-studio",
       signals: [".auto-coding", "docs", ".stitch"],
+      command: "bash /workspace/lrac-uiux/setup.sh new /workspace/new-studio",
+      output: ["[INFO] Creating project directory: /workspace/new-studio", "[SUCCESS] Project initialization complete!"],
+      generatedPaths: [
+        "/workspace/new-studio/.auto-coding",
+        "/workspace/new-studio/.auto-coding/tasks.json",
+      ],
     });
-    expect(createWorkspaceProject).toHaveBeenCalledWith("/workspace/new-studio", "/workspace/lrac-uiux");
+    expect(createWorkspaceProject).toHaveBeenCalledWith("/workspace/new-studio", "/workspace/lrac-uiux", {
+      copyLessonsTemplate: true,
+      runDependencyCheck: false,
+    });
   });
 
   it("returns 400 when project path is outside the workspace root", async () => {
@@ -158,7 +181,13 @@ describe("POST /api/projects", () => {
     const request = new Request("http://localhost/api/projects", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ projectPath: "/other/new-studio" }),
+      body: JSON.stringify({
+        projectPath: "/other/new-studio",
+        options: {
+          copyLessonsTemplate: false,
+          runDependencyCheck: false,
+        },
+      }),
     });
 
     const response = await POST(request as any);

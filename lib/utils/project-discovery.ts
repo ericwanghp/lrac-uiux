@@ -1,7 +1,24 @@
 import fs from "fs/promises";
 import path from "path";
+import { spawn } from "child_process";
 import type { ProjectDescriptor, ProjectOption, ProjectSignal } from "@/lib/types/project";
 import { isPathWithinWorkspaceRoot, resolveProjectCreationPath } from "@/lib/utils/project-selection";
+
+export interface ProjectBootstrapResult {
+  project: ProjectDescriptor;
+  command: string;
+  output: string[];
+  generatedPaths: string[];
+}
+
+export interface ProjectBootstrapOptions {
+  copyLessonsTemplate: boolean;
+  runDependencyCheck: boolean;
+}
+
+export interface ProjectBootstrapCallbacks {
+  onLine?: (line: string) => void;
+}
 
 async function readJsonField(
   filePath: string,
@@ -126,10 +143,14 @@ export async function discoverWorkspaceProjects(
 
 export async function createWorkspaceProject(
   projectPathInput: string,
-  currentProjectRoot: string
-): Promise<ProjectDescriptor> {
+  currentProjectRoot: string,
+  options: ProjectBootstrapOptions,
+  callbacks?: ProjectBootstrapCallbacks
+): Promise<ProjectBootstrapResult> {
   const workspaceRoot = path.dirname(currentProjectRoot);
   const targetProjectRoot = resolveProjectCreationPath(projectPathInput, workspaceRoot);
+  const frameworkRoot = process.cwd();
+  const setupScriptPath = path.join(frameworkRoot, "setup.sh");
 
   if (!isPathWithinWorkspaceRoot(targetProjectRoot, workspaceRoot)) {
     throw new Error(`Project path must stay under ${workspaceRoot}`);
@@ -147,12 +168,97 @@ export async function createWorkspaceProject(
     }
   }
 
-  await fs.mkdir(targetProjectRoot, { recursive: true });
-  await Promise.all([
-    fs.mkdir(path.join(targetProjectRoot, ".auto-coding"), { recursive: true }),
-    fs.mkdir(path.join(targetProjectRoot, "docs"), { recursive: true }),
-    fs.mkdir(path.join(targetProjectRoot, ".stitch"), { recursive: true }),
-  ]);
+  const output = await runSetupScript(
+    setupScriptPath,
+    targetProjectRoot,
+    frameworkRoot,
+    options,
+    callbacks
+  );
+  const project = await describeProjectRoot(targetProjectRoot);
 
-  return describeProjectRoot(targetProjectRoot);
+  return {
+    project,
+    command: `bash ${setupScriptPath} new ${targetProjectRoot}`,
+    output,
+    generatedPaths: [
+      path.join(targetProjectRoot, ".auto-coding"),
+      path.join(targetProjectRoot, ".auto-coding", "tasks.json"),
+      path.join(targetProjectRoot, ".auto-coding", "progress.txt"),
+      path.join(targetProjectRoot, "docs"),
+      path.join(targetProjectRoot, ".claude"),
+      path.join(targetProjectRoot, ".stitch"),
+      path.join(targetProjectRoot, "README.md"),
+      path.join(targetProjectRoot, "setup.sh"),
+      path.join(targetProjectRoot, "init.sh"),
+    ],
+  };
+}
+
+async function runSetupScript(
+  setupScriptPath: string,
+  targetProjectRoot: string,
+  frameworkRoot: string,
+  options: ProjectBootstrapOptions,
+  callbacks?: ProjectBootstrapCallbacks
+): Promise<string[]> {
+  if (!(await pathExists(setupScriptPath))) {
+    throw new Error(`Setup script not found: ${setupScriptPath}`);
+  }
+
+  return new Promise<string[]>((resolve, reject) => {
+    const child = spawn("bash", [setupScriptPath, "new", targetProjectRoot], {
+      cwd: frameworkRoot,
+      env: {
+        ...process.env,
+        AUTO_CODING_NON_INTERACTIVE: "1",
+        AUTO_CODING_COPY_LESSONS: options.copyLessonsTemplate ? "1" : "0",
+        AUTO_CODING_SKIP_DEPENDENCY_CHECK: options.runDependencyCheck ? "0" : "1",
+      },
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+
+    const output: string[] = [];
+    let stdoutBuffer = "";
+    let stderrBuffer = "";
+
+    const emitLines = (buffer: string, flush = false) => {
+      const segments = buffer.split(/\r?\n/);
+      const remainder = flush ? "" : (segments.pop() ?? "");
+      segments
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0)
+        .forEach((line) => {
+          output.push(line);
+          callbacks?.onLine?.(line);
+        });
+      return remainder;
+    };
+
+    child.stdout.on("data", (chunk: Buffer) => {
+      stdoutBuffer += chunk.toString("utf-8");
+      stdoutBuffer = emitLines(stdoutBuffer);
+    });
+
+    child.stderr.on("data", (chunk: Buffer) => {
+      stderrBuffer += chunk.toString("utf-8");
+      stderrBuffer = emitLines(stderrBuffer);
+    });
+
+    child.on("error", (error) => {
+      reject(error);
+    });
+
+    child.on("close", (code) => {
+      stdoutBuffer = emitLines(stdoutBuffer, true);
+      stderrBuffer = emitLines(stderrBuffer, true);
+
+      if (code === 0) {
+        resolve(output);
+        return;
+      }
+
+      reject(new Error(output.at(-1) || `setup.sh exited with code ${code ?? "unknown"}`));
+    });
+  });
 }

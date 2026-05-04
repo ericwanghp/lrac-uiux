@@ -147,6 +147,15 @@ export const ListFeaturesInputSchema = z.object({
 
 export const CreateProjectInputSchema = z.object({
   projectPath: z.string().trim().min(1, "Project path is required"),
+  options: z
+    .object({
+      copyLessonsTemplate: z.boolean().default(false),
+      runDependencyCheck: z.boolean().default(false),
+    })
+    .default({
+      copyLessonsTemplate: false,
+      runDependencyCheck: false,
+    }),
 });
 
 // Export types

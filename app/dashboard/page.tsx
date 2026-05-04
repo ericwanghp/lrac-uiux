@@ -322,6 +322,7 @@ async function loadDashboardData(projectParam: string | undefined) {
   return {
     projectRoot,
     workspaceRoot: path.dirname(projectRoot),
+    setupScriptPath: path.join(process.cwd(), "setup.sh"),
     docsRoot,
     autoCodingPath,
     docs,
@@ -428,7 +429,10 @@ export default async function DashboardPage({
             Project path resolved and persistence loaded from docs/.auto-coding
           </p>
         </div>
-        <CreateProjectDialog workspaceRoot={data.workspaceRoot} />
+        <CreateProjectDialog
+          workspaceRoot={data.workspaceRoot}
+          setupScriptPath={data.setupScriptPath}
+        />
       </div>
 
       <Card className="admin-panel border-border/80 bg-card/90">

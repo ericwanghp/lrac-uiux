@@ -55,6 +55,21 @@ log_warn() {
     echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
+is_non_interactive() {
+    [ "${AUTO_CODING_NON_INTERACTIVE:-0}" = "1" ]
+}
+
+should_copy_lessons_template() {
+    local configured="${AUTO_CODING_COPY_LESSONS:-}"
+    if [ "$configured" = "1" ] || [ "$configured" = "true" ] || [ "$configured" = "yes" ]; then
+        return 0
+    fi
+    if [ "$configured" = "0" ] || [ "$configured" = "false" ] || [ "$configured" = "no" ]; then
+        return 1
+    fi
+    return 1
+}
+
 render_tasks_template() {
     local target_file=$1
     local project_name=$2
@@ -172,11 +187,25 @@ create_new_project() {
 # Progress Notes
 EOF
 
-    # Create LESSONS_LEARNED.md (ask user)
+    # Create LESSONS_LEARNED.md (ask user unless non-interactive)
     if [ -e "$SCRIPT_DIR/.auto-coding/LESSONS_LEARNED.md" ]; then
-        echo "Copy LESSONS_LEARNED.md template? (y/n)"
-        read -r answer
-        if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
+        local copy_lessons="0"
+        if is_non_interactive; then
+            if should_copy_lessons_template; then
+                copy_lessons="1"
+                log_info "Non-interactive mode: copying LESSONS_LEARNED.md template"
+            else
+                log_info "Non-interactive mode: skipping LESSONS_LEARNED.md template"
+            fi
+        else
+            echo "Copy LESSONS_LEARNED.md template? (y/n)"
+            read -r answer
+            if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
+                copy_lessons="1"
+            fi
+        fi
+
+        if [ "$copy_lessons" = "1" ]; then
             cp "$SCRIPT_DIR/.auto-coding/LESSONS_LEARNED.md" .auto-coding/
             log_success "LESSONS_LEARNED.md copied"
         fi
@@ -237,7 +266,11 @@ INIT_EOF
     fi
 
     # Check dependencies
-    check_dependencies
+    if [ "${AUTO_CODING_SKIP_DEPENDENCY_CHECK:-0}" = "1" ]; then
+        log_info "Skipping dependency checks in non-interactive setup"
+    else
+        check_dependencies
+    fi
 
     log_success "Project initialization complete!"
     echo ""
