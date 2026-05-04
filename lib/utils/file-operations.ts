@@ -52,6 +52,15 @@ async function getAutoCodingDir(projectRoot?: string | null): Promise<string> {
   return path.join(await getCurrentProjectRoot(projectRoot), ".auto-coding");
 }
 
+function createEmptyTasksJson(projectRoot: string): TasksJson {
+  return {
+    version: "3.0",
+    project: path.basename(projectRoot),
+    parallelGroups: {},
+    features: [],
+  };
+}
+
 /**
  * Sanitize file path to prevent directory traversal attacks
  */
@@ -121,7 +130,16 @@ export async function writeJsonFile<T>(
  */
 export async function readTasksJson(projectRoot?: string | null): Promise<TasksJson> {
   const filePath = path.join(await getAutoCodingDir(projectRoot), "tasks.json");
-  return readJsonFile<TasksJson>(filePath, projectRoot);
+  try {
+    return await readJsonFile<TasksJson>(filePath, projectRoot);
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("File not found:")) {
+      const resolvedProjectRoot = await getCurrentProjectRoot(projectRoot);
+      return createEmptyTasksJson(resolvedProjectRoot);
+    }
+
+    throw error;
+  }
 }
 
 /**

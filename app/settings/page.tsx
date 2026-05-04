@@ -14,7 +14,9 @@ import {
   Smartphone,
   Sun,
   Volume2,
+  Workflow,
 } from "lucide-react";
+import { OrchestrationSettingsPanel } from "@/components/settings/orchestration-settings-panel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -22,7 +24,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DEFAULT_USER_SETTINGS } from "@/lib/types/settings";
-import type { UserSettings } from "@/lib/types/settings";
+import type { OrchestrationCatalog, UserSettings } from "@/lib/types/settings";
 import { applyDocumentUiSettings } from "@/lib/utils/theme";
 
 interface TaskIdSchemaData {
@@ -37,6 +39,13 @@ interface KeyboardShortcut {
   action: string;
   keys: string[];
   category: string;
+}
+
+interface SettingsApiResponse {
+  settings: UserSettings;
+  version: string;
+  updatedAt: string;
+  catalog: OrchestrationCatalog;
 }
 
 const keyboardShortcuts: KeyboardShortcut[] = [
@@ -84,6 +93,7 @@ async function fetchJson<T>(input: RequestInfo, init?: RequestInit): Promise<T> 
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_USER_SETTINGS);
+  const [catalog, setCatalog] = useState<OrchestrationCatalog>({ agents: [], skills: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
@@ -95,11 +105,12 @@ export default function SettingsPage() {
       try {
         setIsLoading(true);
         const [settingsData, taskIdData] = await Promise.all([
-          fetchJson<{ settings: UserSettings }>("/api/settings"),
+          fetchJson<SettingsApiResponse>("/api/settings"),
           fetchJson<TaskIdSchemaData>("/api/meta/task-id-schema"),
         ]);
 
         setSettings(settingsData.settings);
+        setCatalog(settingsData.catalog);
         setTaskIdSchema(taskIdData);
         setTaskIdSchemaError(null);
       } catch (error) {
@@ -135,11 +146,12 @@ export default function SettingsPage() {
     setSettings(nextSettings);
 
     try {
-      const payload = await fetchJson<{ settings: UserSettings }>("/api/settings", {
+      const payload = await fetchJson<SettingsApiResponse>("/api/settings", {
         method: "PATCH",
         body: JSON.stringify(nextSettings),
       });
       setSettings(payload.settings);
+      setCatalog(payload.catalog);
       applyDocumentUiSettings(payload.settings);
       window.dispatchEvent(
         new CustomEvent("lrac:settings-updated", {
@@ -190,8 +202,8 @@ export default function SettingsPage() {
           ) : null}
         </div>
 
-        <Tabs defaultValue="general" orientation="vertical" className="flex gap-6">
-          <TabsList className="flex h-auto w-64 flex-col gap-1 bg-transparent">
+        <Tabs defaultValue="general" orientation="vertical" className="flex items-start gap-6">
+          <TabsList className="sticky top-24 flex h-auto w-64 shrink-0 flex-col gap-1 self-start bg-transparent">
             <TabsTrigger value="general" className={triggerClassName}>
               <Settings className="mr-3 h-4 w-4" />
               General
@@ -211,6 +223,10 @@ export default function SettingsPage() {
             <TabsTrigger value="integrations" className={triggerClassName}>
               <Plug className="mr-3 h-4 w-4" />
               Integrations
+            </TabsTrigger>
+            <TabsTrigger value="orchestration" className={triggerClassName}>
+              <Workflow className="mr-3 h-4 w-4" />
+              Orchestration
             </TabsTrigger>
           </TabsList>
 
@@ -614,6 +630,19 @@ export default function SettingsPage() {
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="orchestration" className="space-y-6">
+              <OrchestrationSettingsPanel
+                settings={settings}
+                catalog={catalog}
+                onChange={(nextOrchestration) =>
+                  void persistSettings({
+                    ...settings,
+                    orchestration: nextOrchestration,
+                  })
+                }
+              />
             </TabsContent>
           </div>
         </Tabs>

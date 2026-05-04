@@ -16,30 +16,6 @@ Phase 7: Deploy & UAT Verification Loop
 Phase 8: Project Management as team-lead (Throughout)
 ```
 
-## Phase-Skill Mapping ⚠️ MANDATORY
-
-**Each phase has associated skills that MUST be invoked when entering that phase:**
-
-| Phase | Required Skill | When to Invoke | How |
-|-------|---------------|----------------|-----|
-| **1-2** | `brainstorming` | When receiving new feature request | `Skill("brainstorming")` |
-| **2.5** | `ui-ux-pro-max` → `enhance-prompt` → `stitch-loop` → `design-md` → `shadcn-ui` | When creating UI/UX design | Run style/theme brainstorming first, then invoke Stitch skills in sequence |
-| **3-4** | `writing-plans` | When BRD/PRD approved, creating architecture | `Skill("writing-plans")` |
-| **5** | `executing-plans` | When starting implementation | `Skill("executing-plans")` |
-| **5** | `tdd-enforcement` | Before writing ANY production code | `Skill("tdd-enforcement")` |
-| **5-6** | `systematic-debugging` | When encountering bugs/test failures | `Skill("systematic-debugging")` |
-| **5-7** | `fix` | When fixing lint/format issues, before commit | `Skill("fix")` |
-| **5-7** | `verification-before-completion` | Before claiming work is complete | `Skill("verification-before-completion")` |
-| **7** | `finishing-development-branch` | When implementation complete, ready to merge | `Skill("finishing-development-branch")` |
-| **5-8** | `dispatching-parallel-agents` | When facing 2+ independent tasks | `Skill("dispatching-parallel-agents")` |
-
-Coverage percentage thresholds are defined only in `.claude/rules/09-testing.md` (`Coverage Requirements`). This file and agent/skill files must reference that rule and must not redefine numeric thresholds.
-
-**Skill Invocation Rules**:
-1. Skills are HARD GATES - cannot proceed without invoking
-2. Invoke skill at the START of each phase
-3. Follow skill instructions completely before continuing
-
 ## Process Overview
 
 ```
@@ -69,9 +45,9 @@ Phase 8: Project Management as team-lead (Throughout)
   └─ project-manager → Coordination
 ```
 
-## Phase-Agent-Skill Dispatch Matrix ⚠️ CANONICAL
+## Phase Dispatch Matrix ⚠️ CANONICAL
 
-Use this matrix to remove dispatch ambiguity between agents and skills.
+This is the single source of truth for phase-level agent and skill dispatch. Any older "phase-skill mapping" references should be interpreted through this matrix only.
 
 | Phase | Required Agent | Required Skill | Optional Skill |
 |-------|----------------|----------------|----------------|
@@ -85,11 +61,18 @@ Use this matrix to remove dispatch ambiguity between agents and skills.
 | 7 | `devops-engineer` + `product-manager` | `finishing-development-branch` + `verification-before-completion` | `dispatching-parallel-agents` |
 | 8 | `project-manager` | `dispatching-parallel-agents` | `toolchain-audit` |
 
+Coverage percentage thresholds are defined only in `.claude/rules/09-testing.md` (`Coverage Requirements`). This file and agent/skill files must reference that rule and must not redefine numeric thresholds.g
+
 Dispatch precedence rule:
 1. Choose phase from lifecycle.
 2. Dispatch required agent first.
 3. Invoke required skill before implementation/review/testing for that phase.
 4. Use optional skill only when trigger conditions are met.
+
+Skill invocation rules:
+1. Required skills are hard gates and cannot be skipped for the mapped phase.
+2. Invoke required skills at the start of the relevant phase unless the phase detail below defines a stricter trigger.
+3. Follow the invoked skill instructions completely before continuing.
 
 Agent Teams execution gate:
 - For phases with required agents, execution must run through subagents in independent tmux panes.

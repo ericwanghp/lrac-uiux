@@ -8,11 +8,16 @@ vi.mock("@/lib/utils/file-operations", () => ({
 vi.mock("@/lib/utils/project-discovery", () => ({
   discoverWorkspaceProjects: vi.fn(),
   describeProjectRoot: vi.fn(),
+  createWorkspaceProject: vi.fn(),
 }));
 
 import { getCurrentProjectRoot, readTasksJson } from "@/lib/utils/file-operations";
-import { describeProjectRoot, discoverWorkspaceProjects } from "@/lib/utils/project-discovery";
-import { GET } from "@/app/api/projects/route";
+import {
+  createWorkspaceProject,
+  describeProjectRoot,
+  discoverWorkspaceProjects,
+} from "@/lib/utils/project-discovery";
+import { GET, POST } from "@/app/api/projects/route";
 
 describe("GET /api/projects", () => {
   beforeEach(() => {
@@ -109,5 +114,58 @@ describe("GET /api/projects", () => {
       overallProgress: 0,
     });
     expect(payload.data.parallelGroups).toEqual([]);
+  });
+});
+
+describe("POST /api/projects", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("creates a project inside the workspace root", async () => {
+    vi.mocked(getCurrentProjectRoot).mockResolvedValue("/workspace/lrac-uiux");
+    vi.mocked(createWorkspaceProject).mockResolvedValue({
+      root: "/workspace/new-studio",
+      name: "new-studio",
+      signals: [".auto-coding", "docs", ".stitch"],
+      hasTasksJson: false,
+    });
+
+    const request = new Request("http://localhost/api/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ projectPath: "/workspace/new-studio" }),
+    });
+
+    const response = await POST(request as any);
+    const payload = await response.json();
+
+    expect(payload.success).toBe(true);
+    expect(payload.data).toEqual({
+      project: "new-studio",
+      root: "/workspace/new-studio",
+      signals: [".auto-coding", "docs", ".stitch"],
+    });
+    expect(createWorkspaceProject).toHaveBeenCalledWith("/workspace/new-studio", "/workspace/lrac-uiux");
+  });
+
+  it("returns 400 when project path is outside the workspace root", async () => {
+    vi.mocked(getCurrentProjectRoot).mockResolvedValue("/workspace/lrac-uiux");
+    vi.mocked(createWorkspaceProject).mockRejectedValue(
+      new Error("Project path must stay under /workspace")
+    );
+
+    const request = new Request("http://localhost/api/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ projectPath: "/other/new-studio" }),
+    });
+
+    const response = await POST(request as any);
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload.success).toBe(false);
+    expect(payload.error).toContain("must stay under");
   });
 });

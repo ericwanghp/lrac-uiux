@@ -5,6 +5,7 @@ import { ClipboardList, BarChart3, Settings, BookOpen, GitBranch } from "lucide-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { CreateProjectDialog } from "@/components/dashboard/create-project-dialog";
 import {
   ProjectCard,
   StatCard,
@@ -320,6 +321,7 @@ async function loadDashboardData(projectParam: string | undefined) {
 
   return {
     projectRoot,
+    workspaceRoot: path.dirname(projectRoot),
     docsRoot,
     autoCodingPath,
     docs,
@@ -426,9 +428,7 @@ export default async function DashboardPage({
             Project path resolved and persistence loaded from docs/.auto-coding
           </p>
         </div>
-        <Button variant="outline" disabled>
-          Open Project
-        </Button>
+        <CreateProjectDialog workspaceRoot={data.workspaceRoot} />
       </div>
 
       <Card className="admin-panel border-border/80 bg-card/90">

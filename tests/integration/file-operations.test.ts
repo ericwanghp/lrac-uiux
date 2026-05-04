@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import path from "path";
+import { readTasksJson } from "@/lib/utils/file-operations";
 
 describe("File Operations - Pure Functions", () => {
   describe("sanitizePath", () => {
@@ -123,6 +124,21 @@ describe("Markdown Operations - Pure Functions", () => {
         const result = getDocPath(type, "test");
         expect(result).toContain(type);
       });
+    });
+  });
+});
+
+describe("readTasksJson", () => {
+  it("returns an empty tasks payload when tasks.json is missing", async () => {
+    const projectRoot = path.join(process.cwd(), "..", "lrac_test");
+
+    const result = await readTasksJson(projectRoot);
+
+    expect(result).toEqual({
+      version: "3.0",
+      project: "lrac_test",
+      parallelGroups: {},
+      features: [],
     });
   });
 });

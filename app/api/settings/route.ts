@@ -1,16 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { UpdateUserSettingsInputSchema } from "@/lib/validation";
 import { readProjectSettings, writeProjectSettings } from "@/lib/utils/project-settings-operations";
+import { discoverOrchestrationCatalog, normalizeOrchestrationSettings } from "@/lib/utils/orchestration-settings";
+import { getCurrentProjectRoot } from "@/lib/utils/file-operations";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const settingsEnvelope = await readProjectSettings();
+    const projectRoot = await getCurrentProjectRoot();
+    const [settingsEnvelope, catalog] = await Promise.all([
+      readProjectSettings(projectRoot),
+      discoverOrchestrationCatalog(projectRoot),
+    ]);
 
     return NextResponse.json({
       success: true,
-      data: settingsEnvelope,
+      data: {
+        ...settingsEnvelope,
+        settings: {
+          ...settingsEnvelope.settings,
+          orchestration: normalizeOrchestrationSettings(settingsEnvelope.settings.orchestration, catalog),
+        },
+        catalog,
+      },
     });
   } catch (error) {
     return NextResponse.json(
@@ -27,15 +40,25 @@ export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
     const validatedInput = UpdateUserSettingsInputSchema.parse(body);
-    const currentEnvelope = await readProjectSettings();
+    const projectRoot = await getCurrentProjectRoot();
+    const currentEnvelope = await readProjectSettings(projectRoot);
     const updatedEnvelope = await writeProjectSettings({
       ...currentEnvelope.settings,
       ...validatedInput,
-    });
+      orchestration: validatedInput.orchestration ?? currentEnvelope.settings.orchestration,
+    }, projectRoot);
+    const catalog = await discoverOrchestrationCatalog(projectRoot);
 
     return NextResponse.json({
       success: true,
-      data: updatedEnvelope,
+      data: {
+        ...updatedEnvelope,
+        settings: {
+          ...updatedEnvelope.settings,
+          orchestration: normalizeOrchestrationSettings(updatedEnvelope.settings.orchestration, catalog),
+        },
+        catalog,
+      },
     });
   } catch (error) {
     return NextResponse.json(

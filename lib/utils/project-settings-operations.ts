@@ -2,6 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 import { DEFAULT_USER_SETTINGS, UserSettings, UserSettingsEnvelope } from "@/lib/types/settings";
 import { PROJECT_ROOT, getCurrentProjectRoot } from "@/lib/utils/file-operations";
+import { normalizeOrchestrationSettings } from "@/lib/utils/orchestration-settings";
 
 async function getConfigDir(projectRoot?: string | null): Promise<string> {
   return path.join(await getCurrentProjectRoot(projectRoot), ".auto-coding", "config");
@@ -16,7 +17,10 @@ export const PROJECT_SETTINGS_FILE = path.join(PROJECT_ROOT, ".auto-coding", "co
 function createDefaultEnvelope(): UserSettingsEnvelope {
   return {
     version: "1.0",
-    settings: DEFAULT_USER_SETTINGS,
+    settings: {
+      ...DEFAULT_USER_SETTINGS,
+      orchestration: normalizeOrchestrationSettings(DEFAULT_USER_SETTINGS.orchestration),
+    },
     updatedAt: new Date().toISOString(),
   };
 }
@@ -53,6 +57,7 @@ export async function readProjectSettings(
     settings: {
       ...DEFAULT_USER_SETTINGS,
       ...(parsed.settings || {}),
+      orchestration: normalizeOrchestrationSettings(parsed.settings?.orchestration),
     } as UserSettings,
     updatedAt: parsed.updatedAt || new Date().toISOString(),
   };
@@ -65,7 +70,10 @@ export async function writeProjectSettings(
   const configDir = await getConfigDir(projectRoot);
   const nextEnvelope: UserSettingsEnvelope = {
     version: "1.0",
-    settings,
+    settings: {
+      ...settings,
+      orchestration: normalizeOrchestrationSettings(settings.orchestration),
+    },
     updatedAt: new Date().toISOString(),
   };
 

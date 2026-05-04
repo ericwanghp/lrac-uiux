@@ -145,12 +145,17 @@ export const ListFeaturesInputSchema = z.object({
   parallelGroup: z.string().optional(),
 });
 
+export const CreateProjectInputSchema = z.object({
+  projectPath: z.string().trim().min(1, "Project path is required"),
+});
+
 // Export types
 export type CreateFeatureInput = z.infer<typeof CreateFeatureInputSchema>;
 export type UpdateFeatureStatusInput = z.infer<typeof UpdateFeatureStatusInputSchema>;
 export type AddExecutionHistoryInput = z.infer<typeof AddExecutionHistoryInputSchema>;
 export type GetFeatureInput = z.infer<typeof GetFeatureInputSchema>;
 export type ListFeaturesInput = z.infer<typeof ListFeaturesInputSchema>;
+export type CreateProjectInput = z.infer<typeof CreateProjectInputSchema>;
 
 // ============================================
 // Q&A Session Schemas
@@ -303,6 +308,23 @@ export type UpdateApprovalInput = z.infer<typeof UpdateApprovalInputSchema>;
 
 export const ThemeModeSchema = z.enum(["dark", "light"]);
 export const NotificationLevelSchema = z.enum(["all", "important", "critical"]);
+export const PhaseIdSchema = z.enum(["1", "2", "2.5", "3", "4", "5", "6", "7", "8"]);
+export const ManagedToolConfigSchema = z.object({
+  id: z.string().min(1, "Tool ID is required"),
+  enabled: z.boolean(),
+});
+export const PhaseDispatchEntrySchema = z.object({
+  phase: PhaseIdSchema,
+  label: z.string().min(1, "Phase label is required"),
+  requiredAgents: z.array(z.string().min(1)).default([]),
+  requiredSkills: z.array(z.string().min(1)).default([]),
+  optionalSkills: z.array(z.string().min(1)).default([]),
+});
+export const OrchestrationSettingsSchema = z.object({
+  agentConfigs: z.array(ManagedToolConfigSchema),
+  skillConfigs: z.array(ManagedToolConfigSchema),
+  phaseDispatch: z.array(PhaseDispatchEntrySchema),
+});
 
 export const UserSettingsSchema = z.object({
   theme: ThemeModeSchema,
@@ -315,6 +337,7 @@ export const UserSettingsSchema = z.object({
   notificationLevel: NotificationLevelSchema,
   compactMode: z.boolean(),
   showLineNumbers: z.boolean(),
+  orchestration: OrchestrationSettingsSchema,
 });
 
 export const UpdateUserSettingsInputSchema = UserSettingsSchema.partial();

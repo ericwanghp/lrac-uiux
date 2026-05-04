@@ -1,14 +1,14 @@
 import { render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import * as React from "react";
 
 import { applyDocumentUiSettings } from "@/lib/utils/theme";
 import { UiSettingsProvider } from "@/components/providers/ui-settings-provider";
-import type { UserSettings } from "@/lib/types/settings";
+import { DEFAULT_USER_SETTINGS, type UserSettings } from "@/lib/types/settings";
 
 const fetchMock = vi.fn();
 
 const lightSettings: UserSettings = {
+  ...DEFAULT_USER_SETTINGS,
   theme: "light",
   fontSize: 16,
   autoSave: true,

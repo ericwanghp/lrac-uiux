@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import type { ProjectDescriptor, ProjectOption, ProjectSignal } from "@/lib/types/project";
+import { isPathWithinWorkspaceRoot, resolveProjectCreationPath } from "@/lib/utils/project-selection";
 
 async function readJsonField(
   filePath: string,
@@ -121,4 +122,37 @@ export async function discoverWorkspaceProjects(
   } catch {
     return [{ root: fallbackProject.root, name: fallbackProject.name }];
   }
+}
+
+export async function createWorkspaceProject(
+  projectPathInput: string,
+  currentProjectRoot: string
+): Promise<ProjectDescriptor> {
+  const workspaceRoot = path.dirname(currentProjectRoot);
+  const targetProjectRoot = resolveProjectCreationPath(projectPathInput, workspaceRoot);
+
+  if (!isPathWithinWorkspaceRoot(targetProjectRoot, workspaceRoot)) {
+    throw new Error(`Project path must stay under ${workspaceRoot}`);
+  }
+
+  try {
+    const existing = await fs.stat(targetProjectRoot);
+    if (existing.isDirectory()) {
+      throw new Error(`Project path already exists: ${targetProjectRoot}`);
+    }
+    throw new Error(`Project path is not a directory: ${targetProjectRoot}`);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+      throw error;
+    }
+  }
+
+  await fs.mkdir(targetProjectRoot, { recursive: true });
+  await Promise.all([
+    fs.mkdir(path.join(targetProjectRoot, ".auto-coding"), { recursive: true }),
+    fs.mkdir(path.join(targetProjectRoot, "docs"), { recursive: true }),
+    fs.mkdir(path.join(targetProjectRoot, ".stitch"), { recursive: true }),
+  ]);
+
+  return describeProjectRoot(targetProjectRoot);
 }

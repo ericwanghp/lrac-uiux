@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { buildProjectNavigationPath, buildProjectScopedPath } from "@/lib/utils/project-selection";
+import {
+  buildProjectNavigationPath,
+  buildProjectScopedPath,
+  isPathWithinWorkspaceRoot,
+  resolveProjectCreationPath,
+} from "@/lib/utils/project-selection";
 
 describe("buildProjectNavigationPath", () => {
   it("adds the project query to dashboard routes", () => {
@@ -41,5 +46,39 @@ describe("buildProjectScopedPath", () => {
     ).toBe(
       "/api/terminal/sessions/1/events?afterSeq=2&project=%2FUsers%2Fericwang%2Fcode%2FLRAC"
     );
+  });
+});
+
+describe("resolveProjectCreationPath", () => {
+  it("resolves relative paths under the workspace root", () => {
+    expect(resolveProjectCreationPath("new-app", "/Users/ericwang/lracode")).toBe(
+      "/Users/ericwang/lracode/new-app"
+    );
+  });
+
+  it("normalizes dot segments in relative input", () => {
+    expect(resolveProjectCreationPath("./demo/../new-app", "/Users/ericwang/lracode")).toBe(
+      "/Users/ericwang/lracode/new-app"
+    );
+  });
+
+  it("preserves absolute paths after normalization", () => {
+    expect(resolveProjectCreationPath("/Users/ericwang/lracode/demo/../new-app", "/Users/ericwang/lracode")).toBe(
+      "/Users/ericwang/lracode/new-app"
+    );
+  });
+});
+
+describe("isPathWithinWorkspaceRoot", () => {
+  it("accepts children of the workspace root", () => {
+    expect(isPathWithinWorkspaceRoot("/Users/ericwang/lracode/new-app", "/Users/ericwang/lracode")).toBe(true);
+  });
+
+  it("rejects the workspace root itself", () => {
+    expect(isPathWithinWorkspaceRoot("/Users/ericwang/lracode", "/Users/ericwang/lracode")).toBe(false);
+  });
+
+  it("rejects paths outside the workspace root", () => {
+    expect(isPathWithinWorkspaceRoot("/Users/ericwang/other/new-app", "/Users/ericwang/lracode")).toBe(false);
   });
 });

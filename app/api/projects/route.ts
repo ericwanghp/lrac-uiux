@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentProjectRoot, readTasksJson } from "@/lib/utils/file-operations";
-import { describeProjectRoot, discoverWorkspaceProjects } from "@/lib/utils/project-discovery";
+import {
+  createWorkspaceProject,
+  describeProjectRoot,
+  discoverWorkspaceProjects,
+} from "@/lib/utils/project-discovery";
 import type { TasksJson } from "@/lib/types";
+import { CreateProjectInputSchema } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
@@ -109,6 +114,36 @@ export async function GET(request?: NextRequest) {
         error: error instanceof Error ? error.message : "Failed to get project overview",
       },
       { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const currentProjectRoot = await getCurrentProjectRoot();
+    const body = await request.json();
+    const { projectPath } = CreateProjectInputSchema.parse(body);
+    const createdProject = await createWorkspaceProject(projectPath, currentProjectRoot);
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        project: createdProject.name,
+        root: createdProject.root,
+        signals: createdProject.signals,
+      },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to create project";
+    const status =
+      message.includes("must stay under") || message.includes("already exists") ? 400 : 500;
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: message,
+      },
+      { status }
     );
   }
 }
