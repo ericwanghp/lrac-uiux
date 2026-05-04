@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { MemberAuthPanel } from "@/components/layout/member-auth-panel";
 import { ClaudeCliLauncher } from "@/components/claude-cli/claude-cli-launcher";
 import { ShellLauncher } from "@/components/shell/shell-launcher";
 import { useProjectQueryParam } from "@/components/providers/use-project-query-param";
@@ -14,15 +15,8 @@ import { useProjectRealtimeStatus } from "@/components/providers/project-realtim
 export function Header() {
   const router = useRouter();
   const projectRoot = useProjectQueryParam();
-  const { snapshot, isConnected, isConnecting, reconnectAttempts } = useProjectRealtimeStatus();
+  const { snapshot } = useProjectRealtimeStatus();
   const phaseText = `Phase ${Math.min(snapshot.currentPhase, 7)}: ${snapshot.currentPhaseLabel}`;
-  const statusText = isConnected
-    ? `${snapshot.completed}/${snapshot.total} tasks completed · ${snapshot.overallProgress}%`
-    : isConnecting
-      ? "Connecting realtime status..."
-      : reconnectAttempts > 0
-        ? `Realtime disconnected · retry ${reconnectAttempts}`
-        : "Realtime offline";
 
   return (
     <header
@@ -59,37 +53,7 @@ export function Header() {
           {phaseText}
         </Badge>
 
-        <div className="hidden md:flex items-center space-x-2" role="status" aria-live="polite">
-          <div
-            className={`h-2 w-2 rounded-full ${isConnected ? "bg-success animate-pulse" : "bg-warning"}`}
-            aria-hidden="true"
-          />
-          <span className="text-sm text-muted-foreground">{statusText}</span>
-        </div>
-
-        {/* User Menu */}
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="User menu"
-          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-        </Button>
+        <MemberAuthPanel />
 
         {/* Settings */}
         <Button

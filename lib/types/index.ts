@@ -6,7 +6,25 @@ export type {
   ApprovalUpdateInput,
   ApprovalStatus,
 } from "./approval";
-export type { UserSettings, UserSettingsEnvelope, NotificationLevel, ThemeMode } from "./settings";
+export type {
+  UserSettings,
+  UserSettingsEnvelope,
+  NotificationLevel,
+  ThemeMode,
+  CommunicationSettings,
+  PhaseApprovalPolicy,
+  StakeholderContact,
+  CommunicationChannelConfig,
+  ProjectMember,
+} from "./settings";
+export type {
+  PhaseGateRecord,
+  PhaseGateStatus,
+  PhaseGateDecision,
+  PhaseGatesJson,
+} from "./phase-gate";
+export type { AuthSession, AuthSessionsEnvelope, MemberCredentialsEnvelope } from "./auth";
+export type { InboxMessage, InboxMessageStatus, InboxEnvelope } from "./inbox";
 export type {
   TerminalSession,
   TerminalEvent,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readTasksJson, writeTasksJson } from "@/lib/utils/file-operations";
+import { ensurePhaseGateForCompletedPhase, inferFeaturePhaseId } from "@/lib/utils/phase-gate-operations";
 import { UpdateFeatureStatusInputSchema } from "@/lib/validation";
 
 /**
@@ -8,6 +9,7 @@ import { UpdateFeatureStatusInputSchema } from "@/lib/validation";
  */
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const projectRoot = request.nextUrl.searchParams.get("project");
     const { id: featureId } = await params;
     const body = await request.json();
 
@@ -18,7 +20,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     });
 
     // Read tasks.json
-    const tasksData = await readTasksJson();
+    const tasksData = await readTasksJson(projectRoot);
 
     // Find feature index
     const featureIndex = tasksData.features.findIndex((f) => f.id === validatedInput.featureId);
@@ -76,16 +78,26 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     });
 
     // Save updated tasks.json
-    await writeTasksJson(tasksData);
+    await writeTasksJson(tasksData, projectRoot);
 
     // Update parallel group status
-    await updateParallelGroupStatus(tasksData, feature.taskBreakdown.parallelGroup);
+    await updateParallelGroupStatus(tasksData, feature.taskBreakdown.parallelGroup, projectRoot);
+
+    let phaseGate = null;
+    const phaseId = inferFeaturePhaseId(feature);
+    if (validatedInput.status === "completed" && validatedInput.passes && phaseId) {
+      phaseGate = await ensurePhaseGateForCompletedPhase({
+        projectRoot,
+        phase: phaseId,
+      });
+    }
 
     // Return response
     return NextResponse.json({
       success: true,
       data: {
         feature,
+        phaseGate,
         message: "Feature status updated successfully",
       },
     });
@@ -107,7 +119,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
  */
 async function updateParallelGroupStatus(
   tasksData: any,
-  parallelGroupName: string | null
+  parallelGroupName: string | null,
+  projectRoot?: string | null
 ): Promise<void> {
   if (!parallelGroupName) return;
 
@@ -141,5 +154,5 @@ async function updateParallelGroupStatus(
     group.status = "in_progress";
   }
 
-  await writeTasksJson(tasksData);
+  await writeTasksJson(tasksData, projectRoot);
 }

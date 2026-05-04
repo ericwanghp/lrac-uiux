@@ -21,6 +21,9 @@ import {
   Users,
   Search,
   Filter,
+  ShieldAlert,
+  UserRoundCheck,
+  LockKeyhole,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -38,6 +41,7 @@ import {
 import { buildProjectScopedPath } from "@/lib/utils/project-selection";
 import { useWebSocket } from "@/lib/websocket/useWebSocket";
 import { getPhaseFromParallelGroup, getPhaseFromTaskId } from "@/lib/constants/task-id";
+import type { PhaseGateSummary } from "@/lib/utils/phase-gate-summary";
 
 // Dynamic import for recharts to reduce initial bundle size
 const BarChart = dynamic(() => import("recharts").then((mod) => mod.BarChart), { ssr: false });
@@ -258,6 +262,7 @@ export default function PMDashboardPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [rawFeatures, setRawFeatures] = useState<Feature[]>([]);
   const [approvals, setApprovals] = useState<ApprovalRecord[]>([]);
+  const [phaseGateSummaries, setPhaseGateSummaries] = useState<PhaseGateSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -363,9 +368,23 @@ export default function PMDashboardPage() {
     } catch {}
   }, [scopedPath]);
 
+  const loadPhaseGateSummaries = useCallback(async () => {
+    try {
+      const response = await fetch(scopedPath("/api/phase-gates/summary"), { cache: "no-store" });
+      if (!response.ok) return;
+      const payload = await response.json();
+      if (!payload?.success) return;
+      setPhaseGateSummaries((payload.data?.summaries || []) as PhaseGateSummary[]);
+    } catch {}
+  }, [scopedPath]);
+
   useEffect(() => {
     loadActivityFeeds();
   }, [loadActivityFeeds]);
+
+  useEffect(() => {
+    loadPhaseGateSummaries();
+  }, [loadPhaseGateSummaries]);
 
   useWebSocket({
     projectId: projectRoot || undefined,
@@ -374,6 +393,7 @@ export default function PMDashboardPage() {
       loadTasks(true);
       loadApprovals();
       loadActivityFeeds();
+      loadPhaseGateSummaries();
     },
     onFileChanged: (payload) => {
       if (payload.path.includes("tasks.json")) {
@@ -382,12 +402,16 @@ export default function PMDashboardPage() {
       if (payload.path.includes("approvals") || payload.path.includes("/docs/")) {
         loadApprovals();
       }
+      if (payload.path.includes("phase-gates") || payload.path.includes("inbox.json")) {
+        loadPhaseGateSummaries();
+      }
       loadActivityFeeds();
     },
     onPhaseChanged: () => {
       loadTasks(true);
       loadApprovals();
       loadActivityFeeds();
+      loadPhaseGateSummaries();
     },
   });
 
@@ -396,11 +420,12 @@ export default function PMDashboardPage() {
       loadTasks();
       loadApprovals();
       loadActivityFeeds();
+      loadPhaseGateSummaries();
     };
 
     window.addEventListener("lrac:project-changed", handleProjectChanged);
     return () => window.removeEventListener("lrac:project-changed", handleProjectChanged);
-  }, [loadActivityFeeds, loadApprovals, loadTasks]);
+  }, [loadActivityFeeds, loadApprovals, loadPhaseGateSummaries, loadTasks]);
 
   const globallyFilteredTasks = useMemo(
     () =>
@@ -430,6 +455,15 @@ export default function PMDashboardPage() {
     completed: globallyFilteredTasks.filter((t) => t.status === "completed").length,
     blocked: globallyFilteredTasks.filter((t) => t.status === "blocked").length,
   };
+  const pendingPhaseGateSummaries = phaseGateSummaries.filter((summary) => summary.status === "pending");
+  const waitingApproversCount = pendingPhaseGateSummaries.reduce(
+    (sum, summary) => sum + summary.pendingApprovers.length,
+    0
+  );
+  const blockedByApprovalCount = pendingPhaseGateSummaries.reduce(
+    (sum, summary) => sum + summary.blockedFeaturesCount,
+    0
+  );
   const topStatCards = [
     {
       title: "Total Tasks",
@@ -458,6 +492,36 @@ export default function PMDashboardPage() {
       description: loadError ? "Load error" : "Needs attention",
       variant: "error" as const,
       icon: <AlertCircle className="h-5 w-5" />,
+    },
+    {
+      title: "Pending Gates",
+      value: pendingPhaseGateSummaries.length,
+      description:
+        pendingPhaseGateSummaries.length > 0
+          ? "Approval reviews are still open"
+          : "No phase gate is waiting for review",
+      variant: pendingPhaseGateSummaries.length > 0 ? ("warning" as const) : ("success" as const),
+      icon: <ShieldAlert className="h-5 w-5" />,
+    },
+    {
+      title: "Approvers Waiting",
+      value: waitingApproversCount,
+      description:
+        waitingApproversCount > 0
+          ? "Outstanding approver actions across pending gates"
+          : "No approver is currently waiting",
+      variant: waitingApproversCount > 0 ? ("warning" as const) : ("success" as const),
+      icon: <UserRoundCheck className="h-5 w-5" />,
+    },
+    {
+      title: "Blocked By Approval",
+      value: blockedByApprovalCount,
+      description:
+        blockedByApprovalCount > 0
+          ? "Tasks remain blocked until gate decisions finish"
+          : "No task is blocked by an approval gate",
+      variant: blockedByApprovalCount > 0 ? ("error" as const) : ("success" as const),
+      icon: <LockKeyhole className="h-5 w-5" />,
     },
   ];
 
@@ -722,7 +786,7 @@ export default function PMDashboardPage() {
       {/* Stat Cards */}
       <div>
         <p className="admin-kicker mb-3">Program Metrics</p>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-3">
           {topStatCards.map((stat) => (
             <StatCard key={stat.title} {...stat} className="min-h-[156px]" />
           ))}
@@ -1176,6 +1240,51 @@ export default function PMDashboardPage() {
                     </p>
                   </Link>
                 ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className={panelClassName}>
+          <CardHeader>
+            <CardTitle>Approval Gates</CardTitle>
+            <CardDescription>Track which phases are waiting for approvers before they can continue</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {phaseGateSummaries.filter((summary) => summary.status === "pending").length === 0 ? (
+                <p className="text-sm text-muted-foreground">No pending phase approval gates</p>
+              ) : (
+                phaseGateSummaries
+                  .filter((summary) => summary.status === "pending")
+                  .slice(0, 6)
+                  .map((summary) => (
+                    <Link
+                      key={summary.id}
+                      href={buildProjectScopedPath(summary.approvalUrl, projectRoot)}
+                      className={`${softPanelClassName} block px-3 py-3 transition-all duration-150 hover:border-primary/25 hover:bg-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-medium text-foreground">
+                          Phase {summary.phase} · {summary.phaseLabel}
+                        </p>
+                        <Badge className={statusColors.pending}>pending</Badge>
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Waiting for{" "}
+                        {summary.pendingApprovers.length > 0
+                          ? summary.pendingApprovers
+                              .map((approver) => `${approver.name} (${approver.role})`)
+                              .join(", ")
+                          : "assigned approvers"}
+                      </p>
+                      <p className="mt-2 text-[11px] text-muted-foreground">
+                        {summary.blockedFeaturesCount} blocked task
+                        {summary.blockedFeaturesCount === 1 ? "" : "s"} · Updated{" "}
+                        {new Date(summary.updatedAt).toLocaleString()}
+                      </p>
+                    </Link>
+                  ))
               )}
             </div>
           </CardContent>

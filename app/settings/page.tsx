@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   Bell,
   Keyboard,
+  KeyRound,
   Mail,
   Monitor,
   Moon,
@@ -13,18 +14,23 @@ import {
   Settings,
   Smartphone,
   Sun,
+  UserRound,
+  Users,
   Volume2,
   Workflow,
 } from "lucide-react";
 import { OrchestrationSettingsPanel } from "@/components/settings/orchestration-settings-panel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DEFAULT_USER_SETTINGS } from "@/lib/types/settings";
-import type { OrchestrationCatalog, UserSettings } from "@/lib/types/settings";
+import type { OrchestrationCatalog, ProjectMember, UserSettings } from "@/lib/types/settings";
+import { useProjectQueryParam } from "@/components/providers/use-project-query-param";
+import { buildProjectScopedPath } from "@/lib/utils/project-selection";
 import { applyDocumentUiSettings } from "@/lib/utils/theme";
 
 interface TaskIdSchemaData {
@@ -92,6 +98,7 @@ async function fetchJson<T>(input: RequestInfo, init?: RequestInit): Promise<T> 
 }
 
 export default function SettingsPage() {
+  const projectRoot = useProjectQueryParam();
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_USER_SETTINGS);
   const [catalog, setCatalog] = useState<OrchestrationCatalog>({ agents: [], skills: [] });
   const [isLoading, setIsLoading] = useState(true);
@@ -99,13 +106,16 @@ export default function SettingsPage() {
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [taskIdSchema, setTaskIdSchema] = useState<TaskIdSchemaData | null>(null);
   const [taskIdSchemaError, setTaskIdSchemaError] = useState<string | null>(null);
+  const [passwordDrafts, setPasswordDrafts] = useState<Record<string, string>>({});
+
+  const scopedPath = (path: string) => buildProjectScopedPath(path, projectRoot);
 
   useEffect(() => {
     const loadPageData = async () => {
       try {
         setIsLoading(true);
         const [settingsData, taskIdData] = await Promise.all([
-          fetchJson<SettingsApiResponse>("/api/settings"),
+          fetchJson<SettingsApiResponse>(scopedPath("/api/settings")),
           fetchJson<TaskIdSchemaData>("/api/meta/task-id-schema"),
         ]);
 
@@ -121,7 +131,7 @@ export default function SettingsPage() {
     };
 
     void loadPageData();
-  }, []);
+  }, [projectRoot]);
 
   useEffect(() => {
     applyDocumentUiSettings(settings);
@@ -146,7 +156,7 @@ export default function SettingsPage() {
     setSettings(nextSettings);
 
     try {
-      const payload = await fetchJson<SettingsApiResponse>("/api/settings", {
+      const payload = await fetchJson<SettingsApiResponse>(scopedPath("/api/settings"), {
         method: "PATCH",
         body: JSON.stringify(nextSettings),
       });
@@ -168,6 +178,96 @@ export default function SettingsPage() {
 
   const updateSetting = <K extends keyof UserSettings>(key: K, value: UserSettings[K]) => {
     void persistSettings({ ...settings, [key]: value });
+  };
+
+  const updateCommunicationSettings = (
+    updater: (communication: UserSettings["communication"]) => UserSettings["communication"]
+  ) => {
+    void persistSettings({
+      ...settings,
+      communication: updater(settings.communication),
+    });
+  };
+
+  const addMember = () => {
+    const nextIndex = settings.communication.members.length + 1;
+    const nextMember: ProjectMember = {
+      id: `member-${nextIndex}`,
+      name: `Member ${nextIndex}`,
+      role: "reviewer",
+      email: "",
+      active: true,
+    };
+    updateCommunicationSettings((communication) => ({
+      ...communication,
+      members: [...communication.members, nextMember],
+    }));
+  };
+
+  const updateMember = (memberId: string, patch: Partial<ProjectMember>) => {
+    updateCommunicationSettings((communication) => ({
+      ...communication,
+      members: communication.members.map((member) =>
+        member.id === memberId ? { ...member, ...patch } : member
+      ),
+    }));
+  };
+
+  const removeMember = (memberId: string) => {
+    updateCommunicationSettings((communication) => ({
+      ...communication,
+      members: communication.members.filter((member) => member.id !== memberId),
+      phaseApprovals: communication.phaseApprovals.map((policy) => ({
+        ...policy,
+        approverIds: policy.approverIds.filter((id) => id !== memberId),
+      })),
+    }));
+  };
+
+  const togglePhaseApprover = (phase: string, memberId: string) => {
+    updateCommunicationSettings((communication) => ({
+      ...communication,
+      phaseApprovals: communication.phaseApprovals.map((policy) => {
+        if (policy.phase !== phase) {
+          return policy;
+        }
+        const exists = policy.approverIds.includes(memberId);
+        return {
+          ...policy,
+          approverIds: exists
+            ? policy.approverIds.filter((id) => id !== memberId)
+            : [...policy.approverIds, memberId],
+        };
+      }),
+    }));
+  };
+
+  const setMemberPassword = async (memberId: string) => {
+    const password = passwordDrafts[memberId] || "";
+    if (password.trim().length < 6) {
+      setSaveStatus("error");
+      setSaveMessage("Password must be at least 6 characters");
+      return;
+    }
+
+    setSaveStatus("saving");
+    setSaveMessage("Updating member password...");
+    try {
+      await fetchJson(scopedPath("/api/members/password"), {
+        method: "POST",
+        body: JSON.stringify({
+          memberId,
+          password,
+          projectRoot,
+        }),
+      });
+      setPasswordDrafts((current) => ({ ...current, [memberId]: "" }));
+      setSaveStatus("saved");
+      setSaveMessage("Member password updated");
+    } catch (error) {
+      setSaveStatus("error");
+      setSaveMessage(error instanceof Error ? error.message : "Failed to update password");
+    }
   };
 
   if (isLoading) {
@@ -215,6 +315,14 @@ export default function SettingsPage() {
             <TabsTrigger value="notifications" className={triggerClassName}>
               <Bell className="mr-3 h-4 w-4" />
               Notifications
+            </TabsTrigger>
+            <TabsTrigger value="team" className={triggerClassName}>
+              <Users className="mr-3 h-4 w-4" />
+              Team
+            </TabsTrigger>
+            <TabsTrigger value="approvals" className={triggerClassName}>
+              <KeyRound className="mr-3 h-4 w-4" />
+              Approvals
             </TabsTrigger>
             <TabsTrigger value="shortcuts" className={triggerClassName}>
               <Keyboard className="mr-3 h-4 w-4" />
@@ -557,6 +665,136 @@ export default function SettingsPage() {
                       </div>
                     )
                   )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="team" className="space-y-6">
+              <Card className={panelClassName}>
+                <CardHeader>
+                  <CardTitle>Project Members</CardTitle>
+                  <CardDescription>Manage local project accounts used for inbox approvals.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-end">
+                    <Button size="sm" variant="outline" onClick={addMember}>
+                      Add Member
+                    </Button>
+                  </div>
+                  {settings.communication.members.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No members configured yet.</p>
+                  ) : (
+                    settings.communication.members.map((member) => (
+                      <div key={member.id} className="rounded-2xl border border-border/80 bg-secondary/60 p-4 space-y-4">
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label>Name</Label>
+                            <Input value={member.name} onChange={(event) => updateMember(member.id, { name: event.target.value })} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Role</Label>
+                            <Input value={member.role} onChange={(event) => updateMember(member.id, { role: event.target.value })} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Email</Label>
+                            <Input value={member.email || ""} onChange={(event) => updateMember(member.id, { email: event.target.value })} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Member ID</Label>
+                            <Input value={member.id} onChange={(event) => updateMember(member.id, { id: event.target.value })} />
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="space-y-0.5">
+                            <Label className="flex items-center gap-2 text-foreground">
+                              <UserRound className="h-4 w-4" />
+                              Active
+                            </Label>
+                            <p className="text-sm text-muted-foreground">
+                              Only active members can sign in and receive inbox approvals.
+                            </p>
+                          </div>
+                          <Switch checked={member.active} onCheckedChange={(checked) => updateMember(member.id, { active: checked })} />
+                        </div>
+                        <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+                          <div className="space-y-2">
+                            <Label>Password</Label>
+                            <Input
+                              type="password"
+                              value={passwordDrafts[member.id] || ""}
+                              onChange={(event) =>
+                                setPasswordDrafts((current) => ({ ...current, [member.id]: event.target.value }))
+                              }
+                              placeholder="Set or rotate password"
+                            />
+                          </div>
+                          <div className="flex items-end gap-2">
+                            <Button size="sm" onClick={() => void setMemberPassword(member.id)}>
+                              Set Password
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => removeMember(member.id)}>
+                              Remove
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="approvals" className="space-y-6">
+              <Card className={panelClassName}>
+                <CardHeader>
+                  <CardTitle>Phase Approvers</CardTitle>
+                  <CardDescription>Assign which project members must approve each phase.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {settings.communication.phaseApprovals.map((policy) => (
+                    <div key={policy.phase} className="rounded-2xl border border-border/80 bg-secondary/60 p-4 space-y-4">
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="font-medium text-foreground">
+                            Phase {policy.phase} · {policy.label}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Required roles: {policy.requiredRoles.join(", ") || "None"}
+                          </p>
+                        </div>
+                        <Switch
+                          checked={policy.enabled}
+                          onCheckedChange={(checked) =>
+                            updateCommunicationSettings((communication) => ({
+                              ...communication,
+                              phaseApprovals: communication.phaseApprovals.map((entry) =>
+                                entry.phase === policy.phase ? { ...entry, enabled: checked } : entry
+                              ),
+                            }))
+                          }
+                        />
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {settings.communication.members.length === 0 ? (
+                          <p className="text-sm text-muted-foreground">Add project members first.</p>
+                        ) : (
+                          settings.communication.members.map((member) => {
+                            const selected = policy.approverIds.includes(member.id);
+                            return (
+                              <Button
+                                key={`${policy.phase}-${member.id}`}
+                                size="sm"
+                                variant={selected ? "default" : "outline"}
+                                onClick={() => togglePhaseApprover(policy.phase, member.id)}
+                              >
+                                {member.name}
+                              </Button>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </CardContent>
               </Card>
             </TabsContent>

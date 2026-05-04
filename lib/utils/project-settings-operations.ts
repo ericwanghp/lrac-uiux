@@ -1,6 +1,11 @@
 import fs from "fs/promises";
 import path from "path";
-import { DEFAULT_USER_SETTINGS, UserSettings, UserSettingsEnvelope } from "@/lib/types/settings";
+import {
+  DEFAULT_USER_SETTINGS,
+  UserSettings,
+  UserSettingsEnvelope,
+  normalizeCommunicationSettings,
+} from "@/lib/types/settings";
 import { PROJECT_ROOT, getCurrentProjectRoot } from "@/lib/utils/file-operations";
 import { normalizeOrchestrationSettings } from "@/lib/utils/orchestration-settings";
 
@@ -20,6 +25,7 @@ function createDefaultEnvelope(): UserSettingsEnvelope {
     settings: {
       ...DEFAULT_USER_SETTINGS,
       orchestration: normalizeOrchestrationSettings(DEFAULT_USER_SETTINGS.orchestration),
+      communication: normalizeCommunicationSettings(DEFAULT_USER_SETTINGS.communication),
     },
     updatedAt: new Date().toISOString(),
   };
@@ -58,6 +64,7 @@ export async function readProjectSettings(
       ...DEFAULT_USER_SETTINGS,
       ...(parsed.settings || {}),
       orchestration: normalizeOrchestrationSettings(parsed.settings?.orchestration),
+      communication: normalizeCommunicationSettings(parsed.settings?.communication),
     } as UserSettings,
     updatedAt: parsed.updatedAt || new Date().toISOString(),
   };
@@ -73,6 +80,7 @@ export async function writeProjectSettings(
     settings: {
       ...settings,
       orchestration: normalizeOrchestrationSettings(settings.orchestration),
+      communication: normalizeCommunicationSettings(settings.communication),
     },
     updatedAt: new Date().toISOString(),
   };

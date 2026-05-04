@@ -6,9 +6,9 @@ import { getCurrentProjectRoot } from "@/lib/utils/file-operations";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const projectRoot = await getCurrentProjectRoot();
+    const projectRoot = await getCurrentProjectRoot(request.nextUrl.searchParams.get("project"));
     const [settingsEnvelope, catalog] = await Promise.all([
       readProjectSettings(projectRoot),
       discoverOrchestrationCatalog(projectRoot),
@@ -40,7 +40,7 @@ export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
     const validatedInput = UpdateUserSettingsInputSchema.parse(body);
-    const projectRoot = await getCurrentProjectRoot();
+    const projectRoot = await getCurrentProjectRoot(request.nextUrl.searchParams.get("project"));
     const currentEnvelope = await readProjectSettings(projectRoot);
     const updatedEnvelope = await writeProjectSettings({
       ...currentEnvelope.settings,

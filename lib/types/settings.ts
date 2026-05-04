@@ -1,6 +1,8 @@
 export type ThemeMode = "dark" | "light";
 export type NotificationLevel = "all" | "important" | "critical";
 export type PhaseId = "1" | "2" | "2.5" | "3" | "4" | "5" | "6" | "7" | "8";
+export type StakeholderKind = "internal" | "external";
+export type CommunicationChannelType = "generic-webhook" | "slack-webhook" | "email";
 
 export interface ManagedToolConfig {
   id: string;
@@ -31,6 +33,48 @@ export interface OrchestrationSettings {
   agentConfigs: ManagedToolConfig[];
   skillConfigs: ManagedToolConfig[];
   phaseDispatch: PhaseDispatchEntry[];
+}
+
+export interface StakeholderContact {
+  id: string;
+  name: string;
+  role: string;
+  kind: StakeholderKind;
+  email?: string;
+  webhookUrl?: string;
+}
+
+export interface ProjectMember {
+  id: string;
+  name: string;
+  role: string;
+  email?: string;
+  active: boolean;
+}
+
+export interface CommunicationChannelConfig {
+  id: string;
+  label: string;
+  type: CommunicationChannelType;
+  enabled: boolean;
+  webhookUrl?: string;
+  recipient?: string;
+  secret?: string;
+}
+
+export interface PhaseApprovalPolicy {
+  phase: PhaseId;
+  label: string;
+  enabled: boolean;
+  requiredRoles: string[];
+  approverIds: string[];
+}
+
+export interface CommunicationSettings {
+  members: ProjectMember[];
+  stakeholders: StakeholderContact[];
+  channels: CommunicationChannelConfig[];
+  phaseApprovals: PhaseApprovalPolicy[];
 }
 
 export const DEFAULT_PHASE_DISPATCH: PhaseDispatchEntry[] = [
@@ -121,6 +165,64 @@ export const DEFAULT_ORCHESTRATION_SETTINGS: OrchestrationSettings = {
   phaseDispatch: DEFAULT_PHASE_DISPATCH,
 };
 
+export const DEFAULT_PHASE_APPROVAL_POLICIES: PhaseApprovalPolicy[] = [
+  { phase: "1", label: "Requirements Analysis", enabled: true, requiredRoles: ["business-owner"], approverIds: [] },
+  { phase: "2", label: "Product Design", enabled: true, requiredRoles: ["product-manager"], approverIds: [] },
+  { phase: "2.5", label: "UI/UX Design", enabled: true, requiredRoles: ["design-reviewer"], approverIds: [] },
+  { phase: "3", label: "Architecture Design", enabled: true, requiredRoles: ["architect-reviewer"], approverIds: [] },
+  { phase: "4", label: "Task Breakdown", enabled: false, requiredRoles: ["project-manager"], approverIds: [] },
+  { phase: "5", label: "Development & Unit Tests", enabled: true, requiredRoles: ["qa-lead"], approverIds: [] },
+  { phase: "6", label: "Integration & Regression Testing", enabled: true, requiredRoles: ["qa-lead"], approverIds: [] },
+  { phase: "7", label: "Deploy & UAT", enabled: true, requiredRoles: ["ops-reviewer"], approverIds: [] },
+  { phase: "8", label: "Project Management", enabled: false, requiredRoles: ["project-sponsor"], approverIds: [] },
+];
+
+export const DEFAULT_COMMUNICATION_SETTINGS: CommunicationSettings = {
+  members: [],
+  stakeholders: [],
+  channels: [
+    {
+      id: "default-webhook",
+      label: "Default Webhook",
+      type: "generic-webhook",
+      enabled: false,
+      webhookUrl: "",
+      secret: "",
+    },
+  ],
+  phaseApprovals: DEFAULT_PHASE_APPROVAL_POLICIES,
+};
+
+export function normalizeCommunicationSettings(
+  communication?: Partial<CommunicationSettings>
+): CommunicationSettings {
+  const policyByPhase = new Map(
+    (communication?.phaseApprovals ?? []).map((policy) => [policy.phase, policy])
+  );
+
+  return {
+    members: Array.isArray(communication?.members) ? communication.members : [],
+    stakeholders: Array.isArray(communication?.stakeholders) ? communication.stakeholders : [],
+    channels:
+      Array.isArray(communication?.channels) && communication.channels.length > 0
+        ? communication.channels
+        : DEFAULT_COMMUNICATION_SETTINGS.channels,
+    phaseApprovals: DEFAULT_PHASE_APPROVAL_POLICIES.map((policy) => {
+      const override = policyByPhase.get(policy.phase);
+      return override
+        ? {
+            ...policy,
+            ...override,
+            requiredRoles: Array.isArray(override.requiredRoles)
+              ? override.requiredRoles
+              : policy.requiredRoles,
+            approverIds: Array.isArray(override.approverIds) ? override.approverIds : policy.approverIds,
+          }
+        : policy;
+    }),
+  };
+}
+
 export interface UserSettings {
   theme: ThemeMode;
   fontSize: number;
@@ -133,6 +235,7 @@ export interface UserSettings {
   compactMode: boolean;
   showLineNumbers: boolean;
   orchestration: OrchestrationSettings;
+  communication: CommunicationSettings;
 }
 
 export interface UserSettingsEnvelope {
@@ -153,4 +256,5 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
   compactMode: false,
   showLineNumbers: true,
   orchestration: DEFAULT_ORCHESTRATION_SETTINGS,
+  communication: DEFAULT_COMMUNICATION_SETTINGS,
 };

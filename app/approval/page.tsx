@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useProjectQueryParam } from "@/components/providers/use-project-query-param";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -21,11 +22,13 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { useCurrentMember } from "@/components/providers/current-member-provider";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import type { ApprovalComment, ApprovalRecord, ApprovalStatus } from "@/lib/types/approval";
+import type { PhaseGateRecord, PhaseGateStatus } from "@/lib/types";
 
-const statusColors: Record<ApprovalStatus, string> = {
+const statusColors: Record<ApprovalStatus | PhaseGateStatus, string> = {
   pending: "bg-warning/15 text-warning border-warning/40",
   approved: "bg-success/15 text-success border-success/40",
   rejected: "bg-destructive/15 text-destructive border-destructive/40",
@@ -77,7 +80,16 @@ function upsertApproval(approvals: ApprovalRecord[], updatedApproval: ApprovalRe
 }
 
 export default function ApprovalPage() {
+  const { member: currentMember } = useCurrentMember();
+  const projectRoot = useProjectQueryParam();
+  const gateId = useMemo(() => {
+    if (typeof window === "undefined") {
+      return "";
+    }
+    return new URLSearchParams(window.location.search).get("gateId") || "";
+  }, []);
   const [approvals, setApprovals] = useState<ApprovalRecord[]>([]);
+  const [selectedGate, setSelectedGate] = useState<PhaseGateRecord | null>(null);
   const [selectedApprovalId, setSelectedApprovalId] = useState("");
   const [markdown, setMarkdown] = useState("");
   const [newComment, setNewComment] = useState("");
@@ -100,12 +112,37 @@ export default function ApprovalPage() {
   }, [feedback]);
 
   useEffect(() => {
+    const loadPhaseGate = async () => {
+      if (!gateId) {
+        setSelectedGate(null);
+        return;
+      }
+
+      try {
+        const gatePath = projectRoot
+          ? `/api/phase-gates/${gateId}?project=${encodeURIComponent(projectRoot)}`
+          : `/api/phase-gates/${gateId}`;
+        const gate = await fetchJson<PhaseGateRecord>(gatePath);
+        setSelectedGate(gate);
+      } catch (loadError) {
+        setSelectedGate(null);
+        setError(loadError instanceof Error ? loadError.message : "Failed to load phase gate");
+      }
+    };
+
+    void loadPhaseGate();
+  }, [gateId, projectRoot]);
+
+  useEffect(() => {
     const loadApprovals = async () => {
       try {
         setIsLoading(true);
         setError(null);
 
-        const payload = await fetchJson<{ approvals: ApprovalRecord[] }>("/api/approvals");
+        const approvalsPath = projectRoot
+          ? `/api/approvals?project=${encodeURIComponent(projectRoot)}`
+          : "/api/approvals";
+        const payload = await fetchJson<{ approvals: ApprovalRecord[] }>(approvalsPath);
         setApprovals(payload.approvals);
         setSelectedApprovalId((currentId) => currentId || payload.approvals[0]?.id || "");
       } catch (loadError) {
@@ -116,7 +153,7 @@ export default function ApprovalPage() {
     };
 
     void loadApprovals();
-  }, []);
+  }, [projectRoot]);
 
   useEffect(() => {
     const loadMarkdown = async () => {
@@ -127,8 +164,11 @@ export default function ApprovalPage() {
 
       try {
         setError(null);
+        const markdownPath = projectRoot
+          ? `/api/markdown-file?project=${encodeURIComponent(projectRoot)}&relativePath=${encodeURIComponent(selectedApproval.documentPath)}`
+          : `/api/markdown-file?relativePath=${encodeURIComponent(selectedApproval.documentPath)}`;
         const payload = await fetchJson<{ relativePath: string; content: string }>(
-          `/api/markdown-file?relativePath=${encodeURIComponent(selectedApproval.documentPath)}`
+          markdownPath
         );
         setMarkdown(payload.content);
       } catch (loadError) {
@@ -168,8 +208,12 @@ export default function ApprovalPage() {
           }
         : undefined;
 
+      const approvalUpdatePath = `/api/approvals/${selectedApproval.id}?${new URLSearchParams({
+        ...(projectRoot ? { project: projectRoot } : {}),
+        ...(gateId ? { gateId } : {}),
+      }).toString()}`;
       const updatedApproval = await fetchJson<ApprovalRecord>(
-        `/api/approvals/${selectedApproval.id}`,
+        approvalUpdatePath,
         {
           method: "PATCH",
           body: JSON.stringify({
@@ -192,6 +236,45 @@ export default function ApprovalPage() {
     }
   };
 
+  const submitGateDecision = async ({
+    status,
+    comment,
+    successMessage,
+  }: {
+    status: "approved" | "rejected" | "needs_revision";
+    comment?: string;
+    successMessage: string;
+  }) => {
+    if (!selectedGate) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      const gatePath = projectRoot
+        ? `/api/phase-gates/${selectedGate.id}?project=${encodeURIComponent(projectRoot)}`
+        : `/api/phase-gates/${selectedGate.id}`;
+      const updatedGate = await fetchJson<PhaseGateRecord>(gatePath, {
+        method: "PATCH",
+        body: JSON.stringify({
+          status,
+          comment: comment?.trim() || "",
+          actorId: currentMember?.id || "frontend-user",
+          actorName: currentMember?.name || "Current Reviewer",
+          actorRole: currentMember?.role || "reviewer",
+        }),
+      });
+      setSelectedGate(updatedGate);
+      setDecisionComment("");
+      setFeedback(successMessage);
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : "Failed to update phase gate");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="admin-page min-h-screen">
@@ -204,7 +287,7 @@ export default function ApprovalPage() {
     );
   }
 
-  if (!selectedApproval) {
+  if (!selectedApproval && !selectedGate) {
     return (
       <div className="admin-page min-h-screen">
         <Card className={panelClassName}>
@@ -228,6 +311,10 @@ export default function ApprovalPage() {
           <p className="text-muted-foreground">
             Review real project documents and persist approval decisions in the admin backend.
           </p>
+          {projectRoot ? (
+            <p className="mt-1 text-xs text-muted-foreground">Project: {projectRoot}</p>
+          ) : null}
+          {gateId ? <p className="text-xs text-muted-foreground">Gate: {gateId}</p> : null}
         </div>
         {feedback ? (
           <div className="rounded-xl border border-border/80 bg-card/90 px-4 py-2 text-sm text-muted-foreground shadow-sm">
@@ -242,9 +329,105 @@ export default function ApprovalPage() {
         </div>
       ) : null}
 
+      {selectedGate ? (
+        <Card className={panelClassName}>
+          <CardHeader>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-foreground">
+                  Phase {selectedGate.phase} Approval Gate
+                </h2>
+                <p className="text-sm text-muted-foreground">{selectedGate.phaseLabel}</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Required roles: {selectedGate.requiredRoles.join(", ") || "None"}
+                </p>
+              </div>
+              <Badge className={statusColors[selectedGate.status]}>
+                {selectedGate.status.replace("_", " ").toUpperCase()}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-xl border border-border/80 bg-background/70 p-4 text-sm text-muted-foreground">
+              <p>Project: {selectedGate.projectName}</p>
+              <p>Approval URL: {selectedGate.approvalUrl}</p>
+              <p>Triggered by: {selectedGate.triggeredByFeatureIds.join(", ")}</p>
+            </div>
+            <div className="rounded-xl border border-border/80 bg-background/70 p-4 text-sm text-muted-foreground">
+              <p className="font-medium text-foreground">Notifications</p>
+              {selectedGate.notifications.length > 0 ? (
+                <div className="mt-2 space-y-2">
+                  {selectedGate.notifications.map((notification: PhaseGateRecord["notifications"][number]) => (
+                    <div key={`${notification.channelId}-${notification.sentAt}`}>
+                      {notification.channelLabel}: {notification.status}
+                      {notification.error ? ` (${notification.error})` : ""}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-2">No notifications delivered.</p>
+              )}
+            </div>
+            <Textarea
+              placeholder="Add a gate approval comment..."
+              value={decisionComment}
+              onChange={(event) => setDecisionComment(event.target.value)}
+              className="min-h-[100px] border-border/80 bg-background/80"
+            />
+          </CardContent>
+          <CardFooter className="gap-2 flex-wrap">
+            <Button
+              variant="default"
+              className="gradient-primary text-white hover:opacity-90"
+              onClick={() =>
+                void submitGateDecision({
+                  status: "approved",
+                  comment: decisionComment,
+                  successMessage: "Phase gate approved.",
+                })
+              }
+              disabled={isSubmitting || selectedGate.status === "approved"}
+            >
+              <Check className="mr-2 h-4 w-4" />
+              Approve Gate
+            </Button>
+            <Button
+              variant="outline"
+              className="border-border/80 bg-background/80"
+              onClick={() =>
+                void submitGateDecision({
+                  status: "needs_revision",
+                  comment: decisionComment,
+                  successMessage: "Phase gate sent back for revision.",
+                })
+              }
+              disabled={isSubmitting || selectedGate.status === "needs_revision"}
+            >
+              <MessageSquare className="mr-2 h-4 w-4" />
+              Request Revisions
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() =>
+                void submitGateDecision({
+                  status: "rejected",
+                  comment: decisionComment,
+                  successMessage: "Phase gate rejected.",
+                })
+              }
+              disabled={isSubmitting || !decisionComment.trim() || selectedGate.status === "rejected"}
+            >
+              <X className="mr-2 h-4 w-4" />
+              Reject Gate
+            </Button>
+          </CardFooter>
+        </Card>
+      ) : null}
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <Card className={panelClassName}>
+          {selectedApproval ? (
+            <Card className={panelClassName}>
             <CardHeader>
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -405,7 +588,16 @@ export default function ApprovalPage() {
                 </AlertDialogContent>
               </AlertDialog>
             </CardFooter>
-          </Card>
+            </Card>
+          ) : (
+            <Card className={panelClassName}>
+              <CardContent className="py-12">
+                <p className="text-center text-muted-foreground">
+                  No document approval record is selected. Use the phase gate actions above to continue.
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <div className="space-y-6">
@@ -418,7 +610,7 @@ export default function ApprovalPage() {
             </CardHeader>
             <CardContent className="space-y-2">
               {approvals.map((approval) => {
-                const isActive = approval.id === selectedApproval.id;
+                const isActive = approval.id === selectedApproval?.id;
 
                 return (
                   <button
@@ -454,14 +646,14 @@ export default function ApprovalPage() {
             <CardHeader>
               <h2 className="text-lg font-semibold text-foreground">Comments</h2>
               <p className="text-sm text-muted-foreground">
-                {selectedApproval.comments.length} discussion
-                {selectedApproval.comments.length !== 1 ? "s" : ""}
+                {selectedApproval ? selectedApproval.comments.length : 0} discussion
+                {(selectedApproval ? selectedApproval.comments.length : 0) !== 1 ? "s" : ""}
               </p>
             </CardHeader>
 
             <CardContent className="space-y-4">
               <ScrollArea className="h-[320px] pr-4">
-                {selectedApproval.comments.length === 0 ? (
+                {!selectedApproval || selectedApproval.comments.length === 0 ? (
                   <p className="admin-empty-state admin-empty-state-md">
                     No comments yet for this document.
                   </p>

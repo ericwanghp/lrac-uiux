@@ -1,7 +1,16 @@
 import fs from "fs/promises";
 import path from "path";
 import Link from "next/link";
-import { ClipboardList, BarChart3, Settings, BookOpen, GitBranch } from "lucide-react";
+import {
+  ClipboardList,
+  BarChart3,
+  Settings,
+  BookOpen,
+  GitBranch,
+  ShieldAlert,
+  UserRoundCheck,
+  LockKeyhole,
+} from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +28,7 @@ import {
   deriveWaitingInbox,
   type WaitingInboxItem,
 } from "@/lib/utils/control-plane";
+import { readPhaseGateSummaries, type PhaseGateSummary } from "@/lib/utils/phase-gate-summary";
 import { syncApprovalsWithProject } from "@/lib/utils/approval-operations";
 import { getCurrentProjectRoot } from "@/lib/utils/file-operations";
 import { readActivityFeedsFile } from "@/lib/utils/activity-feed-operations";
@@ -194,6 +204,7 @@ async function loadDashboardData(projectParam: string | undefined) {
     syncApprovalsWithProject(projectRoot),
     readActivityFeedsFile(projectRoot),
   ]);
+  const phaseGateSummaries = await readPhaseGateSummaries(projectRoot);
   const features = tasksData?.features ?? [];
   const approvals = approvalsResult.status === "fulfilled" ? approvalsResult.value : [];
   const activityFeeds =
@@ -342,6 +353,7 @@ async function loadDashboardData(projectParam: string | undefined) {
     activity,
     waitingInbox,
     blockerQueue,
+    phaseGateSummaries,
     branches,
     hasImacBranch,
     milestoneTracks,
@@ -361,6 +373,17 @@ export default async function DashboardPage({
     data.currentPhase === 8
       ? "All features completed"
       : `${data.pendingFeatures} pending · ${data.inProgressFeatures} in progress · ${data.blockedFeatures} blocked`;
+  const pendingGateSummaries = data.phaseGateSummaries.filter(
+    (summary: PhaseGateSummary) => summary.status === "pending"
+  );
+  const waitingApproversCount = pendingGateSummaries.reduce(
+    (sum: number, summary: PhaseGateSummary) => sum + summary.pendingApprovers.length,
+    0
+  );
+  const blockedByApprovalCount = pendingGateSummaries.reduce(
+    (sum: number, summary: PhaseGateSummary) => sum + summary.blockedFeaturesCount,
+    0
+  );
   const stats = [
     {
       title: "Tasks Completed",
@@ -384,13 +407,34 @@ export default async function DashboardPage({
       icon: <BarChart3 className="h-5 w-5" />,
     },
     {
-      title: "Branch Topology",
-      value: data.hasImacBranch ? "Split" : "Single",
-      description: data.hasImacBranch
-        ? `Initial ${data.branches.find((branch) => branch.key === "initial")?.total || 0} · IMAC ${data.branches.find((branch) => branch.key === "imac")?.total || 0}`
-        : "Only initial task track",
-      variant: data.hasImacBranch ? ("primary" as const) : ("default" as const),
-      icon: <GitBranch className="h-5 w-5" />,
+      title: "Pending Gates",
+      value: pendingGateSummaries.length,
+      description:
+        pendingGateSummaries.length > 0
+          ? "Phase approvals are still blocking continuation"
+          : "No approval gate is currently blocking progress",
+      variant: pendingGateSummaries.length > 0 ? ("warning" as const) : ("success" as const),
+      icon: <ShieldAlert className="h-5 w-5" />,
+    },
+    {
+      title: "Approvers Waiting",
+      value: waitingApproversCount,
+      description:
+        waitingApproversCount > 0
+          ? "Outstanding reviewer actions across all pending gates"
+          : "No approver action is waiting",
+      variant: waitingApproversCount > 0 ? ("warning" as const) : ("success" as const),
+      icon: <UserRoundCheck className="h-5 w-5" />,
+    },
+    {
+      title: "Blocked By Approval",
+      value: blockedByApprovalCount,
+      description:
+        blockedByApprovalCount > 0
+          ? "Tasks cannot move forward until gate decisions land"
+          : "No task is currently blocked by approvals",
+      variant: blockedByApprovalCount > 0 ? ("error" as const) : ("success" as const),
+      icon: <LockKeyhole className="h-5 w-5" />,
     },
   ];
 
@@ -501,7 +545,7 @@ export default async function DashboardPage({
 
       <div>
         <p className="admin-kicker mb-3">Project Metrics</p>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {stats.map((stat) => (
             <StatCard key={stat.title} {...stat} className="min-h-[156px]" />
           ))}
@@ -708,6 +752,54 @@ export default async function DashboardPage({
               </div>
             </CardContent>
           </Card>
+
+            <Card className="admin-panel border-border/80 bg-card/90">
+              <CardHeader>
+                <CardTitle>Approval Gates</CardTitle>
+                <CardDescription>
+                  Pending gates block the next phase until all assigned approvers finish review
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {data.phaseGateSummaries.filter((summary: PhaseGateSummary) => summary.status === "pending")
+                  .length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No pending phase approval gates.</p>
+                ) : (
+                  data.phaseGateSummaries
+                    .filter((summary: PhaseGateSummary) => summary.status === "pending")
+                    .slice(0, 6)
+                    .map((summary: PhaseGateSummary) => (
+                      <div
+                        key={summary.id}
+                        className="rounded-2xl border border-border/80 bg-secondary/60 p-3 space-y-2"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm font-medium text-foreground">
+                            Phase {summary.phase} · {summary.phaseLabel}
+                          </p>
+                          <StatusBadge status="pending" size="sm" label="Pending" />
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Waiting:{" "}
+                          {summary.pendingApprovers.length > 0
+                            ? summary.pendingApprovers
+                                .map((approver) => `${approver.name} (${approver.role})`)
+                                .join(", ")
+                            : "No approver assigned"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Blocked tasks: {summary.blockedFeaturesCount}
+                        </p>
+                        <Button asChild size="sm" variant="outline" className="mt-1">
+                          <Link href={buildProjectScopedPath(summary.approvalUrl, data.projectRoot)}>
+                            Open Approval Gate
+                          </Link>
+                        </Button>
+                      </div>
+                    ))
+                )}
+              </CardContent>
+            </Card>
 
           <Card className="admin-panel border-border/80 bg-card/90">
             <CardHeader>

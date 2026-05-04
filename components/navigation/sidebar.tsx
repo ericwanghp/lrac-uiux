@@ -12,9 +12,11 @@ import {
   Rocket,
   Users,
   TerminalSquare,
+  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { useCurrentMember } from "@/components/providers/current-member-provider";
 import { useProjectQueryParam } from "@/components/providers/use-project-query-param";
 import { useProjectRealtimeStatus } from "@/components/providers/project-realtime-status-provider";
 import { buildProjectScopedPath } from "@/lib/utils/project-selection";
@@ -68,6 +70,12 @@ const navigation = [
     description: "Project Management",
   },
   {
+    name: "Inbox",
+    href: "/inbox",
+    icon: Bell,
+    description: "Approvals & Messages",
+  },
+  {
     name: "Tasks Log",
     href: "/tasks-log",
     icon: TerminalSquare,
@@ -78,8 +86,12 @@ const navigation = [
 export function Sidebar() {
   const pathname = usePathname();
   const projectRoot = useProjectQueryParam();
+  const { member, unreadCount } = useCurrentMember();
   const { snapshot, isConnected } = useProjectRealtimeStatus();
   const phaseLabel = `P${Math.min(snapshot.currentPhase, 7)}`;
+  const realtimeTooltip = isConnected
+    ? "WebSocket 实时推送"
+    : "轮询刷新";
 
   return (
     <nav className="admin-sidebar flex h-full w-72 flex-col" aria-label="Main navigation">
@@ -145,6 +157,11 @@ export function Sidebar() {
                   </div>
                 )}
               </div>
+              {item.href === "/inbox" && member && unreadCount > 0 ? (
+                <Badge variant="default" className="shrink-0">
+                  {unreadCount}
+                </Badge>
+              ) : null}
               {isActive ? (
                 <span
                   className="h-2 w-2 rounded-full bg-primary shadow-[0_0_0_4px_hsl(var(--primary)/0.16)]"
@@ -160,7 +177,21 @@ export function Sidebar() {
       <div className="border-t border-border/80 p-4">
         <div className="mb-2 flex items-center justify-between">
           <span className="text-sm text-muted-foreground">Version 0.1.0</span>
-          <Badge variant="secondary">{isConnected ? "Live" : "Syncing"}</Badge>
+          <Badge
+            variant="secondary"
+            className="gap-1.5"
+            title={realtimeTooltip}
+            aria-label={`${isConnected ? "Live" : "Polling"}: ${realtimeTooltip}`}
+          >
+            <span
+              className={cn(
+                "h-1.5 w-1.5 rounded-full",
+                isConnected ? "bg-success shadow-[0_0_0_3px_hsl(var(--success)/0.18)]" : "bg-warning"
+              )}
+              aria-hidden="true"
+            />
+            {isConnected ? "Live" : "Polling"}
+          </Badge>
         </div>
         <div className="admin-panel-soft rounded-2xl px-3 py-3">
           <div className="flex items-center justify-between text-[11px] text-muted-foreground">

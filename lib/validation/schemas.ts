@@ -318,6 +318,15 @@ export type UpdateApprovalInput = z.infer<typeof UpdateApprovalInputSchema>;
 export const ThemeModeSchema = z.enum(["dark", "light"]);
 export const NotificationLevelSchema = z.enum(["all", "important", "critical"]);
 export const PhaseIdSchema = z.enum(["1", "2", "2.5", "3", "4", "5", "6", "7", "8"]);
+export const StakeholderKindSchema = z.enum(["internal", "external"]);
+export const CommunicationChannelTypeSchema = z.enum(["generic-webhook", "slack-webhook", "email"]);
+export const ProjectMemberSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  role: z.string().min(1),
+  email: z.string().email().optional().or(z.literal("")),
+  active: z.boolean(),
+});
 export const ManagedToolConfigSchema = z.object({
   id: z.string().min(1, "Tool ID is required"),
   enabled: z.boolean(),
@@ -334,6 +343,36 @@ export const OrchestrationSettingsSchema = z.object({
   skillConfigs: z.array(ManagedToolConfigSchema),
   phaseDispatch: z.array(PhaseDispatchEntrySchema),
 });
+export const StakeholderContactSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  role: z.string().min(1),
+  kind: StakeholderKindSchema,
+  email: z.string().email().optional().or(z.literal("")),
+  webhookUrl: z.string().url().optional().or(z.literal("")),
+});
+export const CommunicationChannelConfigSchema = z.object({
+  id: z.string().min(1),
+  label: z.string().min(1),
+  type: CommunicationChannelTypeSchema,
+  enabled: z.boolean(),
+  webhookUrl: z.string().url().optional().or(z.literal("")),
+  recipient: z.string().optional().or(z.literal("")),
+  secret: z.string().optional().or(z.literal("")),
+});
+export const PhaseApprovalPolicySchema = z.object({
+  phase: PhaseIdSchema,
+  label: z.string().min(1),
+  enabled: z.boolean(),
+  requiredRoles: z.array(z.string().min(1)).default([]),
+  approverIds: z.array(z.string().min(1)).default([]),
+});
+export const CommunicationSettingsSchema = z.object({
+  members: z.array(ProjectMemberSchema),
+  stakeholders: z.array(StakeholderContactSchema),
+  channels: z.array(CommunicationChannelConfigSchema),
+  phaseApprovals: z.array(PhaseApprovalPolicySchema),
+});
 
 export const UserSettingsSchema = z.object({
   theme: ThemeModeSchema,
@@ -347,6 +386,7 @@ export const UserSettingsSchema = z.object({
   compactMode: z.boolean(),
   showLineNumbers: z.boolean(),
   orchestration: OrchestrationSettingsSchema,
+  communication: CommunicationSettingsSchema,
 });
 
 export const UpdateUserSettingsInputSchema = UserSettingsSchema.partial();

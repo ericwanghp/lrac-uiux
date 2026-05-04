@@ -17,6 +17,8 @@ export interface AcceptanceCriteria {
 
 export interface BlockReason {
   type: string;
+  gateId?: string;
+  blockedPhase?: string;
   description: string;
   reportedAt: string;
   reportedBy: string;

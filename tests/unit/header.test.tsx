@@ -46,6 +46,10 @@ vi.mock("@/components/shell/shell-launcher", () => ({
   ShellLauncher: () => <button type="button">Open SHELL</button>,
 }));
 
+vi.mock("@/components/layout/member-auth-panel", () => ({
+  MemberAuthPanel: () => <button type="button">Sign In</button>,
+}));
+
 import { Header } from "../../components/layout/header";
 
 describe("Header", () => {
