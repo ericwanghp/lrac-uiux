@@ -9,6 +9,7 @@ import { readPhaseGateSummaries, type PhaseGateSummary } from "@/lib/utils/phase
 import { deriveBlockerQueue, deriveWaitingInbox, type WaitingInboxItem } from "@/lib/utils/control-plane";
 import type { TasksJson } from "@/lib/types";
 import type { QASessionJson } from "@/lib/types/qa-session";
+import { listImacSessions, type ImacSession } from "@/lib/services/imac-session-manager";
 
 export const DOC_DIRS = ["brd", "prd", "architecture", "design", "test", "research", "plans", "file"];
 
@@ -64,6 +65,7 @@ export type DashboardData = {
   hasImacBranch: boolean;
   milestoneTracks: MilestoneTrack[];
   availableProjects: { root: string; name: string }[];
+  imacSessions: ImacSession[];
 };
 
 export function getRelativeTime(isoTime: string): string {
@@ -219,6 +221,7 @@ export async function loadDashboardData(projectParam: string | undefined): Promi
   const activity: Activity[] = features.flatMap((f) => f.executionHistory.map((h) => ({ action: h.action, item: `${f.id}: ${f.title}`, time: getRelativeTime(h.timestamp), timestamp: h.timestamp }))).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 6).map(({ action, item, time }) => ({ action, item, time }));
   const waitingInbox = deriveWaitingInbox({ features, approvals, sessions: activityFeeds }).slice(0, 6);
   const blockerQueue = deriveBlockerQueue(features).slice(0, 6);
+  const imacSessions = await listImacSessions(projectRoot);
 
   return {
     projectRoot, workspaceRoot: path.dirname(projectRoot), setupScriptPath: path.join(process.cwd(), "setup.sh"),
@@ -227,6 +230,6 @@ export async function loadDashboardData(projectParam: string | undefined): Promi
     totalFeatures, completedFeatures, inProgressFeatures, pendingFeatures, blockedFeatures,
     pendingFeatureIds, overallProgress, currentPhase, completedPhases,
     activity, waitingInbox, blockerQueue, phaseGateSummaries, branches, hasImacBranch,
-    milestoneTracks, availableProjects,
+    milestoneTracks, availableProjects, imacSessions,
   };
 }

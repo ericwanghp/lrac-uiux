@@ -12,6 +12,8 @@ import { loadDashboardData } from "@/components/dashboard/data";
 import { ProjectSwitcherForm } from "@/components/shared";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CreateProjectDialog } from "@/components/dashboard/create-project-dialog";
+import { CreateImacDialog } from "@/components/dashboard/create-imac-dialog";
+import { ImacList } from "@/components/dashboard/imac-list";
 
 export const dynamic = "force-dynamic";
 
@@ -34,11 +36,12 @@ export default async function DashboardPage({
             {data.projectName} · {data.projectRoot}
           </p>
         </div>
-        <div data-tour="create-project">
+        <div className="flex items-center gap-2" data-tour="create-project">
           <CreateProjectDialog
             workspaceRoot={data.workspaceRoot}
             setupScriptPath={data.setupScriptPath}
           />
+          <CreateImacDialog />
         </div>
       </div>
 
@@ -55,6 +58,9 @@ export default async function DashboardPage({
           />
         </CardContent>
       </Card>
+
+      {/* IMAC Cycles */}
+      <ImacList sessions={data.imacSessions} />
 
       {/* Milestone Tracks */}
       <div data-tour="milestone-tracks">

@@ -1213,3 +1213,38 @@ Dispatched 4 agents in parallel using tmux panes:
 - Git commit
 
 ---
+
+# ============================================================
+# Session: imac-mgmt-001 | Timestamp: 2026-05-06T10:00:00Z | Role: fullstack-dev
+# ============================================================
+
+## Starting State
+- Current Features: All 52 existing features completed
+- Blockers: None
+
+## Execution Content
+1. IMAC Intake: User requested "Create New IMAC" button on dashboard with git worktree management
+2. Phase Detection: Started from Phase 3 (Architecture) - UI follows existing patterns
+3. Architecture: Created docs/architecture/ARCH-imac-management.md
+4. Task Breakdown: Added 5 tasks to tasks.json (imac-mgmt-p3a-001 through imac-mgmt-p5d-003)
+5. Backend Implementation:
+   - Created lib/services/imac-session-manager.ts (session CRUD, worktree management)
+   - Created API routes: POST/GET /api/imac, GET /api/imac/[id], POST worktree/merge/abort
+6. Frontend Implementation:
+   - Created components/dashboard/create-imac-dialog.tsx (2-step wizard)
+   - Created components/dashboard/imac-list.tsx (IMAC sessions list with actions)
+   - Created app/imac/[id]/page.tsx + imac-detail-client.tsx (detail page)
+7. Dashboard Integration:
+   - Added CreateImacDialog button next to Create New Project
+   - Added ImacList section below Project Switcher
+   - Updated DashboardData type with imacSessions field
+
+## Ending State
+- Completed: IMAC Management feature (backend + frontend + integration)
+- Remaining Issues: None
+
+## Next Steps
+- Git commit
+- Test in browser
+
+---

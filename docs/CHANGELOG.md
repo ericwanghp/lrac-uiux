@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-05-06
+
+### IMAC: IMAC Management Feature — Create New IMAC Button, Git Worktree, Session Tracking
+
+- Request summary: Add "Create New IMAC" button next to "Create New Project" on dashboard. Click to open a wizard for creating isolated change cycles with description and attachments. Each IMAC creates a git worktree for isolated development, with independent session management until merged back to main.
+- Detected start phase: Phase 3 (Architecture) — git worktree integration and session persistence require architectural design
+- Impact scope:
+  - `lib/services/imac-session-manager.ts` — new session manager service
+  - `app/api/imac/` — 5 new API routes (CRUD + worktree + merge + abort)
+  - `components/dashboard/create-imac-dialog.tsx` — new IMAC creation wizard
+  - `components/dashboard/imac-list.tsx` — new IMAC list component
+  - `app/imac/[id]/` — new IMAC detail page
+  - `app/dashboard/page.tsx` — updated with IMAC button and list
+  - `components/dashboard/data.ts` — added imacSessions to DashboardData
+- Key decisions:
+  - File-based storage in `.auto-coding/imac-sessions/sessions.json`
+  - Git worktree operations via direct `execFile("git", ...)` (not terminal API)
+  - Attachment storage per session in `.auto-coding/imac-sessions/{id}/attachments/`
+  - Status lifecycle: created → in-progress → merged / aborted
+- Iteration ID: `imac-mgmt`
+- Tasks: imac-mgmt-p3a-001 through imac-mgmt-p5d-003
+
 ## 2026-05-05
 
 ### IMAC: Full Visual Overhaul & Responsive Redesign
