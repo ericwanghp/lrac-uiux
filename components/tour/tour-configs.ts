@@ -4,6 +4,12 @@ export const dashboardTour: TourConfig = {
   tourId: "dashboard",
   steps: [
     {
+      target: "[data-tour='create-project']",
+      title: "Create New Project",
+      content: "Create a new project scaffold — generates the directory structure, configuration files, and auto-coding setup to get started.",
+      placement: "bottom",
+    },
+    {
       target: "[data-tour='project-switcher']",
       title: "Project Switcher",
       content:

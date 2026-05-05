@@ -34,10 +34,12 @@ export default async function DashboardPage({
             {data.projectName} · {data.projectRoot}
           </p>
         </div>
-        <CreateProjectDialog
-          workspaceRoot={data.workspaceRoot}
-          setupScriptPath={data.setupScriptPath}
-        />
+        <div data-tour="create-project">
+          <CreateProjectDialog
+            workspaceRoot={data.workspaceRoot}
+            setupScriptPath={data.setupScriptPath}
+          />
+        </div>
       </div>
 
       {/* Project Switcher */}
