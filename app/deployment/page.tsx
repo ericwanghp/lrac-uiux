@@ -10,18 +10,9 @@ import {
 } from "@/lib/utils/phase-view-data";
 import { readTasksJson } from "@/lib/utils/file-operations";
 import { MarkdownArtifactCard } from "@/components/shared/markdown-artifact-card";
+import { PhasePageLayout, formatTime } from "@/components/phase-pages/phase-page-layout";
 
 export const dynamic = "force-dynamic";
-
-function formatTime(iso: string): string {
-  return new Date(iso).toLocaleString("zh-CN", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 export default async function DeploymentPage() {
   const [sessions, taskLogs, tasksData, deploymentDocs, deploymentArtifacts] = await Promise.all([
@@ -38,7 +29,7 @@ export default async function DeploymentPage() {
     ]),
   ]);
 
-  const phaseSessions = sessions.filter((session) => ["devops-engineer"].includes(session.role));
+  const phaseSessions = sessions.filter((s) => s.role === "devops-engineer");
   const deploymentFeatures = tasksData.features.filter(
     (feature) => inferFeaturePhase(feature) === 7
   );
@@ -48,45 +39,35 @@ export default async function DeploymentPage() {
   const phaseCompleted = pendingFeatures.length === 0 && deploymentFeatures.length > 0;
 
   return (
-    <div className="admin-page">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="admin-kicker mb-2">Launch Workspace</p>
-          <h1 className="text-3xl font-bold tracking-tight">Phase 7 Deployment</h1>
-          <p className="text-muted-foreground mt-1">展示部署阶段日志、工具日志与交付产出物</p>
-        </div>
-        <Badge variant={phaseCompleted ? "success" : "secondary"}>
-          {phaseCompleted ? "已完成" : "进行中"}
-        </Badge>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="admin-panel border-border/80 bg-card/90 lg:col-span-2">
+    <PhasePageLayout
+      phaseKey="7"
+      kicker="Launch Workspace"
+      title="Phase 7 Deployment"
+      description="Deployment phase logs, task logs, and delivery artifacts"
+      completed={phaseCompleted}
+    >
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+        <Card className="admin-panel border-border/60 bg-card/90 lg:col-span-2 hover-glow animate-fade-in-up stagger-1">
           <CardHeader>
-            <CardTitle>阶段执行日志</CardTitle>
-            <CardDescription>来源：.auto-coding/progress.txt</CardDescription>
+            <CardTitle className="text-base">Execution Log</CardTitle>
+            <CardDescription>Source: .auto-coding/progress.txt</CardDescription>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[420px] pr-4">
-              <div className="space-y-4">
+            <ScrollArea className="h-[380px] sm:h-[420px] pr-3">
+              <div className="space-y-3">
                 {phaseSessions.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">暂无部署阶段会话日志</p>
+                  <p className="text-sm text-muted-foreground py-8 text-center">No deployment sessions recorded</p>
                 ) : (
                   phaseSessions.map((session) => (
-                    <div
-                      key={`${session.name}-${session.timestamp}`}
-                      className="rounded-lg border p-4 space-y-2"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="font-medium">{session.name}</p>
-                        <Badge variant="outline">{session.role}</Badge>
+                    <div key={`${session.name}-${session.timestamp}`} className="rounded-xl border border-border/60 p-3 space-y-2 hover:bg-accent/20 transition-colors">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="font-medium text-sm">{session.name}</p>
+                        <Badge variant="outline" className="text-[10px]">{session.role}</Badge>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        {formatTime(session.timestamp)}
-                      </p>
-                      <ul className="text-sm space-y-1">
-                        {session.executionItems.slice(0, 8).map((item, index) => (
-                          <li key={`${session.name}-exec-${index}`}>• {item}</li>
+                      <p className="text-xs text-muted-foreground">{formatTime(session.timestamp)}</p>
+                      <ul className="text-sm space-y-0.5">
+                        {session.executionItems.slice(0, 6).map((item, i) => (
+                          <li key={`${session.name}-exec-${i}`} className="text-muted-foreground">· {item}</li>
                         ))}
                       </ul>
                     </div>
@@ -97,28 +78,23 @@ export default async function DeploymentPage() {
           </CardContent>
         </Card>
 
-        <Card className="admin-panel border-border/80 bg-card/90">
+        <Card className="admin-panel border-border/60 bg-card/90 hover-glow animate-fade-in-up stagger-2">
           <CardHeader>
-            <CardTitle>AI Coding / IDE 日志</CardTitle>
-            <CardDescription>来源：tasks.json executionHistory</CardDescription>
+            <CardTitle className="text-base">Task Logs</CardTitle>
+            <CardDescription>Source: tasks.json executionHistory</CardDescription>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[420px] pr-4">
-              <div className="space-y-3">
+            <ScrollArea className="h-[380px] sm:h-[420px] pr-3">
+              <div className="space-y-2">
                 {taskLogs.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">暂无部署日志</p>
+                  <p className="text-sm text-muted-foreground py-8 text-center">No task logs yet</p>
                 ) : (
-                  taskLogs.map((log, index) => (
-                    <div
-                      key={`${log.featureId}-${log.timestamp}-${index}`}
-                      className="rounded-md border p-3"
-                    >
+                  taskLogs.map((log, i) => (
+                    <div key={`${log.featureId}-${log.timestamp}-${i}`} className="rounded-lg border border-border/50 p-2.5">
                       <p className="text-sm font-medium">{log.featureId}</p>
-                      <p className="text-xs text-muted-foreground">{log.featureTitle}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {formatTime(log.timestamp)}
-                      </p>
-                      <p className="text-sm mt-2">{log.action}</p>
+                      <p className="text-xs text-muted-foreground truncate">{log.featureTitle}</p>
+                      <p className="text-[11px] text-muted-foreground mt-1">{formatTime(log.timestamp)}</p>
+                      <p className="text-sm mt-1.5">{log.action}</p>
                     </div>
                   ))
                 )}
@@ -128,55 +104,47 @@ export default async function DeploymentPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="admin-panel border-border/80 bg-card/90">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+        <Card className="admin-panel border-border/60 bg-card/90 hover-glow animate-fade-in-up stagger-3">
           <CardHeader>
-            <CardTitle>部署文档产出物</CardTitle>
+            <CardTitle className="text-base">Deployment Documents</CardTitle>
             <CardDescription>docs/deployment</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-2">
             {deploymentDocs.length === 0 ? (
-              <p className="text-sm text-muted-foreground">暂无部署文档产出</p>
+              <p className="text-sm text-muted-foreground py-4 text-center">No deployment documents yet</p>
             ) : (
               deploymentDocs.map((artifact) => (
                 <MarkdownArtifactCard
                   key={artifact.absolutePath}
-                  artifact={{
-                    name: artifact.name,
-                    relativePath: artifact.relativePath,
-                    excerpt: artifact.excerpt || "暂无摘要",
-                    updatedAt: artifact.updatedAt,
-                  }}
+                  artifact={{ name: artifact.name, relativePath: artifact.relativePath, excerpt: artifact.excerpt || "No excerpt", updatedAt: artifact.updatedAt }}
+                  className="rounded-xl border border-border/50 p-3 space-y-1.5"
                 />
               ))
             )}
           </CardContent>
         </Card>
 
-        <Card className="admin-panel border-border/80 bg-card/90">
+        <Card className="admin-panel border-border/60 bg-card/90 hover-glow animate-fade-in-up stagger-4">
           <CardHeader>
-            <CardTitle>部署配置产出物</CardTitle>
-            <CardDescription>Docker / CI / Env 配置</CardDescription>
+            <CardTitle className="text-base">Deployment Config Artifacts</CardTitle>
+            <CardDescription>Docker / CI / Env configuration</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-2">
             {deploymentArtifacts.length === 0 ? (
-              <p className="text-sm text-muted-foreground">暂无部署配置产出</p>
+              <p className="text-sm text-muted-foreground py-4 text-center">No deployment config artifacts yet</p>
             ) : (
               deploymentArtifacts.map((artifact) => (
                 <MarkdownArtifactCard
                   key={artifact.absolutePath}
-                  artifact={{
-                    name: artifact.name,
-                    relativePath: artifact.relativePath,
-                    excerpt: artifact.excerpt,
-                    updatedAt: artifact.updatedAt,
-                  }}
+                  artifact={{ name: artifact.name, relativePath: artifact.relativePath, excerpt: artifact.excerpt, updatedAt: artifact.updatedAt }}
+                  className="rounded-xl border border-border/50 p-3 space-y-1.5"
                 />
               ))
             )}
           </CardContent>
         </Card>
       </div>
-    </div>
+    </PhasePageLayout>
   );
 }

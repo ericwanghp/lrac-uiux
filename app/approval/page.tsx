@@ -35,7 +35,7 @@ const statusColors: Record<ApprovalStatus | PhaseGateStatus, string> = {
   needs_revision: "bg-primary/15 text-primary border-primary/40",
 };
 
-const panelClassName = "admin-panel border-border/80 bg-card/90";
+const panelClassName = "admin-panel border-border/60 bg-card/90 hover-glow";
 
 async function fetchJson<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
   const response = await fetch(input, {

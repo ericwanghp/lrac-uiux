@@ -10,8 +10,8 @@ import { Download, Grid as GridIcon, Check, ChevronLeft, ChevronRight, X } from 
 import { cn } from "@/lib/utils";
 import { MarkdownArtifactCard } from "@/components/shared/markdown-artifact-card";
 
-const panelClassName = "admin-panel border-border/80 bg-card/90";
-const softPanelClassName = "rounded-2xl border border-border/80 bg-secondary/70";
+const panelClassName = "admin-panel border-border/60 bg-card/90 hover-glow";
+const softPanelClassName = "rounded-xl border border-border/50 bg-secondary/50";
 
 interface PhaseSession {
   name: string;

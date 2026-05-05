@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-05-05
+
+### IMAC: Full Visual Overhaul & Responsive Redesign
+
+- Request summary: Comprehensive frontend visual and interaction optimization across all pages. Full visual overhaul with refined warm theme, responsive mobile support, component decomposition, interaction polish.
+- Detected start phase: Phase 2.5 (Design) — visual direction, interaction patterns, responsive strategy all require design decisions.
+- Impact scope: globals.css, all page components, AppShell, Sidebar, Header, shared components, new Toast/Skeleton/ErrorBoundary components
+- Key decisions:
+  - Refine existing warm orange-primary theme to premium quality
+  - Add full responsive design with mobile sidebar drawer
+  - Decompose monolithic page components (Dashboard 892 lines, Settings 1073 lines)
+  - Add data visualization, skeleton loading, toast notifications, error boundaries
+  - Differentiate phase pages visually instead of shared template
+- Iteration ID: `imac-visual-redesign`
+- 6 planned iterations covering design system, shell, dashboard, phase pages, settings/approval, interaction polish
+
 ## 2026-03-21
 
 ### IMAC: Dashboard Project Switcher — Path Input + Persistence

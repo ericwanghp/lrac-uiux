@@ -1112,3 +1112,30 @@ Dispatched 4 agents in parallel using tmux panes:
 - Test path validation feedback and localStorage persistence in browser
 
 ---
+
+# ============================================================
+# Session: imac-visual-redesign | Timestamp: 2026-05-05T10:00:00Z | Role: fullstack-dev
+# ============================================================
+
+## Starting State
+- Current Features: All initial + CLI terminal IMAC features completed
+- Blockers: None
+- IMAC Intake Results:
+  - Focus: Full Visual Overhaul
+  - Priority: ALL pages (Dashboard, Phase Pages, Settings/Inbox/Approval, Navigation/Shell)
+  - Style: Refine Current Warm Theme
+  - Responsive: Yes, full responsive support
+- Detected Start Phase: Phase 2.5 (Design) → Phase 5 (Development)
+
+## Execution Plan (6 Iterations)
+1. Design System CSS Upgrade + Responsive Foundations
+2. Responsive App Shell & Navigation
+3. Dashboard Decomposition & Visual Redesign
+4. Phase Pages Visual Differentiation
+5. Settings, Inbox & Approval Redesign
+6. Interaction Polish & Final QA
+
+## Execution Content
+1. Starting Iteration 1: Design System CSS Upgrade
+
+---

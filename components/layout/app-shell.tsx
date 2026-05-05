@@ -15,6 +15,7 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = React.useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = React.useState(false);
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -28,6 +29,10 @@ export function AppShell({ children }: AppShellProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  const closeMobileSidebar = React.useCallback(() => {
+    setIsMobileSidebarOpen(false);
+  }, []);
+
   return (
     <UiSettingsProvider>
       <CurrentMemberProvider>
@@ -37,13 +42,38 @@ export function AppShell({ children }: AppShellProps) {
           </a>
 
           <div className="admin-shell flex h-screen overflow-hidden">
-            <Suspense fallback={<div className="admin-sidebar h-full w-72 border-r border-border/80 bg-card/70" />}>
-              <Sidebar />
-            </Suspense>
+            {/* Desktop sidebar */}
+            <div className="hidden lg:block">
+              <Suspense
+                fallback={
+                  <div className="admin-sidebar h-full w-72 border-r border-border/80 bg-card/70" />
+                }
+              >
+                <Sidebar />
+              </Suspense>
+            </div>
 
-            <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Mobile sidebar overlay */}
+            {isMobileSidebarOpen && (
+              <div className="lg:hidden sidebar-overlay" onClick={closeMobileSidebar} />
+            )}
+            <div
+              className={`lg:hidden fixed inset-y-0 left-0 z-50 ${
+                isMobileSidebarOpen ? "sidebar-drawer" : "translate-x-full"
+              } transition-transform duration-300 ease-out`}
+            >
+              <Suspense
+                fallback={
+                  <div className="admin-sidebar h-full w-72 border-r border-border/80 bg-card/70" />
+                }
+              >
+                <Sidebar onNavigate={closeMobileSidebar} />
+              </Suspense>
+            </div>
+
+            <div className="flex-1 flex flex-col overflow-hidden min-w-0">
               <Suspense fallback={<div className="admin-topbar h-16 border-b border-border/80" />}>
-                <Header />
+                <Header onMenuToggle={() => setIsMobileSidebarOpen((v) => !v)} />
               </Suspense>
               <main
                 id="main-content"
@@ -55,7 +85,10 @@ export function AppShell({ children }: AppShellProps) {
             </div>
           </div>
 
-          <CommandPalette isOpen={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)} />
+          <CommandPalette
+            isOpen={isCommandPaletteOpen}
+            onClose={() => setIsCommandPaletteOpen(false)}
+          />
         </ProjectRealtimeStatusProvider>
       </CurrentMemberProvider>
     </UiSettingsProvider>
