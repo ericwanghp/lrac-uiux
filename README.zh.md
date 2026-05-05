@@ -2,79 +2,146 @@
 
 # LRAC UIUX 控制台
 
-> 面向 LRAC 长周期交付框架的 UI/UX 优先操作台。
+> [LRAC 长周期自动编码框架](https://github.com/ericwanghp/LRAC)的操作界面。
 
-这个仓库不是通用展示站点，而是 LRAC 的产品化界面层，用于：
-- 可视化项目状态，
-- 操作化阶段流程，
-- 可追溯协作过程。
+[![Framework hero](docs/design/readme-assets/framework-hero.svg)](https://github.com/ericwanghp/LRAC)
 
-## 项目定位
+LRAC 定义的是长周期 AI 交付"该怎么做"。这个仓库定义的是"人和 Agent 怎么真正把它跑起来"——通过结构化页面、角色导向工作流和运行态 API。
 
-LRAC 有两个核心：
-- **框架核心**：规则、阶段、任务、记忆、治理
-- **UIUX 核心（本仓库）**：信息架构、交互流程、运营页面
+## 界面截图
 
-本项目重点在第二个核心。
+### 落地页
 
-## 这个 UIUX 产品解决什么问题
+![落地页](landing-phase.png)
 
-在长周期 AI 交付中，常见问题是：
-- 状态分散在文件和聊天记录中
-- PM / QA / 工程视角割裂
-- 审批、阻塞、终端动作难审计
-- 跨项目导航弱
+### Dashboard — 任务总控台
 
-本控制台将这些问题产品化为统一体验：
-- **Dashboard 优先可见性**
-- **角色导向页面**
-- **基于 `.auto-coding` 的持久运行态**
-- **可操作的 PM / QA / Terminal / Approval 工作流 API**
+![Dashboard](screenshot-dashboard.png)
+
+### PM / 交付运营视图
+
+![PM 运营](screenshot-pm.png)
+
+### Claude Code 工作区
+
+![Claude Code 工作区](docs/design/readme-assets/Claude-Code-Worksapce.png)
+
+## 这个控制台解决什么问题
+
+长周期 AI 交付中的典型痛点：
+
+| 痛点 | 控制台如何解决 |
+|------|---------------|
+| 状态分散在文件和聊天记录中 | Dashboard 优先可见，实时读取 `.auto-coding` 数据 |
+| PM / QA / 工程视角割裂 | 角色导向页面共享同一项目上下文 |
+| 审批、阻塞、终端动作难审计 | 专用 `/approval`、`/terminal`、`/inbox` 页面 |
+| 跨项目导航弱 | 全局项目切换器，持久化上下文 |
+
+## 前端动线图
+
+```text
+┌─────────────────────────────────────────────────────────────────────┐
+│                         落地页 (/)                                   │
+│   Hero → 特性介绍 → 工作原理 → 截图展示 → 行动召唤                   │
+└───────────────────────────┬─────────────────────────────────────────┘
+                            │
+              ┌─────────────┼─────────────────┐
+              ▼             ▼                  ▼
+     ┌────────────┐  ┌───────────┐   ┌──────────────┐
+     │  Dashboard │  │   设置    │   │    收件箱     │
+     │ /dashboard │  │ /settings │   │   /inbox     │
+     └─────┬──────┘  └───────────┘   └──────────────┘
+           │
+     ┌─────┴──────────────────────────────────────────────┐
+     │              阶段轨道页面                            │
+     │  ┌──────────────┐  ┌───────────────┐               │
+     │  │   需求分析   │  │    设计       │               │
+     │  │ /requirements│  │    /design    │               │
+     │  └──────────────┘  └───────────────┘               │
+     │  ┌──────────────┐  ┌───────────────┐               │
+     │  │   架构设计   │  │   开发执行    │               │
+     │  │ /architecture│  │ /development  │               │
+     │  └──────────────┘  └───────────────┘               │
+     │  ┌──────────────┐  ┌───────────────┐               │
+     │  │    测试      │  │    部署       │               │
+     │  │   /testing   │  │  /deployment  │               │
+     │  └──────────────┘  └───────────────┘               │
+     └─────────────────────────────────────────────────────┘
+           │
+     ┌─────┴──────────────────────────────────────────────┐
+     │           运营与协同                                 │
+     │  ┌──────────────┐  ┌───────────────┐               │
+     │  │   PM 视图    │  │    审批       │               │
+     │  │     /pm      │  │   /approval   │               │
+     │  └──────────────┘  └───────────────┘               │
+     │  ┌──────────────┐  ┌───────────────┐               │
+     │  │   终端       │  │      QA       │               │
+     │  │   /terminal  │  │      /qa      │               │
+     │  └──────────────┘  └───────────────┘               │
+     │  ┌──────────────┐                                   │
+     │  │  任务日志    │                                   │
+     │  │  /tasks-log  │                                   │
+     │  └──────────────┘                                   │
+     └─────────────────────────────────────────────────────┘
+```
 
 ## 核心体验
 
 ### 1）Dashboard 作为任务总控台
-- 阶段进度、完成率、阻塞状态、分支上下文
-- 项目切换器（全局项目上下文）
-- 从 tasks/progress/session 数据提取的项目记忆快照
 
-### 2）PM / 交付运营视图
-- `/pm`：项目交付总览与执行协同
-- `/approval`：决策队列与人机审批流程
-- `/terminal`：命令/会话时间线，追踪运行时执行
+- 阶段进度条、完成率、阻塞状态、分支上下文
+- 项目切换器（全局项目上下文持久化）
+- 从 `tasks.json` / `progress.txt` / session 数据提取的项目记忆快照
 
-### 3）工程轨道页面
-- `/requirements`
-- `/design`
-- `/architecture`
-- `/development`
-- `/testing`
-- `/deployment`
-- `/qa`
-- `/settings`
+### 2）阶段轨道页面
 
-这些页面把 LRAC 阶段模型落成可操作工作流，而不只是静态文档。
+这些页面把 LRAC 8 阶段交付模型落成可操作工作流：
 
-### 4）运行态驱动 API 层
-代表性 API 路由：
-- `/api/tasks`
-- `/api/progress`
-- `/api/features`
-- `/api/approvals`
-- `/api/qa/sessions`
-- `/api/terminal/sessions`
-- `/api/markdown`
-- `/api/design-assets`
+| 路由 | 阶段 | 用途 |
+|------|------|------|
+| `/requirements` | Phase 1-2 | BRD / PRD 查看与编辑 |
+| `/design` | Phase 2.5 | Stitch 设计查看与资源浏览 |
+| `/architecture` | Phase 3 | 架构文档查看 |
+| `/development` | Phase 5 | 代码跟踪与任务执行 |
+| `/testing` | Phase 6 | 测试策略与结果 |
+| `/deployment` | Phase 7 | 部署状态与 UAT 验证 |
+| `/qa` | Phase 6-7 | QA 会话管理 |
 
-它们把界面交互与项目状态持久化文件连接起来。
 
-## 技术栈
+## 项目定位
 
-- **Next.js 14**（App Router）
-- **TypeScript**
-- **Tailwind CSS**
-- **shadcn/ui 风格组件模式**
-- `.auto-coding` 文件系统持久化
+LRAC 有两个核心：
+
+| 核心 | 仓库 | 聚焦点 |
+|------|------|--------|
+| **框架** | [ericwanghp/LRAC](https://github.com/ericwanghp/LRAC) | 规则、阶段、Agent、记忆、治理 |
+| **UIUX（本仓库）** | [ericwanghp/LRAC-UIUX](https://github.com/ericwanghp/LRAC-UIUX) | 信息架构、交互流程、运营页面 |
+
+## 架构
+
+```text
+┌───────────────────────────────────────────────────────────────────┐
+│                     浏览器（Next.js SSR）                          │
+├───────────┬───────────┬───────────┬───────────┬───────────────────┤
+│  落地页   │ Dashboard │  阶段     │  运营     │    设置           │
+│    /      │ /dashboard│  页面     │  页面     │  /settings        │
+│           │           │           │  /pm      │                   │
+│           │           │           │  /approval│                   │
+│           │           │           │  /terminal│                   │
+├───────────┴───────────┴───────────┴───────────┴───────────────────┤
+│                       API 路由 (/api/*)                           │
+├───────────────────────────────────────────────────────────────────┤
+│                    lib/ 领域层                                     │
+│           文件操作 · 校验 · 类型 · 工具函数                         │
+├───────────────────────────────────────────────────────────────────┤
+│                  .auto-coding/ 运行态数据                           │
+│         tasks.json · progress.txt · config · docs                 │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+## 前置条件
+
+- **Claude Code CLI** — 本项目依赖本机安装的 Claude Code CLI 作为多 Agent 编排、阶段执行和 Hook 执行的运行时。安装方式见 [claude.ai/code](https://claude.ai/code)。
 
 ## 快速开始
 
@@ -84,8 +151,9 @@ npm run dev
 ```
 
 打开：
-- `http://localhost:3000/dashboard`
-- `http://localhost:3000/pm`
+- `http://localhost:3000` — 落地页
+- `http://localhost:3000/dashboard` — 任务总控台
+- `http://localhost:3000/pm` — PM 运营视图
 
 ### 质量校验命令
 
@@ -94,33 +162,9 @@ npm run lint
 npm run typecheck
 ```
 
-## 仓库结构
 
-```text
-app/                   # 路由页面 + API 路由
-components/            # 通用与页面级 UI 组件
-lib/                   # 领域逻辑、文件操作、校验、类型
-docs/                  # 产品/设计/框架文档
-.auto-coding/          # LRAC 持久项目记忆（运行态 + 配置）
-.claude/               # Agents、命令与规则
-```
+## 相关链接
 
-## 项目上下文模型
-
-该 UIUX 控制台支持多项目操作：
-- 选中的项目根路径会被持久化为全局上下文
-- 上下文在 dashboard 及其他页面/API 一致生效
-- 运行态读写按当前激活项目根路径解析
-
-## 这个仓库的价值
-
-如果 LRAC 定义的是长周期 AI 交付“该怎么做”，这个仓库定义的是“人和 Agent 怎么真正把它跑起来”。
-
-它是 LRAC 的 UIUX 操作层。
-
-## 相关文档
-
-- [README.md](README.md)
-- [CLAUDE.md](CLAUDE.md)
-- [AGENTS.md](AGENTS.md)
-- [.claude/agents/AGENTS.md](.claude/agents/AGENTS.md)
+- [LRAC 框架](https://github.com/ericwanghp/LRAC) — 本控制台所操作的框架
+- [CLAUDE.md](CLAUDE.md) — AI Agent 完整框架规范
+- [AGENTS.md](.claude/agents/AGENTS.md) — Agent 目录与角色定义

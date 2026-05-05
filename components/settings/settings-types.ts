@@ -105,6 +105,16 @@ export const KEYBOARD_SHORTCUTS: KeyboardShortcut[] = [
   { action: "Previous search result", keys: ["Shift", "Cmd", "G"], category: "Search" },
 ];
 
+export function getAvailableRoles(settings: UserSettings): string[] {
+  return Array.from(
+    new Set([
+      ...Object.keys(TEAM_ROLE_STYLES),
+      ...settings.communication.members.flatMap((member) => member.roles ?? []),
+      ...settings.communication.phaseApprovals.flatMap((policy) => policy.requiredRoles),
+    ])
+  ).sort((left, right) => getRoleLabel(left).localeCompare(getRoleLabel(right)));
+}
+
 export const panelClassName = "admin-panel border-border/80 bg-card/90";
 export const triggerClassName =
   "justify-start rounded-2xl px-4 py-3 w-full text-muted-foreground transition-all hover:bg-accent/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/15";

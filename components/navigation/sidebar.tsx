@@ -146,6 +146,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
               key={item.name}
               href={targetHref}
               onClick={onNavigate}
+              {...(item.href === "/requirements" ? { "data-tour": "sidebar-requirements" } : {})}
               className={cn(
                 "group relative flex items-center gap-3 rounded-xl border px-3 py-2.5 text-sm font-medium transition-all",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",

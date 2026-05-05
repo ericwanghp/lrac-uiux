@@ -28,7 +28,7 @@ const phaseThemes: Record<string, PhaseTheme> = {
 };
 
 export function formatTime(iso: string): string {
-  return new Date(iso).toLocaleString("zh-CN", {
+  return new Date(iso).toLocaleString("en-US", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",

@@ -76,13 +76,13 @@ export function MarkdownArtifactCard({ artifact, className }: MarkdownArtifactCa
       );
       const payload = await response.json();
       if (!response.ok || !payload.success) {
-        throw new Error(payload.error || "加载失败");
+        throw new Error(payload.error || "Failed to load content");
       }
       const md = payload.data.content || "";
       setContent(md);
       setEditorHtml(markdownToHtml(md));
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "加载失败");
+      setMessage(error instanceof Error ? error.message : "Failed to load content");
     } finally {
       setLoading(false);
     }
@@ -121,13 +121,13 @@ export function MarkdownArtifactCard({ artifact, className }: MarkdownArtifactCa
       });
       const payload = await response.json();
       if (!response.ok || !payload.success) {
-        throw new Error(payload.error || "保存失败");
+        throw new Error(payload.error || "Failed to save");
       }
       setContent(saveMarkdown);
       setEditorHtml(markdownToHtml(saveMarkdown));
-      setMessage("已保存");
+      setMessage("Saved");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "保存失败");
+      setMessage(error instanceof Error ? error.message : "Failed to save");
     } finally {
       setSaving(false);
     }
@@ -212,7 +212,7 @@ export function MarkdownArtifactCard({ artifact, className }: MarkdownArtifactCa
   };
 
   const doLink = () => {
-    const url = window.prompt("输入链接地址", "https://");
+    const url = window.prompt("Enter link URL", "https://");
     if (!url) return;
     if (mode === "source") {
       applySourceSelection((v, s, e) => applyWrap(v, s, e, "[", `](${url})`));
@@ -256,7 +256,7 @@ export function MarkdownArtifactCard({ artifact, className }: MarkdownArtifactCa
       ) : null}
       {artifact.updatedAt ? (
         <p className="text-xs text-muted-foreground">
-          {new Date(artifact.updatedAt).toLocaleString("zh-CN")}
+          {new Date(artifact.updatedAt).toLocaleString("en-US")}
         </p>
       ) : null}
     </>
@@ -298,7 +298,7 @@ export function MarkdownArtifactCard({ artifact, className }: MarkdownArtifactCa
           >
             <div className="flex items-center justify-between border-b border-border/80 px-4 py-3">
               <div>
-                <p className="text-sm font-semibold">Markdown 编辑器</p>
+                <p className="text-sm font-semibold">Markdown Editor</p>
                 <p className="text-xs text-muted-foreground">{artifact.relativePath}</p>
               </div>
               <div className="flex items-center gap-2">
@@ -309,25 +309,25 @@ export function MarkdownArtifactCard({ artifact, className }: MarkdownArtifactCa
                     if (mode === "source") {
                       setEditorHtml(markdownToHtml(content));
                       setMode("wysiwyg");
-                      setMessage("已切换到所见即所得模式");
+                      setMessage("Switched to WYSIWYG mode");
                       return;
                     }
                     const next = htmlToMarkdown(editorRef.current?.innerHTML || editorHtml);
                     setContent(next);
                     setMode("source");
-                    setMessage("已切换到源码模式");
+                      setMessage("Switched to source mode");
                   }}
                 >
-                  {mode === "wysiwyg" ? "切换到源码模式" : "切换到所见即所得"}
+                  {mode === "wysiwyg" ? "Source Mode" : "WYSIWYG Mode"}
                 </Button>
                 <Button variant="outline" size="sm" onClick={loadContent} disabled={loading}>
-                  刷新
+                  Refresh
                 </Button>
                 <Button size="sm" onClick={saveContent} disabled={saving || loading}>
-                  {saving ? "保存中..." : "保存"}
+                  {saving ? "Saving..." : "Save"}
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
-                  关闭
+                  Close
                 </Button>
               </div>
             </div>

@@ -20,12 +20,12 @@ import {
 } from "lucide-react";
 
 const phases = [
-  { icon: ClipboardList, label: "Requirements", desc: "BRD & PRD", color: "text-blue-500" },
-  { icon: Palette, label: "UI/UX Design", desc: "Stitch AI", color: "text-purple-500" },
-  { icon: Building2, label: "Architecture", desc: "System Design", color: "text-amber-500" },
-  { icon: Code2, label: "Development", desc: "Full-Stack", color: "text-emerald-500" },
-  { icon: FlaskConical, label: "Testing", desc: "Quality Gate", color: "text-cyan-500" },
-  { icon: Rocket, label: "Deploy", desc: "CI/CD & UAT", color: "text-rose-500" },
+  { icon: ClipboardList, label: "Requirements", desc: "BRD & PRD", color: "text-blue-600", bg: "bg-blue-50 border-blue-200/60", iconBg: "bg-blue-100" },
+  { icon: Palette, label: "UI/UX Design", desc: "Stitch AI", color: "text-purple-600", bg: "bg-purple-50 border-purple-200/60", iconBg: "bg-purple-100" },
+  { icon: Building2, label: "Architecture", desc: "System Design", color: "text-amber-600", bg: "bg-amber-50 border-amber-200/60", iconBg: "bg-amber-100" },
+  { icon: Code2, label: "Development", desc: "Full-Stack", color: "text-emerald-600", bg: "bg-emerald-50 border-emerald-200/60", iconBg: "bg-emerald-100" },
+  { icon: FlaskConical, label: "Testing", desc: "Quality Gate", color: "text-cyan-600", bg: "bg-cyan-50 border-cyan-200/60", iconBg: "bg-cyan-100" },
+  { icon: Rocket, label: "Deploy", desc: "CI/CD & UAT", color: "text-rose-600", bg: "bg-rose-50 border-rose-200/60", iconBg: "bg-rose-100" },
 ];
 
 const capabilities = [
@@ -122,18 +122,26 @@ export default function LandingPage() {
         </div>
 
         {/* Phase flow strip */}
-        <div className="mt-16 flex flex-wrap items-center justify-center gap-3 sm:gap-1">
-          {phases.map((phase, i) => (
-            <div key={phase.label} className="flex items-center gap-1 sm:gap-0">
-              <div className="flex items-center gap-2 rounded-xl border border-[hsl(28,22%,84%)] bg-white/60 px-3.5 py-2 backdrop-blur-sm">
-                <phase.icon className={`h-4 w-4 ${phase.color}`} />
-                <span className="text-xs font-medium">{phase.label}</span>
+        <div className="mt-16 mx-auto max-w-3xl">
+          <div className="relative flex items-center justify-between rounded-2xl border border-[hsl(28,22%,84%)] bg-white/60 backdrop-blur-sm px-4 py-4">
+            {phases.map((phase, i) => (
+              <div key={phase.label} className="flex items-center">
+                <div className="flex flex-col items-center gap-1">
+                  <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${phase.iconBg} transition-transform hover:scale-110`}>
+                    <phase.icon className={`h-4.5 w-4.5 ${phase.color}`} />
+                  </div>
+                  <span className="text-[11px] font-semibold text-foreground whitespace-nowrap">{phase.label}</span>
+                </div>
+                {i < phases.length - 1 && (
+                  <div className="flex items-center mx-2 text-[hsl(28,22%,74%)]">
+                    <div className="h-px w-3 bg-[hsl(28,22%,82%)]" />
+                    <ArrowRight className="h-3 w-3 shrink-0" />
+                    <div className="h-px w-3 bg-[hsl(28,22%,82%)]" />
+                  </div>
+                )}
               </div>
-              {i < phases.length - 1 && (
-                <ArrowRight className="hidden h-3.5 w-3.5 text-[hsl(28,22%,74%)] sm:block mx-1" />
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 

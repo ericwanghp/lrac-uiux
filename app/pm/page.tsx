@@ -366,7 +366,7 @@ export default function PMDashboardPage() {
         setRawFeatures(features);
         setTasks(mappedTasks);
       } catch (error) {
-        setLoadError(error instanceof Error ? error.message : "加载任务失败");
+        setLoadError(error instanceof Error ? error.message : "Failed to load tasks");
       }
     },
     [scopedPath]

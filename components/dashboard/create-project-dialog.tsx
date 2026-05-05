@@ -146,12 +146,12 @@ export function CreateProjectDialog({ workspaceRoot, setupScriptPath }: CreatePr
 
   const handleSubmit = React.useCallback(async () => {
     if (!projectPath.trim()) {
-      setErrorMessage("请输入项目路径。");
+      setErrorMessage("Please enter a project path.");
       return;
     }
 
     if (!isPathValid) {
-      setErrorMessage(`项目路径必须位于 ${workspaceRoot} 下。`);
+      setErrorMessage(`Project path must be within ${workspaceRoot}.`);
       return;
     }
 
@@ -178,7 +178,7 @@ export function CreateProjectDialog({ workspaceRoot, setupScriptPath }: CreatePr
       });
       if (!response.ok || !response.body) {
         const payload = (await response.json().catch(() => null)) as CreateProjectResponse | null;
-        throw new Error(payload?.error || "创建项目失败。");
+        throw new Error(payload?.error || "Failed to create project.");
       }
 
       const reader = response.body.getReader();
@@ -241,7 +241,7 @@ export function CreateProjectDialog({ workspaceRoot, setupScriptPath }: CreatePr
       }
     } catch (error) {
       setStep("options");
-      setErrorMessage(error instanceof Error ? error.message : "创建项目失败。");
+      setErrorMessage(error instanceof Error ? error.message : "Failed to create project.");
       setIsSubmitting(false);
     }
   }, [
@@ -273,11 +273,11 @@ export function CreateProjectDialog({ workspaceRoot, setupScriptPath }: CreatePr
 
   const handleNextStep = React.useCallback(() => {
     if (!projectPath.trim()) {
-      setErrorMessage("请输入项目路径。");
+      setErrorMessage("Please enter a project path.");
       return;
     }
     if (!isPathValid) {
-      setErrorMessage(`项目路径必须位于 ${workspaceRoot} 下。`);
+      setErrorMessage(`Project path must be within ${workspaceRoot}.`);
       return;
     }
     setErrorMessage(null);
@@ -308,7 +308,7 @@ export function CreateProjectDialog({ workspaceRoot, setupScriptPath }: CreatePr
             <div>
               <AlertDialogTitle className="text-2xl">Project Initialization Wizard</AlertDialogTitle>
               <AlertDialogDescription className="mt-2 max-w-xl text-sm leading-6">
-                输入新的项目路径后，向导会通过 `setup.sh new` 创建项目目录，并生成基础脚手架与默认配置。路径既可以是绝对路径，也可以是相对于当前 workspace 的子路径。
+                Enter a new project path and the wizard will create the project directory via `setup.sh new`, generating the base scaffold and default configuration. The path can be absolute or relative to the current workspace.
               </AlertDialogDescription>
             </div>
           </AlertDialogHeader>
@@ -357,7 +357,7 @@ export function CreateProjectDialog({ workspaceRoot, setupScriptPath }: CreatePr
                 }}
               />
               <p className="mt-2 text-xs text-muted-foreground">
-                例如 `my-app`、`agents/demo-app` 或完整路径 `{workspaceRoot}/my-app`
+                e.g. `my-app`, `agents/demo-app`, or the full path `{workspaceRoot}/my-app`
               </p>
             </div>
 
@@ -401,7 +401,7 @@ export function CreateProjectDialog({ workspaceRoot, setupScriptPath }: CreatePr
                   className="mt-4 min-h-[132px] resize-none border-border/80 bg-background/90 font-mono text-xs leading-6"
                 />
                 <p className="mt-3 text-xs text-muted-foreground">
-                  后端会以非交互模式执行该命令，并跳过依赖检查，避免 API 请求卡在 shell prompt。
+                  The backend will execute this command in non-interactive mode, skipping dependency checks to avoid blocking the API on shell prompts.
                 </p>
               </div>
             </div>
@@ -436,10 +436,10 @@ export function CreateProjectDialog({ workspaceRoot, setupScriptPath }: CreatePr
               <p className="mt-2 break-all font-mono text-sm text-foreground">{resolvedPath}</p>
               <p className="mt-2 text-xs text-muted-foreground">
                 {projectPath.trim().length === 0
-                  ? "输入路径后会在这里预览最终创建目录。"
+                  ? "The resolved directory will be previewed here once you enter a path."
                   : isPathValid
-                    ? "路径有效，提交后会通过 setup.sh 生成项目目录、框架脚手架和默认配置。"
-                    : "路径无效，必须保持在当前 workspace root 内。"}
+                    ? "Path is valid. Submitting will generate the project directory, framework scaffold, and default configuration via setup.sh."
+                    : "Invalid path — must stay within the current workspace root."}
               </p>
             </div>
 
@@ -458,7 +458,7 @@ export function CreateProjectDialog({ workspaceRoot, setupScriptPath }: CreatePr
                 <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Target project</p>
                 <p className="mt-2 break-all font-mono text-sm text-foreground">{resolvedPath}</p>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  选择初始化选项，然后执行 `setup.sh new`。这些选项会通过非交互环境变量传给脚本。
+                  Select initialization options, then execute `setup.sh new`. These options are passed to the script via non-interactive environment variables.
                 </p>
               </div>
 
@@ -467,7 +467,7 @@ export function CreateProjectDialog({ workspaceRoot, setupScriptPath }: CreatePr
                   <div>
                     <p className="text-sm font-medium text-foreground">Copy LESSONS_LEARNED template</p>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      启用后会复制 `.auto-coding/LESSONS_LEARNED.md` 模板；关闭则跳过。
+                      When enabled, copies the `.auto-coding/LESSONS_LEARNED.md` template; skips it when disabled.
                     </p>
                   </div>
                   <Switch
@@ -483,7 +483,7 @@ export function CreateProjectDialog({ workspaceRoot, setupScriptPath }: CreatePr
                   <div>
                     <p className="text-sm font-medium text-foreground">Run dependency checks</p>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      启用后执行 `check-skills.js` / `check-mcp.js`；关闭则更快完成初始化。
+                      When enabled, runs `check-skills.js` / `check-mcp.js`; disabling speeds up initialization.
                     </p>
                   </div>
                   <Switch
@@ -513,7 +513,7 @@ export function CreateProjectDialog({ workspaceRoot, setupScriptPath }: CreatePr
                   <p className="text-sm font-semibold text-foreground">Project initialized successfully</p>
                 </div>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  {result.project} 已完成脚手架初始化。你现在可以打开它进入 dashboard。
+                  {result.project} has completed scaffold initialization. You can now open it to access the dashboard.
                 </p>
                 <p className="mt-3 break-all font-mono text-xs text-foreground">{result.root}</p>
               </div>
@@ -541,7 +541,7 @@ export function CreateProjectDialog({ workspaceRoot, setupScriptPath }: CreatePr
                     ))
                   ) : (
                     <div className="rounded-2xl border border-dashed border-border/70 bg-background/60 px-3 py-3 text-xs text-muted-foreground">
-                      初始化完成后会列出生成的关键路径。
+                      Key generated paths will be listed once initialization completes.
                     </div>
                   )}
                 </div>
@@ -560,7 +560,7 @@ export function CreateProjectDialog({ workspaceRoot, setupScriptPath }: CreatePr
                 <div className="rounded-[1.25rem] border border-primary/20 bg-primary/10 p-5">
                   <p className="text-xs uppercase tracking-[0.16em] text-primary">Next Recommended Step</p>
                   <p className="mt-2 text-sm text-foreground">
-                    项目脚手架已经创建完成。你可以立刻进入需求收集页，填写需求描述、上传参考文档，并开始生成项目。
+                    The project scaffold has been created. You can go directly to the requirements intake page to fill in a requirement description, upload reference documents, and start generating the project.
                   </p>
                 </div>
               ) : null}

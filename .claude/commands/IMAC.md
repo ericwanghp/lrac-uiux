@@ -49,6 +49,7 @@ Your responsibilities are mandatory and must be completed in order:
 - Provide an ordered plan from the detected start phase forward.
 - Include clear entry/exit criteria for each phase.
 - Keep tasks actionable and aligned with the framework workflow.
+- **Phase 4 (Task Breakdown) is MANDATORY for every IMAC cycle**, regardless of task size or simplicity. This ensures all changes are tracked in `.auto-coding/tasks.json` with proper task IDs, dependencies, and acceptance criteria before any implementation begins. Skipping Phase 4 is never allowed.
 
 5.5) Enforce IMAC task ID naming
 - Any new `features[].id` created in this IMAC cycle must follow:

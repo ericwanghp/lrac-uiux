@@ -149,7 +149,7 @@ export default function DesignViewerPage() {
   }, [availableDesigns]);
 
   const formatTime = (iso: string) =>
-    new Date(iso).toLocaleString("zh-CN", {
+    new Date(iso).toLocaleString("en-US", {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -184,7 +184,7 @@ export default function DesignViewerPage() {
         <div className="order-4 grid grid-cols-1 gap-4 p-4 lg:grid-cols-3">
           <Card className={`${panelClassName} lg:col-span-2`}>
             <CardHeader>
-              <CardTitle>设计阶段执行日志</CardTitle>
+              <CardTitle>Design Phase Execution Logs</CardTitle>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-44 pr-4">
@@ -192,9 +192,9 @@ export default function DesignViewerPage() {
                   {phaseError ? (
                     <p className="text-sm text-destructive">{phaseError}</p>
                   ) : !phaseData ? (
-                    <p className="text-sm text-muted-foreground">正在加载设计阶段日志...</p>
+                    <p className="text-sm text-muted-foreground">Loading design phase logs...</p>
                   ) : phaseData.sessions.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">暂无设计阶段会话日志</p>
+                    <p className="text-sm text-muted-foreground">No design phase session logs yet</p>
                   ) : (
                     phaseData.sessions.map((session) => (
                       <div
@@ -228,7 +228,7 @@ export default function DesignViewerPage() {
 
           <Card className={panelClassName}>
             <CardHeader>
-              <CardTitle>AI Coding / IDE 日志</CardTitle>
+              <CardTitle>AI Coding / IDE Logs</CardTitle>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-44 pr-4">
@@ -236,9 +236,9 @@ export default function DesignViewerPage() {
                   {phaseError ? (
                     <p className="text-sm text-destructive">{phaseError}</p>
                   ) : !phaseData ? (
-                    <p className="text-sm text-muted-foreground">正在加载工具日志...</p>
+                    <p className="text-sm text-muted-foreground">Loading tool logs...</p>
                   ) : phaseData.taskLogs.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">暂无工具日志</p>
+                    <p className="text-sm text-muted-foreground">No tool logs yet</p>
                   ) : (
                     phaseData.taskLogs.map((log, index) => (
                       <div
@@ -260,13 +260,13 @@ export default function DesignViewerPage() {
         <div className="order-5 grid grid-cols-1 gap-4 px-4 pb-4 lg:grid-cols-3">
           <Card className={panelClassName}>
             <CardHeader>
-              <CardTitle>设计文档</CardTitle>
+              <CardTitle>Design Documents</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               {!phaseData ? (
-                <p className="text-sm text-muted-foreground">正在加载...</p>
+                <p className="text-sm text-muted-foreground">Loading...</p>
               ) : phaseData.artifacts.designDocs.length === 0 ? (
-                <p className="text-sm text-muted-foreground">暂无设计文档</p>
+                <p className="text-sm text-muted-foreground">No design documents yet</p>
               ) : (
                 phaseData.artifacts.designDocs
                   .slice(0, 5)
@@ -283,13 +283,13 @@ export default function DesignViewerPage() {
 
           <Card className={panelClassName}>
             <CardHeader>
-              <CardTitle>设计系统产出</CardTitle>
+              <CardTitle>Design System Artifacts</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               {!phaseData ? (
-                <p className="text-sm text-muted-foreground">正在加载...</p>
+                <p className="text-sm text-muted-foreground">Loading...</p>
               ) : phaseData.artifacts.stitchDocs.length === 0 ? (
-                <p className="text-sm text-muted-foreground">暂无设计系统文档</p>
+                <p className="text-sm text-muted-foreground">No design system documents yet</p>
               ) : (
                 phaseData.artifacts.stitchDocs.map((artifact) => (
                   <MarkdownArtifactCard
@@ -305,20 +305,20 @@ export default function DesignViewerPage() {
           <Card className={panelClassName}>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>交互稿产出</CardTitle>
+                <CardTitle>Interactive Prototypes</CardTitle>
                 <Badge
                   variant={phaseData?.phaseCompleted ? "success" : "secondary"}
                   className="text-xs"
                 >
-                  {phaseData?.phaseCompleted ? "已完成" : "进行中"}
+                  {phaseData?.phaseCompleted ? "Completed" : "In Progress"}
                 </Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-2">
               {!phaseData ? (
-                <p className="text-sm text-muted-foreground">正在加载...</p>
+                <p className="text-sm text-muted-foreground">Loading...</p>
               ) : phaseData.artifacts.prototypes.length === 0 ? (
-                <p className="text-sm text-muted-foreground">暂无交互稿</p>
+                <p className="text-sm text-muted-foreground">No interactive prototypes yet</p>
               ) : (
                 phaseData.artifacts.prototypes
                   .slice(0, 8)
@@ -436,7 +436,7 @@ export default function DesignViewerPage() {
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted-foreground">
-                      当前项目下暂无可预览的设计图片
+                      No design previews available for the current project
                     </div>
                   )}
                 </div>
@@ -464,7 +464,7 @@ export default function DesignViewerPage() {
         <div className="order-3 px-4">
           <div
             role="separator"
-            aria-label="调整预览区高度"
+            aria-label="Adjust preview area height"
             onMouseDown={(event) => {
               resizeStartYRef.current = event.clientY;
               resizeStartHeightRef.current = previewHeightVh;

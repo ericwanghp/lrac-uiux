@@ -74,7 +74,7 @@ export function RequirementsIntakeDialog({
 
   const handleSubmit = React.useCallback(async () => {
     if (!description.trim()) {
-      setErrorMessage("请先填写需求描述。");
+      setErrorMessage("Please enter a requirement description.");
       return;
     }
 
@@ -96,7 +96,7 @@ export function RequirementsIntakeDialog({
       const payload = (await response.json()) as RequirementsIntakeResponse;
 
       if (!response.ok || !payload.success || !payload.data) {
-        throw new Error(payload.error || "需求收集保存失败。");
+        throw new Error(payload.error || "Failed to save requirements intake.");
       }
 
       setReferences(payload.data.references);
@@ -108,7 +108,7 @@ export function RequirementsIntakeDialog({
           defaultPrompt: buildClaudeRequirementsPrompt(description, payload.data.references),
         },
       });
-      setSuccessMessage("需求已保存，Claude Code workspace 已为当前项目预填 requirements 上下文。");
+      setSuccessMessage("Requirements saved. Claude Code workspace has been pre-filled with requirements context for the current project.");
       setOpen(false);
       if (typeof window !== "undefined") {
         const url = new URL(window.location.href);
@@ -118,7 +118,7 @@ export function RequirementsIntakeDialog({
       }
       router.refresh();
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "需求收集保存失败。");
+      setErrorMessage(error instanceof Error ? error.message : "Failed to save requirements intake.");
     } finally {
       setIsSubmitting(false);
     }
@@ -144,7 +144,7 @@ export function RequirementsIntakeDialog({
                 <div>
                   <AlertDialogTitle className="text-2xl">Collect Product Requirements</AlertDialogTitle>
                   <AlertDialogDescription className="mt-2 max-w-2xl text-sm leading-6">
-                    输入业务目标、核心用户场景、约束条件，并上传参考文档。提交后会生成项目需求 brief，供后续 BRD / PRD / Claude CLI 工作流使用。
+                    Enter business goals, core user scenarios, and constraints, then upload reference documents. After submission, a project requirements brief will be generated for downstream BRD / PRD / Claude CLI workflows.
                   </AlertDialogDescription>
                 </div>
               </AlertDialogHeader>
@@ -158,7 +158,7 @@ export function RequirementsIntakeDialog({
                     <Textarea
                       value={description}
                       onChange={(event) => setDescription(event.target.value)}
-                      placeholder="请描述项目目标、目标用户、核心流程、关键功能、技术约束和优先级..."
+                      placeholder="Describe project goals, target users, core workflows, key features, technical constraints, and priorities..."
                       className="mt-3 min-h-[200px] flex-1 resize-none border-border/80 bg-background/90 text-sm leading-6"
                     />
                   </div>
@@ -174,7 +174,7 @@ export function RequirementsIntakeDialog({
                       <div>
                         <p className="text-sm font-medium text-foreground">Upload reference files</p>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          支持 PDF、DOCX、PNG、JPG、TXT、MD 等常见参考文档
+                          Supports PDF, DOCX, PNG, JPG, TXT, MD and other common reference formats
                         </p>
                       </div>
                       <input
@@ -221,7 +221,7 @@ export function RequirementsIntakeDialog({
                         ))
                       ) : (
                         <p className="rounded-2xl border border-dashed border-border/70 bg-background/60 px-3 py-3 text-xs text-muted-foreground">
-                          尚未选择新的参考文档。
+                          No new reference documents selected.
                         </p>
                       )}
                     </div>
@@ -244,7 +244,7 @@ export function RequirementsIntakeDialog({
                         ))
                       ) : (
                         <p className="rounded-2xl border border-dashed border-border/70 bg-background/60 px-3 py-3 text-xs text-muted-foreground">
-                          还没有已保存的参考文档。
+                          No saved reference documents yet.
                         </p>
                       )}
                     </div>
