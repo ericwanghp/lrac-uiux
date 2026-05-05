@@ -8,11 +8,14 @@ import {
   GitMerge,
   Loader2,
   Paperclip,
+  Play,
+  TerminalSquare,
   XCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { queueClaudeCliLaunchIntent } from "@/lib/utils/claude-cli-launch-intent";
 
 interface Attachment {
   id: string;
@@ -44,9 +47,53 @@ const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secon
   aborted: { label: "Aborted", variant: "destructive" },
 };
 
+function buildImacPrompt(session: ImacSession): string {
+  const lines = ["/IMAC " + session.title, "", "## Change Description", "", session.description.trim()];
+
+  if (session.attachments.length > 0) {
+    lines.push("", "## Reference Files");
+    session.attachments.forEach((att) => {
+      lines.push(`- ${att.originalName} (${att.relativePath}, ${Math.max(1, Math.round(att.size / 1024))} KB)`);
+    });
+  }
+
+  lines.push("", "Execute the IMAC intake process for this change request.");
+  return lines.join("\n");
+}
+
 export function ImacDetailClient({ session: initialSession }: { session: ImacSession }) {
   const [session, setSession] = React.useState(initialSession);
   const [loadingAction, setLoadingAction] = React.useState<string | null>(null);
+
+  const handleStartInClaude = React.useCallback(async () => {
+    setLoadingAction("start-claude");
+    try {
+      let worktreeSession = session;
+      if (session.status === "created") {
+        const response = await fetch(`/api/imac/${session.id}/worktree`, { method: "POST" });
+        const result = await response.json();
+        if (!result.success) throw new Error(result.error);
+        worktreeSession = result.data as ImacSession;
+        setSession(worktreeSession);
+      }
+
+      if (!worktreeSession.worktree.path) {
+        throw new Error("Worktree path not available");
+      }
+
+      queueClaudeCliLaunchIntent({
+        projectRoot: worktreeSession.worktree.path,
+        activePanel: "current",
+        launchOptions: {
+          defaultPrompt: buildImacPrompt(worktreeSession),
+        },
+      });
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to start IMAC in Claude Code");
+    } finally {
+      setLoadingAction(null);
+    }
+  }, [session]);
 
   const handleAction = React.useCallback(async (action: string) => {
     setLoadingAction(action);
@@ -94,10 +141,16 @@ export function ImacDetailClient({ session: initialSession }: { session: ImacSes
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {session.status === "created" && (
-            <Button onClick={() => void handleAction("worktree")} disabled={loadingAction !== null}>
-              {loadingAction === "worktree" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GitBranch className="mr-2 h-4 w-4" />}
-              Create Worktree
+          {(session.status === "created" || session.status === "in-progress") && (
+            <Button onClick={() => void handleStartInClaude()} disabled={loadingAction !== null}>
+              {loadingAction === "start-claude" ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : session.status === "created" ? (
+                <Play className="mr-2 h-4 w-4" />
+              ) : (
+                <TerminalSquare className="mr-2 h-4 w-4" />
+              )}
+              {session.status === "created" ? "Start in Claude Code" : "Open in Claude Code"}
             </Button>
           )}
           {session.status === "in-progress" && (
@@ -142,13 +195,16 @@ export function ImacDetailClient({ session: initialSession }: { session: ImacSes
                   <p className="font-mono text-sm text-primary">{session.worktree.branch}</p>
                 </div>
                 <div className="rounded-2xl border border-border/70 bg-background/80 p-3">
-                  <p className="text-xs text-muted-foreground">Worktree Path</p>
+                  <p className="text-xs text-muted-foreground">Worktree Path (Claude Code project root)</p>
                   <p className="font-mono text-sm break-all">{session.worktree.path}</p>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Open this path in Claude Code to work on the IMAC in an isolated session:
-                  <code className="ml-1 text-primary">claude --project {session.worktree.path}</code>
-                </p>
+                <div className="rounded-2xl border border-primary/20 bg-primary/5 p-3">
+                  <p className="text-xs text-muted-foreground">How this works</p>
+                  <p className="text-xs text-foreground mt-1">
+                    This worktree is an isolated copy of the project. Claude Code runs here independently from the main project session.
+                    When the IMAC cycle is complete, use <strong>Merge to Main</strong> to bring changes back.
+                  </p>
+                </div>
               </CardContent>
             </Card>
           )}

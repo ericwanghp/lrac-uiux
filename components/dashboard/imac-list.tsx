@@ -1,10 +1,18 @@
 "use client";
 
 import * as React from "react";
-import { GitBranch, GitMerge, Loader2, Paperclip, XCircle } from "lucide-react";
+import { GitBranch, GitMerge, Loader2, Paperclip, Play, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { queueClaudeCliLaunchIntent } from "@/lib/utils/claude-cli-launch-intent";
+
+interface ImacAttachment {
+  id: string;
+  originalName: string;
+  relativePath: string;
+  size: number;
+}
 
 interface ImacSession {
   id: string;
@@ -13,7 +21,7 @@ interface ImacSession {
   description: string;
   status: "created" | "in-progress" | "merged" | "aborted";
   worktree: { branch: string; path: string | null };
-  attachments: { id: string; originalName: string; size: number }[];
+  attachments: ImacAttachment[];
   createdAt: string;
   mergedAt: string | null;
 }
@@ -29,8 +37,52 @@ const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secon
   aborted: { label: "Aborted", variant: "destructive" },
 };
 
+function buildImacPrompt(session: ImacSession): string {
+  const lines = ["/IMAC " + session.title, "", "## Change Description", "", session.description.trim()];
+
+  if (session.attachments.length > 0) {
+    lines.push("", "## Reference Files");
+    session.attachments.forEach((att) => {
+      lines.push(`- ${att.originalName} (${att.relativePath}, ${Math.max(1, Math.round(att.size / 1024))} KB)`);
+    });
+  }
+
+  lines.push("", "Execute the IMAC intake process for this change request.");
+  return lines.join("\n");
+}
+
 export function ImacList({ sessions }: ImacListProps) {
   const [loadingAction, setLoadingAction] = React.useState<string | null>(null);
+
+  const handleStartInClaude = React.useCallback(async (session: ImacSession) => {
+    setLoadingAction(`worktree-${session.id}`);
+    try {
+      let worktreeSession = session;
+      if (session.status === "created") {
+        const response = await fetch(`/api/imac/${session.id}/worktree`, { method: "POST" });
+        const result = await response.json();
+        if (!result.success) throw new Error(result.error);
+        worktreeSession = result.data as ImacSession;
+      }
+
+      if (!worktreeSession.worktree.path) {
+        throw new Error("Worktree path not available");
+      }
+
+      queueClaudeCliLaunchIntent({
+        projectRoot: worktreeSession.worktree.path,
+        activePanel: "current",
+        launchOptions: {
+          defaultPrompt: buildImacPrompt(worktreeSession),
+        },
+      });
+
+      window.location.reload();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to start IMAC session");
+      setLoadingAction(null);
+    }
+  }, []);
 
   const handleAction = React.useCallback(async (action: string, sessionId: string) => {
     setLoadingAction(`${action}-${sessionId}`);
@@ -89,20 +141,22 @@ export function ImacList({ sessions }: ImacListProps) {
                   </p>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  {session.status === "created" && (
+                  {(session.status === "created" || session.status === "in-progress") && (
                     <Button
                       size="sm"
                       variant="outline"
                       className="h-7 text-xs"
                       disabled={isLoading}
-                      onClick={() => void handleAction("worktree", session.id)}
+                      onClick={() => void handleStartInClaude(session)}
                     >
                       {loadingAction === `worktree-${session.id}` ? (
                         <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                      ) : session.status === "created" ? (
+                        <Play className="mr-1 h-3 w-3" />
                       ) : (
                         <GitBranch className="mr-1 h-3 w-3" />
                       )}
-                      Start Worktree
+                      {session.status === "created" ? "Start in Claude Code" : "Open in Claude Code"}
                     </Button>
                   )}
                   {session.status === "in-progress" && (
