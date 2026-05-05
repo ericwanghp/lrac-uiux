@@ -96,7 +96,7 @@ So that the full delivery story remains auditable and replayable.
 - Structured approval interruption overlay
 - Input freeze / resume mechanics during pending interruption
 - PM main terminal with child session list, pending queue, and blocker visibility
-- Project-scoped session routing
+- Project-aware session routing with workspace-wide Settings and Team configuration
 
 #### Out of Scope
 
@@ -128,7 +128,7 @@ So that the full delivery story remains auditable and replayable.
 
 ```mermaid
 flowchart TD
-  A["Open Project-Scoped Terminal"] --> B["Attach To Existing Claude Session Or Create New One"]
+  A["Open Terminal For Selected Project"] --> B["Attach To Existing Claude Session Or Create New One"]
   B --> C["Live Terminal Streaming"]
   C --> D{"Claude Requires Human Input?"}
   D -->|No| C
@@ -224,7 +224,7 @@ flowchart TD
 
 **Core components**:
 
-- Project-scoped session tree
+- Project-aware session tree
 - High-priority pending queue
 - Aggregated timeline
 - Focus preview of selected child session
@@ -272,7 +272,7 @@ flowchart TD
 3. **Session produces output while overlay is open**
    - Stream can continue visually, but input remains frozen until the blocking event is resolved.
 4. **Project switch while session is live**
-   - Current project-scoped URL must change and child-session data must be cleared before loading the new project.
+   - Current project URL must change and child-session data must be cleared before loading the new project. Workspace-wide Settings and Team configuration should remain unchanged.
 5. **Session crash during pending approval**
    - UI shows `crashed` state and preserves the unresolved approval card/history.
 6. **Long output flood**
@@ -320,7 +320,7 @@ flowchart TD
 
 1. Replace the current fake-terminal mental model with a persistent session model
 2. Turn question and approval into blocking interaction states
-3. Unify PM, sidebar, and task terminal under the same project-scoped session graph
+3. Unify PM, sidebar, and task terminal under the same project-aware session graph while reusing shared workspace Settings and Team configuration
 4. Harden long-session replay and recovery behavior before broader feature expansion
 
 ---
@@ -333,6 +333,7 @@ flowchart TD
 - **PM main terminal**: aggregated supervision view across child sessions
 - **Blocking interruption**: Q&A or approval event that freezes raw terminal input until resolved
 - **Ownership state**: whether the next action belongs to Claude, human, or system
+- **Workspace-wide Settings / Team**: shared configuration and member accounts reused across all projects
 
 ### Acceptance Summary
 

@@ -13,7 +13,7 @@
 
 ### 1.1 Product Vision
 
-Build a project-scoped browser workbench that lets users continue AI software delivery as if they had opened `claude -c` locally, while upgrading terminal-native workflows with structured Q&A and approval interruptions, PM aggregation, and replayable audit trails.
+Build a browser workbench that lets users continue AI software delivery as if they had opened `claude -c` locally, while upgrading terminal-native workflows with structured Q&A and approval interruptions, PM aggregation, and replayable audit trails. The workbench uses **workspace-wide Settings and Team configuration** while keeping **session, approval, and task execution data scoped to the active project**.
 
 ### 1.2 Business Objectives
 
@@ -67,7 +67,7 @@ Our differentiation is to combine terminal authenticity with structured interrup
 | BR-003 | Blocking approval interruption workflow | Critical | Risky actions need explicit human decision points |
 | BR-004 | Unified audit trail for raw output and human decisions | Critical | Long-running delivery needs replayability and trust |
 | BR-005 | PM main terminal with session tree and pending queue | High | Parallel tasks must be triaged quickly |
-| BR-006 | Project-scoped session model | High | This system is becoming a general multi-project management console |
+| BR-006 | Project-aware session model with shared workspace settings | High | This system is becoming a general multi-project management console and needs clear separation between global configuration and project runtime state |
 | BR-007 | Resilient reconnect and replay | High | Long-running agent work cannot be fragile across refreshes |
 | BR-008 | Human routing readiness | Medium | Future communication system integration should remain possible |
 
@@ -128,7 +128,7 @@ So that I can keep long-running delivery moving.
 
 ### 4.2 Success Criteria
 
-- User can open `/terminal` and continue an existing project-scoped Claude session
+- User can open `/terminal` and continue an existing Claude session for the selected project
 - A question request freezes raw input and opens a structured answer flow
 - An approval request freezes raw input and opens a structured decision flow
 - PM can jump from pending queue to exact child session
@@ -143,7 +143,7 @@ So that I can keep long-running delivery moving.
 | Constraint | Impact |
 | --- | --- |
 | Next.js application architecture | Must fit App Router and existing API route model |
-| Local-first project model | Session and project state must remain workspace-scoped |
+| Local-first project model | Workspace settings and team accounts are shared, while session and workflow runtime state remain tied to the selected project |
 | Existing event/log system | Redesign should evolve the event model instead of replacing it blindly |
 | Policy-guarded execution | Session runner must remain server-side and controlled |
 

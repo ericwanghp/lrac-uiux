@@ -31,6 +31,8 @@ export function GlobalProjectSwitcher() {
   const [currentProjectRoot, setCurrentProjectRoot] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(true);
 
+  const effectiveProjectRoot = projectFromQuery || currentProjectRoot;
+
   React.useEffect(() => {
     let isCancelled = false;
 
@@ -71,7 +73,7 @@ export function GlobalProjectSwitcher() {
 
   const handleProjectChange = React.useCallback(
     (projectRoot: string) => {
-      if (!projectRoot || projectRoot === currentProjectRoot) {
+      if (!projectRoot || projectRoot === effectiveProjectRoot) {
         return;
       }
 
@@ -88,7 +90,7 @@ export function GlobalProjectSwitcher() {
         );
       }
     },
-    [currentProjectRoot, pathname, router]
+    [effectiveProjectRoot, pathname, router]
   );
 
   if (!isLoading && projects.length <= 1) {
@@ -98,7 +100,7 @@ export function GlobalProjectSwitcher() {
   return (
     <div className="min-w-0 w-[180px] sm:w-[220px]">
       <Select
-        value={currentProjectRoot}
+        value={effectiveProjectRoot}
         onValueChange={handleProjectChange}
         disabled={isLoading || projects.length === 0}
       >

@@ -20,7 +20,6 @@ import {
   AlertCircle,
   Users,
   Search,
-  Filter,
   ShieldAlert,
   UserRoundCheck,
   LockKeyhole,
@@ -66,6 +65,7 @@ export const dynamicParams = true;
 interface Task {
   id: string;
   title: string;
+  summary: string;
   assignee: {
     name: string;
     initials: string;
@@ -83,6 +83,9 @@ interface Task {
   timelineEndAt: string;
   timelineStartMs: number;
   timelineEndMs: number;
+  blockReasonType: string | null;
+  blockReasonGateId: string | null;
+  blockReasonDescription: string | null;
 }
 
 interface TeamMember {
@@ -197,15 +200,6 @@ const statusColors = {
   blocked: "border-destructive/30 bg-destructive/10 text-destructive",
 };
 
-const swimlaneOrder: Task["status"][] = ["blocked", "pending", "in_progress", "completed"];
-
-const swimlaneLabels: Record<Task["status"], string> = {
-  blocked: "Blocked",
-  pending: "Pending",
-  in_progress: "In Progress",
-  completed: "Completed",
-};
-
 const priorityColors = {
   low: "border-l-2 border-l-green-500",
   medium: "border-l-2 border-l-amber-500",
@@ -231,6 +225,54 @@ const chartTooltipStyle = {
   borderRadius: "16px",
   boxShadow: "0 24px 48px -36px hsl(var(--foreground) / 0.18)",
 };
+
+type BoardLaneKey = "todo" | "in_progress" | "review" | "completed";
+
+const boardLaneMeta: Record<
+  BoardLaneKey,
+  { title: string; description: string; badgeClassName: string }
+> = {
+  todo: {
+    title: "To Do",
+    description: "Pending work and blocked tasks that still need execution",
+    badgeClassName: "border-border/80 bg-secondary text-muted-foreground",
+  },
+  in_progress: {
+    title: "In Progress",
+    description: "Tasks actively being worked on",
+    badgeClassName: "border-primary/30 bg-primary/10 text-primary",
+  },
+  review: {
+    title: "Review",
+    description: "Blocked by approval and waiting for review decisions",
+    badgeClassName: "border-warning/30 bg-warning/10 text-warning",
+  },
+  completed: {
+    title: "Completed",
+    description: "Finished tasks ready for downstream handoff",
+    badgeClassName: "border-success/30 bg-success/10 text-success",
+  },
+};
+
+function getBoardLane(task: Task): BoardLaneKey {
+  if (task.status === "completed") {
+    return "completed";
+  }
+  if (task.status === "in_progress") {
+    return "in_progress";
+  }
+  if (task.status === "blocked" && task.blockReasonType === "phase_approval_required") {
+    return "review";
+  }
+  return "todo";
+}
+
+function getTaskCardHref(task: Task, projectRoot: string, gateSummary?: PhaseGateSummary): string {
+  if (gateSummary?.approvalUrl) {
+    return buildProjectScopedPath(gateSummary.approvalUrl, projectRoot);
+  }
+  return buildProjectScopedPath(`/tasks-log?feature=${encodeURIComponent(task.id)}`, projectRoot);
+}
 
 function getActionQueueHref(item: WaitingInboxItem, projectRoot: string): string {
   if (item.kind === "approval") {
@@ -266,7 +308,6 @@ export default function PMDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | Task["status"]>("all");
   const [milestoneTrackFilter, setMilestoneTrackFilter] = useState("all");
   const [activityFeeds, setActivityFeeds] = useState<ActivityFeed[]>([]);
 
@@ -313,6 +354,7 @@ export default function PMDashboardPage() {
           return {
             id: feature.id,
             title: feature.title,
+            summary: feature.summary,
             assignee: { name: owner.name, role: owner.role, initials: owner.initials },
             status: feature.status.status,
             priority: feature.priority,
@@ -325,6 +367,9 @@ export default function PMDashboardPage() {
             timelineEndAt: timelineWindow.endAt,
             timelineStartMs: timelineWindow.startMs,
             timelineEndMs: timelineWindow.endMs,
+            blockReasonType: feature.status.blockReason?.type || null,
+            blockReasonGateId: feature.status.blockReason?.gateId || null,
+            blockReasonDescription: feature.status.blockReason?.description || null,
           } satisfies Task;
         });
         setRawFeatures(features);
@@ -549,55 +594,34 @@ export default function PMDashboardPage() {
     [tasks]
   );
 
-  const visibleSwimlanes = useMemo<Task["status"][]>(
-    () => (statusFilter === "all" ? swimlaneOrder : [statusFilter]),
-    [statusFilter]
-  );
+  const boardColumns = useMemo(() => {
+    const columns: Record<BoardLaneKey, Task[]> = {
+      todo: [],
+      in_progress: [],
+      review: [],
+      completed: [],
+    };
 
-  const phaseSwimlanes = useMemo(() => {
-    const groupedByPhase = new Map<number, Task[]>();
     filteredTasks.forEach((task) => {
-      const phaseTasks = groupedByPhase.get(task.phase) || [];
-      phaseTasks.push(task);
-      groupedByPhase.set(task.phase, phaseTasks);
+      columns[getBoardLane(task)].push(task);
     });
 
-    return Array.from(groupedByPhase.entries())
-      .sort(([left], [right]) => left - right)
-      .map(([phase, phaseTasks]) => {
-        const lanes: Record<Task["status"], Task[]> = {
-          blocked: [],
-          pending: [],
-          in_progress: [],
-          completed: [],
-        };
-
-        phaseTasks.forEach((task) => {
-          lanes[task.status].push(task);
-        });
-
-        swimlaneOrder.forEach((status) => {
-          lanes[status].sort((left, right) => {
-            const dueDateCompare = left.dueDate.localeCompare(right.dueDate);
-            if (dueDateCompare !== 0) return dueDateCompare;
-            return left.id.localeCompare(right.id);
-          });
-        });
-
-        return {
-          phase,
-          total: phaseTasks.length,
-          lanes,
-        };
+    (Object.keys(columns) as BoardLaneKey[]).forEach((laneKey) => {
+      columns[laneKey].sort((left, right) => {
+        const phaseCompare = left.phase - right.phase;
+        if (phaseCompare !== 0) return phaseCompare;
+        const dueDateCompare = left.dueDate.localeCompare(right.dueDate);
+        if (dueDateCompare !== 0) return dueDateCompare;
+        return left.id.localeCompare(right.id);
       });
+    });
+
+    return columns;
   }, [filteredTasks]);
 
   const timelineTasks = useMemo(
-    () =>
-      statusFilter === "all"
-        ? globallyFilteredTasks
-        : globallyFilteredTasks.filter((task) => task.status === statusFilter),
-    [globallyFilteredTasks, statusFilter]
+    () => globallyFilteredTasks,
+    [globallyFilteredTasks]
   );
 
   const timelineDomain = useMemo(() => {
@@ -752,6 +776,10 @@ export default function PMDashboardPage() {
     () => deriveBlockerQueue(globallyFilteredFeatures).slice(0, 8),
     [globallyFilteredFeatures]
   );
+  const phaseGateSummaryById = useMemo(
+    () => new Map(phaseGateSummaries.map((summary) => [summary.id, summary])),
+    [phaseGateSummaries]
+  );
 
   return (
     <div className="admin-page min-h-screen">
@@ -875,14 +903,14 @@ export default function PMDashboardPage() {
         </div>
       </div>
 
-      {/* Task Swimlanes */}
+      {/* Task Board */}
       <Card className={panelClassName}>
         <CardHeader>
           <div className="flex items-start justify-between gap-3">
             <div>
               <CardTitle>Tasks</CardTitle>
               <CardDescription>
-                Grouped by phase with swimlanes ordered as Blocked, Pending, In Progress, Completed
+                Jira-style board grouped into To Do, In Progress, Review, and Completed
               </CardDescription>
               {loadError ? <p className="mt-1 text-xs text-destructive">{loadError}</p> : null}
             </div>
@@ -896,127 +924,102 @@ export default function PMDashboardPage() {
                   className="admin-input w-[250px] border-border/80 bg-background/80 pl-8"
                 />
               </div>
-              <Select
-                value={statusFilter}
-                onValueChange={(value) => setStatusFilter(value as "all" | Task["status"])}
-              >
-                <SelectTrigger className="admin-input w-[150px] border-border/80 bg-background/80">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent className="border-border bg-card">
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="blocked">Blocked</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {phaseSwimlanes.length === 0 ? (
-              <p className="admin-empty-state admin-empty-state-md">No tasks in current filter</p>
-            ) : (
-              phaseSwimlanes.map((phaseGroup) => (
-                <details key={`phase-${phaseGroup.phase}`} className={`${softPanelClassName} p-4`}>
-                  <summary className="cursor-pointer list-none">
-                    <p className="text-sm font-semibold text-foreground">
-                      Phase {phaseGroup.phase}
-                    </p>
-                    <div
-                      className="mt-2 grid gap-2"
-                      style={{
-                        gridTemplateColumns: `repeat(${visibleSwimlanes.length + 1}, minmax(0, 1fr))`,
-                      }}
-                    >
-                      {visibleSwimlanes.map((status) => (
-                        <div
-                          key={`phase-${phaseGroup.phase}-summary-${status}`}
-                          className={`${nestedPanelClassName} px-2 py-1 text-center`}
-                        >
-                          <p className="text-[11px] text-muted-foreground">
-                            {swimlaneLabels[status]}
-                          </p>
-                          <p className="text-sm font-semibold text-foreground">
-                            {phaseGroup.lanes[status].length}
-                          </p>
-                        </div>
-                      ))}
-                      <div className={`${nestedPanelClassName} px-2 py-1 text-center`}>
-                        <p className="text-[11px] text-muted-foreground">Total</p>
-                        <p className="text-sm font-semibold text-foreground">{phaseGroup.total}</p>
+          {filteredTasks.length === 0 ? (
+            <p className="admin-empty-state admin-empty-state-md">No tasks in current filter</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
+              {(Object.keys(boardLaneMeta) as BoardLaneKey[]).map((laneKey) => {
+                const lane = boardLaneMeta[laneKey];
+                const laneTasks = boardColumns[laneKey];
+
+                return (
+                  <div key={laneKey} className={`${softPanelClassName} p-3`}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">{lane.title}</p>
+                        <p className="mt-1 text-[11px] text-muted-foreground">{lane.description}</p>
                       </div>
+                      <Badge className={lane.badgeClassName}>{laneTasks.length}</Badge>
                     </div>
-                  </summary>
-                  <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-                    {visibleSwimlanes.map((status) => {
-                      const laneTasks = phaseGroup.lanes[status];
-                      return (
-                        <div
-                          key={`phase-${phaseGroup.phase}-${status}`}
-                          className={`${nestedPanelClassName} p-3`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                              {swimlaneLabels[status]}
-                            </p>
-                            <Badge className={statusColors[status]}>{laneTasks.length}</Badge>
-                          </div>
-                          <div className="mt-2 space-y-2 max-h-[320px] overflow-y-auto pr-1">
-                            {laneTasks.length === 0 ? (
-                              <p className="admin-empty-state admin-empty-state-sm">No tasks</p>
-                            ) : (
-                              laneTasks.map((task) => (
-                                <div
-                                  key={task.id}
-                                  className={`rounded-xl border border-border/80 bg-background/90 p-2 ${
-                                    priorityColors[task.priority]
-                                  }`}
-                                >
-                                  <p className="text-sm font-medium text-foreground leading-5">
+                    <div className="mt-3 space-y-3 max-h-[720px] overflow-y-auto pr-1">
+                      {laneTasks.length === 0 ? (
+                        <p className="admin-empty-state admin-empty-state-sm">No tasks</p>
+                      ) : (
+                        laneTasks.map((task) => (
+                          (() => {
+                            const gateSummary = task.blockReasonGateId
+                              ? phaseGateSummaryById.get(task.blockReasonGateId)
+                              : undefined;
+                            const cardHref = getTaskCardHref(task, projectRoot, gateSummary);
+                            return (
+                              <Link
+                                key={task.id}
+                                href={cardHref}
+                                className={`block rounded-2xl border border-border/80 bg-background/90 p-3 shadow-sm transition-all duration-150 hover:border-primary/25 hover:bg-accent/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${priorityColors[task.priority]}`}
+                              >
+                                <div className="flex items-start justify-between gap-2">
+                                  <p className="text-sm font-medium leading-5 text-foreground">
                                     {task.title}
                                   </p>
-                                  <p className="mt-1 text-[11px] font-mono text-muted-foreground">
-                                    {task.id}
-                                  </p>
-                                  <div className="mt-2 flex items-center gap-2">
-                                    <Avatar className="h-5 w-5">
-                                      <AvatarFallback className="gradient-primary text-[10px] text-white">
-                                        {task.assignee.initials}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <span className="truncate text-[11px] text-muted-foreground">
-                                      {task.assignee.name}
-                                    </span>
-                                  </div>
-                                  <div className="mt-2 flex items-center justify-between gap-2">
-                                    <span className="text-[11px] text-muted-foreground">
-                                      {task.dueDate}
-                                    </span>
-                                    {task.optional ? (
-                                      <Badge
-                                        variant="outline"
-                                        className="border-primary/30 text-[10px] text-primary"
-                                      >
-                                        Optional
-                                      </Badge>
-                                    ) : null}
-                                  </div>
+                                  <Badge variant="outline" className="border-border/80 text-[10px]">
+                                    P{task.phase}
+                                  </Badge>
                                 </div>
-                              ))
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+                                <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                                  {task.summary}
+                                </p>
+                                <div className="mt-3 flex flex-wrap items-center gap-2">
+                                  <Badge
+                                    variant="outline"
+                                    className="border-border/80 text-[10px] text-muted-foreground"
+                                  >
+                                    {task.id}
+                                  </Badge>
+                                  {task.status === "blocked" ? (
+                                    <Badge className={statusColors.blocked}>Blocked</Badge>
+                                  ) : null}
+                                  {task.blockReasonType === "phase_approval_required" ? (
+                                    <Badge className="border-warning/30 bg-warning/10 text-[10px] text-warning">
+                                      Approval Review
+                                    </Badge>
+                                  ) : null}
+                                  {task.optional ? (
+                                    <Badge
+                                      variant="outline"
+                                      className="border-primary/30 text-[10px] text-primary"
+                                    >
+                                      Optional
+                                    </Badge>
+                                  ) : null}
+                                </div>
+                                {gateSummary && gateSummary.pendingApprovers.length > 0 ? (
+                                  <p className="mt-2 text-[11px] leading-5 text-muted-foreground">
+                                    Waiting for{" "}
+                                    {gateSummary.pendingApprovers
+                                      .map((approver) => `${approver.name} (${approver.role})`)
+                                      .join(", ")}
+                                  </p>
+                                ) : null}
+                                {task.status === "blocked" && task.blockReasonDescription ? (
+                                  <p className="mt-2 text-[11px] leading-5 text-muted-foreground">
+                                    {task.blockReasonDescription}
+                                  </p>
+                                ) : null}
+                              </Link>
+                            );
+                          })()
+                        ))
+                      )}
+                    </div>
                   </div>
-                </details>
-              ))
-            )}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
 

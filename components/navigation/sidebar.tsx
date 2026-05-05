@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -86,6 +87,7 @@ const navigation = [
 export function Sidebar() {
   const pathname = usePathname();
   const projectRoot = useProjectQueryParam();
+  const [isHydrated, setIsHydrated] = React.useState(false);
   const { member, unreadCount } = useCurrentMember();
   const { snapshot, isConnected } = useProjectRealtimeStatus();
   const phaseLabel = `P${Math.min(snapshot.currentPhase, 7)}`;
@@ -93,12 +95,18 @@ export function Sidebar() {
     ? "WebSocket 实时推送"
     : "轮询刷新";
 
+  React.useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  const navigationProjectRoot = isHydrated ? projectRoot : null;
+
   return (
     <nav className="admin-sidebar flex h-full w-72 flex-col" aria-label="Main navigation">
       {/* Logo */}
       <div className="flex h-20 items-center border-b border-border/80 px-6">
         <Link
-          href={buildProjectScopedPath("/", projectRoot)}
+          href={buildProjectScopedPath("/", navigationProjectRoot)}
           className="flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
           aria-label="LRAC Home"
         >
@@ -118,7 +126,7 @@ export function Sidebar() {
       {/* Navigation */}
       <div className="flex-1 space-y-1 px-4 py-5 overflow-y-auto" role="navigation">
         {navigation.map((item) => {
-          const targetHref = buildProjectScopedPath(item.href, projectRoot);
+          const targetHref = buildProjectScopedPath(item.href, navigationProjectRoot);
           const isActive =
             pathname === item.href || (item.href === "/tasks-log" && pathname === "/terminal");
           const Icon = item.icon;

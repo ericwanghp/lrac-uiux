@@ -11,7 +11,7 @@ import type {
   UserSettingsEnvelope,
 } from "@/lib/types";
 import type { MemberCredentialRecord } from "@/lib/types/auth";
-import { getCurrentProjectRoot } from "@/lib/utils/file-operations";
+import { PROJECT_ROOT, getCurrentProjectRoot } from "@/lib/utils/file-operations";
 import { readProjectSettings } from "@/lib/utils/project-settings-operations";
 
 const SESSION_TTL_MS = 1000 * 60 * 60 * 12;
@@ -24,7 +24,11 @@ function createEmptyCredentials(): MemberCredentialsEnvelope {
   return { version: "1.0", credentials: [] };
 }
 
-async function getConfigPath(fileName: string, projectRoot?: string | null): Promise<string> {
+async function getConfigPath(fileName: string): Promise<string> {
+  return path.join(PROJECT_ROOT, ".auto-coding", "config", fileName);
+}
+
+async function getLegacyConfigPath(fileName: string, projectRoot?: string | null): Promise<string> {
   return path.join(await getCurrentProjectRoot(projectRoot), ".auto-coding", "config", fileName);
 }
 
@@ -45,26 +49,53 @@ async function writeEnvelope(filePath: string, payload: unknown): Promise<void> 
   await fs.writeFile(filePath, JSON.stringify(payload, null, 2), "utf-8");
 }
 
-async function readAuthSessions(projectRoot?: string | null): Promise<AuthSessionsEnvelope> {
-  return readEnvelope(await getConfigPath("auth-sessions.json", projectRoot), createEmptySessions());
+async function readAuthSessions(): Promise<AuthSessionsEnvelope> {
+  return readEnvelope(await getConfigPath("auth-sessions.json"), createEmptySessions());
 }
 
-async function writeAuthSessions(data: AuthSessionsEnvelope, projectRoot?: string | null): Promise<void> {
-  await writeEnvelope(await getConfigPath("auth-sessions.json", projectRoot), data);
+async function writeAuthSessions(data: AuthSessionsEnvelope): Promise<void> {
+  await writeEnvelope(await getConfigPath("auth-sessions.json"), data);
+}
+
+async function migrateLegacyCredentials(
+  projectRoot?: string | null
+): Promise<MemberCredentialsEnvelope | null> {
+  const resolvedProjectRoot = await getCurrentProjectRoot(projectRoot);
+  if (resolvedProjectRoot === PROJECT_ROOT) {
+    return null;
+  }
+
+  const globalCredentials = await readEnvelope(
+    await getConfigPath("member-credentials.json"),
+    createEmptyCredentials()
+  );
+  if (globalCredentials.credentials.length > 0) {
+    return globalCredentials;
+  }
+
+  const legacyCredentials = await readEnvelope(
+    await getLegacyConfigPath("member-credentials.json", resolvedProjectRoot),
+    createEmptyCredentials()
+  );
+  if (legacyCredentials.credentials.length === 0) {
+    return null;
+  }
+
+  await writeEnvelope(await getConfigPath("member-credentials.json"), legacyCredentials);
+  return legacyCredentials;
 }
 
 async function readMemberCredentials(projectRoot?: string | null): Promise<MemberCredentialsEnvelope> {
-  return readEnvelope(
-    await getConfigPath("member-credentials.json", projectRoot),
-    createEmptyCredentials()
-  );
+  const migratedCredentials = await migrateLegacyCredentials(projectRoot);
+  if (migratedCredentials) {
+    return migratedCredentials;
+  }
+
+  return readEnvelope(await getConfigPath("member-credentials.json"), createEmptyCredentials());
 }
 
-async function writeMemberCredentials(
-  data: MemberCredentialsEnvelope,
-  projectRoot?: string | null
-): Promise<void> {
-  await writeEnvelope(await getConfigPath("member-credentials.json", projectRoot), data);
+async function writeMemberCredentials(data: MemberCredentialsEnvelope): Promise<void> {
+  await writeEnvelope(await getConfigPath("member-credentials.json"), data);
 }
 
 function hashPassword(password: string, salt: string): string {
@@ -95,14 +126,14 @@ export async function setMemberPassword(input: {
     credentials.credentials[index] = nextRecord;
   }
 
-  await writeMemberCredentials(credentials, input.projectRoot);
+  await writeMemberCredentials(credentials);
 }
 
 async function findProjectMember(
   memberId: string,
-  projectRoot?: string | null
+  _projectRoot?: string | null
 ): Promise<{ member: ProjectMember | null; settings: UserSettingsEnvelope }> {
-  const settings = await readProjectSettings(projectRoot);
+  const settings = await readProjectSettings();
   const member =
     settings.settings.communication.members.find((entry) => entry.id === memberId && entry.active) ?? null;
   return { member, settings };
@@ -144,23 +175,22 @@ export async function createAuthSession(input: {
     expiresAt: new Date(now + SESSION_TTL_MS).toISOString(),
   };
 
-  const sessions = await readAuthSessions(projectRoot);
+  const sessions = await readAuthSessions();
   sessions.sessions = sessions.sessions
     .filter((entry: AuthSession) => entry.memberId !== member.id && new Date(entry.expiresAt).getTime() > now)
     .concat(session);
-  await writeAuthSessions(sessions, projectRoot);
+  await writeAuthSessions(sessions);
 
   return { token, member, projectRoot };
 }
 
 export async function deleteAuthSession(
   token: string,
-  projectRoot?: string | null
+  _projectRoot?: string | null
 ): Promise<void> {
-  const resolvedProjectRoot = await getCurrentProjectRoot(projectRoot);
-  const sessions = await readAuthSessions(resolvedProjectRoot);
+  const sessions = await readAuthSessions();
   sessions.sessions = sessions.sessions.filter((entry: AuthSession) => entry.token !== token);
-  await writeAuthSessions(sessions, resolvedProjectRoot);
+  await writeAuthSessions(sessions);
 }
 
 export async function getCurrentAuthSession(
@@ -173,14 +203,10 @@ export async function getCurrentAuthSession(
     return { member: null, projectRoot: resolvedProjectRoot, token: null };
   }
 
-  const [sessions, settings] = await Promise.all([
-    readAuthSessions(resolvedProjectRoot),
-    readProjectSettings(resolvedProjectRoot),
-  ]);
+  const [sessions, settings] = await Promise.all([readAuthSessions(), readProjectSettings()]);
   const now = Date.now();
   const activeSessions = sessions.sessions.filter(
-    (entry: AuthSession) =>
-      entry.projectRoot === resolvedProjectRoot && entry.token === token && new Date(entry.expiresAt).getTime() > now
+    (entry: AuthSession) => entry.token === token && new Date(entry.expiresAt).getTime() > now
   );
 
   if (activeSessions.length === 0) {

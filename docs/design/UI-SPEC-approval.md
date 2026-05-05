@@ -2,7 +2,7 @@
 
 ## Overview
 
-Design approval and review interface with approval cards, comment threads, and action buttons.
+Design approval and review interface with approval cards, comment threads, and action buttons. Reviewers authenticate with shared workspace Team accounts, while each approval card still represents a gate or document decision within the current project.
 
 ## Design Files
 
@@ -195,13 +195,15 @@ const statusColors = {
 
 ### Approval Flow
 
-1. User views design preview
-2. User reads comments (if any)
-3. User clicks: Approve / Request Changes / Reject
-4. Confirmation dialog appears (for reject)
-5. Optional: Add comment
-6. Toast notification confirms action
-7. Card status updates
+1. User opens the approval for the current project
+2. Shared Team reviewer identity is visible in the header
+3. User views design preview
+4. User reads comments (if any)
+5. User clicks: Approve / Request Changes / Reject
+6. Confirmation dialog appears (for reject)
+7. Optional: Add comment
+8. Toast notification confirms action
+9. Card status updates for the current project's approval record
 
 ### Comment Flow
 
@@ -234,6 +236,8 @@ const statusColors = {
 
 - [ ] Design preview displays correctly
 - [ ] All three approval actions work (Approve, Request Changes, Reject)
+- [ ] Shared Team reviewer context is visible
+- [ ] Approval card clearly remains scoped to the current project
 - [ ] Confirmation dialog appears for Reject
 - [ ] Comments can be added and displayed
 - [ ] Status badge updates after action

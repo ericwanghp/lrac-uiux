@@ -36,7 +36,7 @@ export function MemberAuthPanel() {
     }
 
     void (async () => {
-      const response = await fetch(buildProjectScopedPath("/api/settings", projectRoot), {
+      const response = await fetch("/api/settings", {
         cache: "no-store",
       });
       const payload = (await response.json().catch(() => null)) as SettingsResponse | null;
@@ -140,7 +140,9 @@ export function MemberAuthPanel() {
             <div className="space-y-3">
               <div>
                 <p className="text-sm font-semibold text-foreground">Member Sign In</p>
-                <p className="text-xs text-muted-foreground">Use a project member account to process approvals.</p>
+                <p className="text-xs text-muted-foreground">
+                  Use a shared team account to process approvals across projects.
+                </p>
               </div>
               <div className="space-y-2">
                 <Select value={selectedMemberId} onValueChange={setSelectedMemberId}>

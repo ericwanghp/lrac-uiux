@@ -309,8 +309,13 @@ export default function ApprovalPage() {
           <p className="admin-kicker mb-2">Review Workspace</p>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Approval Review</h1>
           <p className="text-muted-foreground">
-            Review real project documents and persist approval decisions in the admin backend.
+            Review project documents with your shared team account. Approval gates and decisions remain scoped to the current project.
           </p>
+          {currentMember ? (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Reviewer: {currentMember.name} · {currentMember.role} · shared team account
+            </p>
+          ) : null}
           {projectRoot ? (
             <p className="mt-1 text-xs text-muted-foreground">Project: {projectRoot}</p>
           ) : null}
@@ -605,7 +610,7 @@ export default function ApprovalPage() {
             <CardHeader>
               <h2 className="text-lg font-semibold text-foreground">Approval Queue</h2>
               <p className="text-sm text-muted-foreground">
-                {approvals.length} document(s) available
+                {approvals.length} document(s) available for this project
               </p>
             </CardHeader>
             <CardContent className="space-y-2">

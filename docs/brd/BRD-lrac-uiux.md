@@ -27,7 +27,7 @@ Build a modern web-based management frontend for the Auto-Coding Framework that 
 
 ### 1.3 Target Users
 
-**Primary User**: Single developer/product manager using Auto-Coding Framework
+**Primary User**: Developer, product manager, or reviewer using Auto-Coding Framework with shared workspace Team accounts
 
 - **Demographics**: Software developers, product managers, AI engineers
 - **Technical Level**: Intermediate to advanced
@@ -166,11 +166,11 @@ So that I can resume work without losing context.
 
 | Item                         | Reason                                                                 |
 | ---------------------------- | ---------------------------------------------------------------------- |
-| **Multi-user Collaboration** | Single-user MVP first; team features in future version                 |
+| **Multi-user Collaboration** | Real-time co-editing is still out of scope, but shared Team accounts and approval roles are already part of the product model |
 | **Code Editing**             | CLI handles file operations; web focuses on visualization/confirmation |
 | **Agent Configuration**      | Agents are configured via framework; web displays execution            |
 | **Mobile App**               | Responsive web first; native app if demand exists                      |
-| **Payment/Billing**          | Free for single-user; no billing system needed initially               |
+| **Payment/Billing**          | Free local-first product; no billing system needed initially           |
 | **Plugin System**            | Core features first; extensibility later                               |
 
 ---
@@ -253,7 +253,7 @@ So that I can resume work without losing context.
 | **Local-first Architecture** | Must work without internet; cloud optional         |
 | **CLI Integration**          | Web reads/writes to existing `.auto-coding/` files |
 | **File-based Storage**       | tasks.json, progress.txt compatibility required    |
-| **Single User MVP**          | No authentication/authorization complexity         |
+| **Workspace Team Model**     | Shared Team accounts and approval policy must stay global across projects while runtime workflow data remains project-scoped |
 
 ### 5.2 Resource Constraints
 
@@ -331,12 +331,12 @@ So that I can resume work without losing context.
 
 ### 7.2 Future Enhancements (Months 2-6)
 
-**Multi-user Collaboration**:
+**Expanded Shared-Team Workflows**:
 
-- User authentication
-- Team workspaces
+- Richer authentication UX
+- Deeper Team workspace management
 - Real-time collaboration
-- Permissions and roles
+- More granular permissions and roles
 
 **Advanced Features**:
 
@@ -405,7 +405,7 @@ Full competitive analysis available at: `docs/research/COMPETITIVE-ANALYSIS-ai-a
 - Data persistence: Architect's decision (file-based vs database)
 - CLI relationship: Complementary (Web for interaction, CLI for execution)
 - Deployment: Multiple options support
-- User system: Single-user MVP first
+- User system: shared workspace Team accounts with project-scoped workflow runtime
 - Scope: Full 8-phase coverage
 - Real-time: Hybrid approach (WebSocket for critical, polling for logs)
 - Terminal: Styled by content type (terminal for code, structured for info)

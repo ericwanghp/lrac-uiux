@@ -1,5 +1,7 @@
 # Architecture: IMAC Claude CLI Terminal Orchestration
 
+> Current reference: see [CURRENT-SYSTEM-MODEL.md](./CURRENT-SYSTEM-MODEL.md) for the latest global-vs-project boundary used by the running product.
+
 ## 1. Purpose
 
 定义 IMAC ADD 的执行架构：前端终端、Claude CLI 执行层、事件总线、交互卡片触发机制、主从终端会话编排与可审计存储。
@@ -9,6 +11,7 @@
 ```text
 Browser Terminal Workspace
   -> Next.js API Gateway
+    -> Workspace Settings / Team Store
     -> Session Orchestrator
       -> Claude CLI Runner
       -> Event Normalizer
@@ -32,6 +35,13 @@ Browser Terminal Workspace
 - 分发命令到 CLI Runner
 - 管理 parent-child session 拓扑
 - 聚合关键交互事件
+
+### 3.2A Workspace Settings / Team Store
+
+- 存储 workspace-wide Settings、Team、Approval policy
+- 为所有项目提供共享成员目录与 approver 配置
+- 不直接承载项目运行态数据（tasks / inbox / phase-gates）
+- 支持从旧项目级配置迁移到全局配置
 
 ### 3.3 Claude CLI Runner
 
@@ -61,6 +71,7 @@ Browser Terminal Workspace
 - `id`
 - `parent_session_id`
 - `session_type` (`pm_main` | `task_child`)
+- `project_root`
 - `feature_id`
 - `status`
 - `created_at`
@@ -80,11 +91,26 @@ Browser Terminal Workspace
 
 - `id`
 - `session_id`
+- `project_root`
 - `ticket_type` (`question` | `approval` | `human_routing`)
 - `assignee`
 - `status`
 - `due_at`
 - `resolved_at`
+
+### 4.4 workspace_settings
+
+- `id`
+- `settings_json`
+- `updated_at`
+
+### 4.5 workspace_members
+
+- `member_id`
+- `role`
+- `credential_hash`
+- `active`
+- `updated_at`
 
 ## 5. Event Contract
 
@@ -103,6 +129,12 @@ Browser Terminal Workspace
 
 ## 6. API Design (V1)
 
+- `GET /api/settings`
+- `PATCH /api/settings`
+- `POST /api/members/password`
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `GET /api/auth/session`
 - `POST /api/terminal/sessions`
 - `POST /api/terminal/sessions/{id}/commands`
 - `GET /api/terminal/sessions/{id}/events?afterSeq=`
@@ -130,7 +162,8 @@ Browser Terminal Workspace
 
 - 命令策略控制（allowlist + denylist）
 - 输出脱敏（token/key/url）
-- session 与 project 强绑定
+- workspace 级成员身份与凭据统一管理
+- session、inbox、approval gate 与 project 强绑定
 - 关键交互事件审计不可变
 
 ## 10. Rollout

@@ -1,18 +1,21 @@
 "use client";
 
 import * as React from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import {
   ChevronLeft,
   ChevronRight,
   CircleDot,
   FolderOpen,
+  GripVertical,
   LayoutPanelLeft,
   Play,
   Square,
   TerminalSquare,
   X,
 } from "lucide-react";
+import { ClaudeCliGitInsights } from "@/components/claude-cli/claude-cli-git-insights";
 import { ClaudeCliTerminalPanel } from "@/components/claude-cli/claude-cli-terminal-panel";
 import { useActiveTheme } from "@/components/claude-cli/use-active-theme";
 import { Button } from "@/components/ui/button";
@@ -34,7 +37,11 @@ import {
   consumeClaudeCliLaunchIntent,
   type ClaudeCliLaunchIntent,
 } from "@/lib/utils/claude-cli-launch-intent";
-import { buildProjectScopedPath } from "@/lib/utils/project-selection";
+import {
+  buildProjectNavigationPath,
+  buildProjectScopedPath,
+  persistProjectSelection,
+} from "@/lib/utils/project-selection";
 import { cn } from "@/lib/utils";
 
 type BootstrapResponse = {
@@ -86,6 +93,14 @@ type StoredClaudeCliLaunchOptions = Omit<ClaudeCliLaunchOptions, "defaultPrompt"
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "lrac-uiux:claude-cli-sidebar-collapsed";
 const SIDEBAR_PANEL_STORAGE_KEY = "lrac-uiux:claude-cli-sidebar-panel";
 const LAUNCH_OPTIONS_STORAGE_KEY = "lrac-uiux:claude-cli-launch-options";
+const DETAILS_PANEL_WIDTH_STORAGE_KEY = "lrac-uiux:claude-cli-details-panel-width";
+const GIT_PANEL_WIDTH_STORAGE_KEY = "lrac-uiux:claude-cli-git-panel-width";
+const DEFAULT_DETAILS_PANEL_WIDTH = 296;
+const DEFAULT_GIT_PANEL_WIDTH = 720;
+const MIN_DETAILS_PANEL_WIDTH = 240;
+const MAX_DETAILS_PANEL_WIDTH = 440;
+const MIN_GIT_PANEL_WIDTH = 460;
+const MAX_GIT_PANEL_WIDTH = 1120;
 const DEFAULT_LAUNCH_OPTIONS: ClaudeCliLaunchOptions = {
   defaultPrompt: "",
   continueWithRecentContext: false,
@@ -120,7 +135,51 @@ function compactSessionId(sessionId: string): string {
   return sessionId.length > 14 ? `${sessionId.slice(0, 6)}...${sessionId.slice(-4)}` : sessionId;
 }
 
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function getDetailsPanelMaxWidth() {
+  if (typeof window === "undefined") {
+    return MAX_DETAILS_PANEL_WIDTH;
+  }
+
+  return Math.min(MAX_DETAILS_PANEL_WIDTH, Math.max(MIN_DETAILS_PANEL_WIDTH, window.innerWidth * 0.36));
+}
+
+function getGitPanelMaxWidth() {
+  if (typeof window === "undefined") {
+    return MAX_GIT_PANEL_WIDTH;
+  }
+
+  return Math.min(MAX_GIT_PANEL_WIDTH, Math.max(MIN_GIT_PANEL_WIDTH, window.innerWidth * 0.58));
+}
+
+interface ClaudeCliResizeHandleProps {
+  onMouseDown: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  label: string;
+}
+
+function ClaudeCliResizeHandle({ onMouseDown, label }: ClaudeCliResizeHandleProps) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      onMouseDown={onMouseDown}
+      className={cn(
+        "group relative mx-1 flex w-3 shrink-0 cursor-col-resize select-none items-center justify-center self-stretch",
+        "rounded-full bg-transparent transition-colors hover:bg-primary/6"
+      )}
+    >
+      <span className="absolute inset-y-2 left-1/2 w-px -translate-x-1/2 rounded-full bg-border/70 transition-colors group-hover:bg-primary/50" />
+      <GripVertical className="relative z-10 h-3.5 w-3.5 text-muted-foreground/65 transition-colors group-hover:text-primary" />
+    </button>
+  );
+}
+
 export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const themeMode = useActiveTheme();
   const [open, setOpen] = React.useState(false);
   const [isMounted, setIsMounted] = React.useState(false);
@@ -145,6 +204,13 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
     React.useState<ClaudeCliLaunchOptions>(DEFAULT_LAUNCH_OPTIONS);
   const [runningSessions, setRunningSessions] = React.useState<ClaudeCliSessionDescriptor[]>([]);
   const [isLauncherHovered, setIsLauncherHovered] = React.useState(false);
+  const [detailsPanelWidth, setDetailsPanelWidth] = React.useState(DEFAULT_DETAILS_PANEL_WIDTH);
+  const [gitPanelWidth, setGitPanelWidth] = React.useState(DEFAULT_GIT_PANEL_WIDTH);
+  const resizeSessionRef = React.useRef<{
+    panel: "details" | "git";
+    startX: number;
+    startWidth: number;
+  } | null>(null);
 
   const clearManualDefaultPrompt = React.useCallback(() => {
     setLaunchOptions((current) => ({
@@ -152,6 +218,33 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
       defaultPrompt: "",
     }));
   }, []);
+
+  const syncWorkspaceProjectContext = React.useCallback(
+    (nextProjectRoot: string, nextProjectName?: string | null) => {
+      if (!nextProjectRoot) {
+        return;
+      }
+
+      setCurrentProjectRoot(nextProjectRoot);
+      setSelectedProjectRoot(nextProjectRoot);
+      setCustomProjectRoot("");
+      if (nextProjectName?.trim()) {
+        setCurrentProjectName(nextProjectName);
+      }
+
+      persistProjectSelection(nextProjectRoot);
+
+      if (typeof window !== "undefined") {
+        const nextPath = buildProjectNavigationPath(pathname, nextProjectRoot, window.location.search);
+        router.replace(nextPath);
+        router.refresh();
+        window.dispatchEvent(
+          new CustomEvent("lrac:project-changed", { detail: { projectRoot: nextProjectRoot } })
+        );
+      }
+    },
+    [pathname, router]
+  );
 
   const applyLaunchIntent = React.useCallback((intent: ClaudeCliLaunchIntent) => {
     if (intent.launchOptions) {
@@ -278,6 +371,22 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
         console.warn("Failed to parse Claude CLI launch options from local storage.", storageError);
       }
     }
+
+    const storedDetailsPanelWidth = window.localStorage.getItem(DETAILS_PANEL_WIDTH_STORAGE_KEY);
+    if (storedDetailsPanelWidth) {
+      const parsed = Number(storedDetailsPanelWidth);
+      if (Number.isFinite(parsed)) {
+        setDetailsPanelWidth(clamp(parsed, MIN_DETAILS_PANEL_WIDTH, getDetailsPanelMaxWidth()));
+      }
+    }
+
+    const storedGitPanelWidth = window.localStorage.getItem(GIT_PANEL_WIDTH_STORAGE_KEY);
+    if (storedGitPanelWidth) {
+      const parsed = Number(storedGitPanelWidth);
+      if (Number.isFinite(parsed)) {
+        setGitPanelWidth(clamp(parsed, MIN_GIT_PANEL_WIDTH, getGitPanelMaxWidth()));
+      }
+    }
   }, []);
 
   React.useEffect(() => {
@@ -331,6 +440,90 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
     };
     window.localStorage.setItem(LAUNCH_OPTIONS_STORAGE_KEY, JSON.stringify(storedLaunchOptions));
   }, [isMounted, launchOptions]);
+
+  React.useEffect(() => {
+    if (!isMounted || typeof window === "undefined") {
+      return;
+    }
+
+    window.localStorage.setItem(DETAILS_PANEL_WIDTH_STORAGE_KEY, String(detailsPanelWidth));
+  }, [detailsPanelWidth, isMounted]);
+
+  React.useEffect(() => {
+    if (!isMounted || typeof window === "undefined") {
+      return;
+    }
+
+    window.localStorage.setItem(GIT_PANEL_WIDTH_STORAGE_KEY, String(gitPanelWidth));
+  }, [gitPanelWidth, isMounted]);
+
+  React.useEffect(() => {
+    if (!isMounted || typeof window === "undefined") {
+      return;
+    }
+
+    const handleWindowResize = () => {
+      setDetailsPanelWidth((current) => clamp(current, MIN_DETAILS_PANEL_WIDTH, getDetailsPanelMaxWidth()));
+      setGitPanelWidth((current) => clamp(current, MIN_GIT_PANEL_WIDTH, getGitPanelMaxWidth()));
+    };
+
+    window.addEventListener("resize", handleWindowResize);
+    return () => window.removeEventListener("resize", handleWindowResize);
+  }, [isMounted]);
+
+  React.useEffect(() => {
+    if (!isMounted || typeof window === "undefined") {
+      return;
+    }
+
+    const handlePointerMove = (event: MouseEvent) => {
+      const resizeSession = resizeSessionRef.current;
+      if (!resizeSession) {
+        return;
+      }
+
+      const deltaX = event.clientX - resizeSession.startX;
+
+      if (resizeSession.panel === "details") {
+        setDetailsPanelWidth(
+          clamp(resizeSession.startWidth + deltaX, MIN_DETAILS_PANEL_WIDTH, getDetailsPanelMaxWidth())
+        );
+        return;
+      }
+
+      setGitPanelWidth(
+        clamp(resizeSession.startWidth - deltaX, MIN_GIT_PANEL_WIDTH, getGitPanelMaxWidth())
+      );
+    };
+
+    const stopResize = () => {
+      resizeSessionRef.current = null;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+
+    window.addEventListener("mousemove", handlePointerMove);
+    window.addEventListener("mouseup", stopResize);
+
+    return () => {
+      window.removeEventListener("mousemove", handlePointerMove);
+      window.removeEventListener("mouseup", stopResize);
+    };
+  }, [isMounted]);
+
+  const beginPanelResize = React.useCallback(
+    (panel: "details" | "git", startWidth: number) => (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      resizeSessionRef.current = {
+        panel,
+        startX: event.clientX,
+        startWidth,
+      };
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+    },
+    []
+  );
 
   React.useEffect(() => {
     if (!open) {
@@ -388,6 +581,7 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
         setActiveSession(startedSession);
         setSessionTabs((current) => upsertSessionTab(current, startedSession));
         setActiveSessionId(startedSession.sessionId);
+        syncWorkspaceProjectContext(startedSession.projectRoot, startedSession.projectName);
         if (targetProjectRoot === currentProjectRoot) {
           setCurrentProjectSession(startedSession);
         }
@@ -398,7 +592,7 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
         setIsStarting(false);
       }
     },
-    [currentProjectRoot, launchOptions, projectRoot, refreshRunningSessions]
+    [currentProjectRoot, launchOptions, projectRoot, refreshRunningSessions, syncWorkspaceProjectContext]
   );
 
   const loadSessionStatus = React.useCallback(
@@ -781,6 +975,7 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
                 if (isSidebarCollapsed) {
                   setIsSidebarCollapsed(false);
                 }
+                syncWorkspaceProjectContext(currentProjectRoot, currentProjectName);
                 void launchSession(currentProjectRoot);
               }}
               disabled={isBootstrapping || isStarting || !currentProjectRoot}
@@ -826,14 +1021,7 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
           </div>
         </div>
 
-        <div
-          className={cn(
-            "grid min-h-0 flex-1 gap-4 overflow-hidden p-4 lg:gap-5 lg:p-5",
-            isSidebarCollapsed
-              ? "grid-cols-[72px_minmax(0,1fr)]"
-              : "grid-cols-[72px_280px_minmax(0,1fr)] 2xl:grid-cols-[72px_300px_minmax(0,1fr)]"
-          )}
-        >
+        <div className="flex min-h-0 flex-1 overflow-hidden p-3 lg:p-4">
           <div className="claude-cli-sidebar flex min-h-0 flex-col overflow-hidden rounded-[1.5rem] border border-border/80 bg-card/72 px-2 py-3">
             <div className="flex flex-col gap-2">
               {sidebarItems.map((item) => {
@@ -875,83 +1063,108 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
           </div>
 
           {!isSidebarCollapsed ? (
-            <div className="claude-cli-sidebar flex min-h-0 flex-col overflow-hidden rounded-[1.5rem] border border-border/80 bg-card/72">
-              <div className="border-b border-border/70 px-5 py-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-                  {activeSidebarItem.label}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">{activeSidebarItem.description}</p>
+            <>
+              <ClaudeCliResizeHandle
+                label="Resize Claude workspace details panel"
+                onMouseDown={beginPanelResize("details", detailsPanelWidth)}
+              />
+              <div
+                className="claude-cli-sidebar flex min-h-0 shrink-0 flex-col overflow-hidden rounded-[1.5rem] border border-border/80 bg-card/72"
+                style={{ width: detailsPanelWidth }}
+              >
+                <div className="border-b border-border/70 px-5 py-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                    {activeSidebarItem.label}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">{activeSidebarItem.description}</p>
+                </div>
+                <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+                  {renderSidebarContent()}
+                  {error ? (
+                    <div className="mt-4 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-700">
+                      {error}
+                    </div>
+                  ) : null}
+                </div>
               </div>
-              <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-                {renderSidebarContent()}
-                {error ? (
-                  <div className="mt-4 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-700">
-                    {error}
-                  </div>
-                ) : null}
-              </div>
-            </div>
+            </>
           ) : null}
 
-          <div className="flex min-h-0 flex-col overflow-hidden">
-            {sessionTabs.length > 0 ? (
-              <div className="mb-3 flex items-center gap-2 overflow-x-auto rounded-[1.2rem] border border-border/75 bg-card/70 px-3 py-2">
-                {sessionTabs.map((session) => {
-                  const isActive = session.sessionId === activeSessionId;
+          <div className="ml-1.5 flex min-w-0 flex-1 overflow-hidden">
+            <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+              {sessionTabs.length > 0 ? (
+                <div className="mb-2.5 flex items-center gap-2 overflow-x-auto rounded-[1.2rem] border border-border/75 bg-card/70 px-3 py-2">
+                  {sessionTabs.map((session) => {
+                    const isActive = session.sessionId === activeSessionId;
 
-                  return (
-                    <button
-                      key={session.sessionId}
-                      type="button"
-                      onClick={() => {
-                        setActiveSessionId(session.sessionId);
-                        setActiveSession(session);
-                      }}
-                      className={cn(
-                        "inline-flex min-w-0 max-w-[260px] items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition-colors",
-                        isActive
-                          ? "border-primary/30 bg-primary/12 text-primary"
-                          : "border-border/70 bg-background/80 text-muted-foreground hover:bg-background hover:text-foreground"
-                      )}
-                      aria-label={`Switch to ${session.projectName}`}
-                    >
-                      <span
+                    return (
+                      <button
+                        key={session.sessionId}
+                        type="button"
+                        onClick={() => {
+                          setActiveSessionId(session.sessionId);
+                          setActiveSession(session);
+                          setCurrentProjectSession(session);
+                          syncWorkspaceProjectContext(session.projectRoot, session.projectName);
+                        }}
                         className={cn(
-                          "h-2 w-2 rounded-full",
-                          session.active ? "bg-emerald-400" : "bg-slate-400"
+                          "inline-flex min-w-0 max-w-[260px] items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition-colors",
+                          isActive
+                            ? "border-primary/30 bg-primary/12 text-primary"
+                            : "border-border/70 bg-background/80 text-muted-foreground hover:bg-background hover:text-foreground"
                         )}
-                      />
-                      <span className="truncate font-medium">{session.projectName}</span>
-                      <span className="truncate text-[10px] uppercase tracking-[0.14em] opacity-70">
-                        {compactSessionId(session.sessionId)}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            ) : null}
-            {isBootstrapping ? (
-              <div className="admin-empty-state flex h-full min-h-[480px] items-center justify-center rounded-[1.8rem] px-8 text-sm">
-                Loading Claude Code terminal service...
-              </div>
-            ) : activeSession && wsBaseUrl ? (
-              <ClaudeCliTerminalPanel
-                key={`${activeSession.sessionId}:${activeSession.projectRoot}`}
-                sessionId={activeSession.sessionId}
-                projectRoot={activeSession.projectRoot}
-                wsBaseUrl={wsBaseUrl}
-                themeMode={themeMode}
-                onSessionExit={handleSessionExit}
+                        aria-label={`Switch to ${session.projectName}`}
+                      >
+                        <span
+                          className={cn(
+                            "h-2 w-2 rounded-full",
+                            session.active ? "bg-emerald-400" : "bg-slate-400"
+                          )}
+                        />
+                        <span className="truncate font-medium">{session.projectName}</span>
+                        <span className="truncate text-[10px] uppercase tracking-[0.14em] opacity-70">
+                          {compactSessionId(session.sessionId)}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : null}
+              {isBootstrapping ? (
+                <div className="admin-empty-state flex h-full min-h-[480px] items-center justify-center rounded-[1.8rem] px-8 text-sm">
+                  Loading Claude Code terminal service...
+                </div>
+              ) : activeSession && wsBaseUrl ? (
+                <ClaudeCliTerminalPanel
+                  key={`${activeSession.sessionId}:${activeSession.projectRoot}`}
+                  sessionId={activeSession.sessionId}
+                  projectRoot={activeSession.projectRoot}
+                  wsBaseUrl={wsBaseUrl}
+                  themeMode={themeMode}
+                  onSessionExit={handleSessionExit}
+                />
+              ) : (
+                <div className="admin-empty-state flex h-full min-h-[480px] flex-col items-center justify-center rounded-[1.8rem] px-8 text-center">
+                  <TerminalSquare className="mb-4 h-12 w-12 text-primary/70" />
+                  <p className="text-base font-medium text-foreground">No Claude Code session open yet</p>
+                  <p className="mt-2 max-w-lg text-sm text-muted-foreground">
+                    Start the current project or open another workspace project to attach an interactive Claude Code CLI terminal here.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <ClaudeCliResizeHandle
+              label="Resize Claude workspace Git insights panel"
+              onMouseDown={beginPanelResize("git", gitPanelWidth)}
+            />
+
+            <div className="min-h-0 shrink-0" style={{ width: gitPanelWidth }}>
+              <ClaudeCliGitInsights
+                className="h-full"
+                projectRoot={displayedSession?.projectRoot || currentProjectRoot || null}
               />
-            ) : (
-              <div className="admin-empty-state flex h-full min-h-[480px] flex-col items-center justify-center rounded-[1.8rem] px-8 text-center">
-                <TerminalSquare className="mb-4 h-12 w-12 text-primary/70" />
-                <p className="text-base font-medium text-foreground">No Claude Code session open yet</p>
-                <p className="mt-2 max-w-lg text-sm text-muted-foreground">
-                  Start the current project or open another workspace project to attach an interactive Claude Code CLI terminal here.
-                </p>
-              </div>
-            )}
+            </div>
           </div>
         </div>
         <div className="claude-cli-statusbar flex items-center gap-3 border-t border-border/70 px-3 py-2 text-[11px] text-muted-foreground lg:px-4">

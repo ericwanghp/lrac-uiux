@@ -27,11 +27,11 @@ The Auto-Coding Framework Management Frontend is a web-based interface that tran
 
 **Non-Goals** (from BRD):
 
-- Multi-user collaboration (single-user MVP)
+- Real-time collaborative editing
 - Code editing (CLI handles file operations)
 - Agent configuration (framework handles this)
 - Mobile app (responsive web first)
-- Payment/billing (free for single-user)
+- Payment/billing (free local-first product)
 - Plugin system (core features first)
 
 ### 1.3 Success Metrics
@@ -194,7 +194,7 @@ So that I can reference them without switching contexts.
 **Phase**: Phase 1-3
 
 **Description**:
-Visual review and approval workflow for BRD, PRD, and Architecture documents.
+Visual review and approval workflow for BRD, PRD, and Architecture documents, using shared workspace Team accounts while keeping approval records and gates scoped to the current project.
 
 **Functional Requirements**:
 
@@ -592,7 +592,7 @@ Phase 5 view displays
 **Data Storage**:
 
 - Primary: File system (`.auto-coding/`, `docs/`, `.stitch/`)
-- Cache: LocalStorage for user preferences
+- Cache: LocalStorage for lightweight client preferences
 - Optional: SQLite for analytics
 
 ### 4.2 File System Integration
@@ -625,8 +625,9 @@ fs.readFile(".stitch/DESIGN.md");
 // Q&A answers
 fs.writeFile(".auto-coding/qa-sessions/{session-id}.json");
 
-// Document approval
-fs.writeFile("docs/brd/BRD-{project}.md", updatedContent);
+// Project approval runtime data
+fs.writeFile(".auto-coding/approvals/records.json", updatedApprovalRecords);
+fs.writeFile(".auto-coding/phase-gates/gates.json", updatedPhaseGates);
 
 // Task status update
 fs.writeFile(".auto-coding/tasks.json", updatedTasks);
@@ -647,13 +648,15 @@ fs.writeFile(".auto-coding/tasks.json", updatedTasks);
 - `GET /api/projects/:id/tasks/:taskId` - Get task details
 - `PATCH /api/projects/:id/tasks/:taskId` - Update task status
 
-**Documents**:
+**Settings / Team / Approval**:
 
-- `GET /api/projects/:id/documents/brd` - Get BRD
-- `GET /api/projects/:id/documents/prd` - Get PRD
-- `GET /api/projects/:id/documents/architecture` - Get Architecture
-- `POST /api/projects/:id/documents/brd/approve` - Approve BRD
-- `POST /api/projects/:id/documents/brd/reject` - Reject BRD with feedback
+- `GET /api/settings` - Get workspace settings, Team, approval policy
+- `PATCH /api/settings` - Update workspace settings
+- `POST /api/members/password` - Set shared Team member password
+- `POST /api/auth/login` - Sign in shared Team member
+- `GET /api/auth/session` - Get current Team session
+- `GET /api/inbox?project=:projectRoot` - Get project inbox for current member
+- `GET /api/phase-gates?project=:projectRoot` - Get project approval gates
 
 **Stitch**:
 
@@ -1030,10 +1033,10 @@ npm run export
 
 ## 11. Future Enhancements (Post-MVP)
 
-### 11.1 Multi-user Collaboration (Month 2-3)
+### 11.1 Expanded Shared-Team Workflows (Month 2-3)
 
-- User authentication
-- Team workspaces
+- Stronger authentication UX
+- Team workspace administration
 - Real-time collaboration
 - Comments and mentions
 

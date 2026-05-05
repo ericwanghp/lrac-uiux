@@ -6,7 +6,7 @@
 
 ## Overview
 
-This directory contains detailed UI specifications for each major page/component of the Auto-Coding Framework Management Frontend. Each specification maps design elements to shadcn/ui components with implementation code snippets.
+This directory contains detailed UI specifications for each major page/component of the Auto-Coding Framework Management Frontend. Each specification maps design elements to shadcn/ui components with implementation code snippets. Workspace-wide Settings and Team concepts are shared across projects, while inbox, approval, and task runtime screens remain scoped to the currently selected project.
 
 ---
 
@@ -16,10 +16,10 @@ This directory contains detailed UI specifications for each major page/component
 | ------------------------------------------------------------ | ----------------- | -------------------------------------- |
 | [UI-SPEC-dashboard.md](UI-SPEC-dashboard.md)                 | Dashboard         | Project overview, cards, navigation    |
 | [UI-SPEC-qa.md](UI-SPEC-qa.md)                               | Q&A Interface     | Question forms, answer types, progress |
-| [UI-SPEC-approval.md](UI-SPEC-approval.md)                   | Approval Cards    | Design approval, comments, actions     |
+| [UI-SPEC-approval.md](UI-SPEC-approval.md)                   | Approval Cards    | Shared reviewer context, project approval actions |
 | [UI-SPEC-execution-monitor.md](UI-SPEC-execution-monitor.md) | Execution Monitor | Terminal output, logs, status          |
-| [UI-SPEC-settings.md](UI-SPEC-settings.md)                   | Settings Page     | User preferences, forms, toggles       |
-| [UI-SPEC-pm-dashboard.md](UI-SPEC-pm-dashboard.md)           | PM Dashboard      | Stats, tables, charts, team            |
+| [UI-SPEC-settings.md](UI-SPEC-settings.md)                   | Settings Page     | Workspace settings, Team, approval policy |
+| [UI-SPEC-pm-dashboard.md](UI-SPEC-pm-dashboard.md)           | PM Dashboard      | Stats, tables, charts, project oversight |
 | [UI-SPEC-design-viewer.md](UI-SPEC-design-viewer.md)         | Design Viewer     | Image preview, annotations, zoom       |
 
 ---

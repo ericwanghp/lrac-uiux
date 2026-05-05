@@ -2,16 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { UpdateUserSettingsInputSchema } from "@/lib/validation";
 import { readProjectSettings, writeProjectSettings } from "@/lib/utils/project-settings-operations";
 import { discoverOrchestrationCatalog, normalizeOrchestrationSettings } from "@/lib/utils/orchestration-settings";
-import { getCurrentProjectRoot } from "@/lib/utils/file-operations";
+import { PROJECT_ROOT } from "@/lib/utils/file-operations";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
-    const projectRoot = await getCurrentProjectRoot(request.nextUrl.searchParams.get("project"));
+    const projectRoot = request.nextUrl.searchParams.get("project");
     const [settingsEnvelope, catalog] = await Promise.all([
       readProjectSettings(projectRoot),
-      discoverOrchestrationCatalog(projectRoot),
+      discoverOrchestrationCatalog(PROJECT_ROOT),
     ]);
 
     return NextResponse.json({
@@ -40,14 +40,14 @@ export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
     const validatedInput = UpdateUserSettingsInputSchema.parse(body);
-    const projectRoot = await getCurrentProjectRoot(request.nextUrl.searchParams.get("project"));
+    const projectRoot = request.nextUrl.searchParams.get("project");
     const currentEnvelope = await readProjectSettings(projectRoot);
     const updatedEnvelope = await writeProjectSettings({
       ...currentEnvelope.settings,
       ...validatedInput,
       orchestration: validatedInput.orchestration ?? currentEnvelope.settings.orchestration,
     }, projectRoot);
-    const catalog = await discoverOrchestrationCatalog(projectRoot);
+    const catalog = await discoverOrchestrationCatalog(PROJECT_ROOT);
 
     return NextResponse.json({
       success: true,

@@ -2,7 +2,7 @@
 
 ## Overview
 
-User preferences and configuration page with form inputs, toggles, and settings sections.
+Workspace-wide preferences and configuration page with form inputs, toggles, shared Team management, and approval policy sections. Settings are shared across all projects in the workspace, while project runtime data remains isolated per project.
 
 ## Design File
 
@@ -101,7 +101,7 @@ User preferences and configuration page with form inputs, toggles, and settings 
     <Card>
       <CardHeader>
         <CardTitle>General Settings</CardTitle>
-        <CardDescription>Configure your general preferences</CardDescription>
+        <CardDescription>Configure shared workspace preferences</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">{/* Settings fields */}</CardContent>
     </Card>
@@ -235,10 +235,10 @@ User preferences and configuration page with form inputs, toggles, and settings 
 
 ### General
 
-- Project name
+- Workspace display defaults
 - Default phase
 - Auto-save interval
-- Data directory
+- Shared data directory
 
 ### Appearance
 
@@ -246,6 +246,20 @@ User preferences and configuration page with form inputs, toggles, and settings 
 - Font size (slider)
 - Compact mode toggle
 - Show line numbers toggle
+
+### Team
+
+- Shared member directory
+- Role assignments
+- Password management
+- Active/inactive member state
+
+### Approval Policy
+
+- Phase approver mapping
+- Shared approval roles
+- Approval notification defaults
+- Workspace-wide escalation defaults
 
 ### Notifications
 
@@ -284,6 +298,7 @@ User preferences and configuration page with form inputs, toggles, and settings 
 
 - [ ] Settings navigation sidebar works
 - [ ] All form inputs render with dark theme
+- [ ] Team and approval sections communicate workspace-wide scope clearly
 - [ ] Toggle switches animate correctly
 - [ ] Sliders show current value
 - [ ] Select dropdowns open properly

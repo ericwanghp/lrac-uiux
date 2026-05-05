@@ -9,6 +9,10 @@
 
 ---
 
+> Current reference: see [CURRENT-SYSTEM-MODEL.md](./CURRENT-SYSTEM-MODEL.md) for the latest global-vs-project boundary used by the running product.
+
+---
+
 ## 1. Executive Summary
 
 ### 1.1 Architecture Overview
@@ -37,7 +41,7 @@ The Auto-Coding Framework Management Frontend is a **local-first, file-based web
 | Decision              | Choice                                | Rationale                                   |
 | --------------------- | ------------------------------------- | ------------------------------------------- |
 | **SSG vs SSR**        | SSG (Static Site Generation)          | Fast performance, local-first, no database  |
-| **Authentication**    | None (single-user MVP)                | Simplicity, local deployment                |
+| **Authentication**    | Shared workspace member auth          | Global Team accounts with local file-backed sessions |
 | **Database**          | File-based (tasks.json, progress.txt) | Framework compatibility, no migration       |
 | **Component Library** | shadcn/ui                             | Customizable, Radix UI primitives, Tailwind |
 | **Real-time Updates** | WebSocket (critical) + Polling (logs) | Hybrid approach for efficiency              |
@@ -107,7 +111,7 @@ app/
 │   │   └── pm/
 │   │       └── page.tsx       # Phase 8 PM Dashboard
 ├── settings/
-│   └── page.tsx               # Settings
+│   └── page.tsx               # Workspace settings, Team, approval policy
 └── api/
     ├── projects/
     │   ├── route.ts           # GET /api/projects
@@ -115,8 +119,20 @@ app/
     │       └── route.ts       # GET /api/projects/:id
     ├── qa/
     │   └── route.ts           # POST /api/qa (save answers)
-    ├── approval/
-    │   └── route.ts           # POST /api/approval
+    ├── settings/
+    │   └── route.ts           # GET/PATCH /api/settings
+    ├── auth/
+    │   ├── login/route.ts     # POST /api/auth/login
+    │   ├── logout/route.ts    # POST /api/auth/logout
+    │   └── session/route.ts   # GET /api/auth/session
+    ├── members/
+    │   └── password/route.ts  # POST /api/members/password
+    ├── inbox/
+    │   ├── route.ts           # GET /api/inbox
+    │   └── [id]/route.ts      # PATCH /api/inbox/:id
+    ├── phase-gates/
+    │   ├── route.ts           # GET /api/phase-gates
+    │   └── summary/route.ts   # GET /api/phase-gates/summary
     └── ws/
         └── route.ts           # WebSocket endpoint
 ```
@@ -167,44 +183,56 @@ components/
 
 ### 3.1 File System Structure
 
-The application directly reads/writes to the Auto-Coding Framework's file structure:
+The application directly reads/writes to the Auto-Coding Framework's file structure. Workspace-wide settings live in the app workspace, while runtime workflow data remains inside each project:
 
 ```
-project-root/
-├── .auto-coding/
-│   ├── tasks.json             # Feature list (v3.0)
-│   ├── progress.txt           # Session history
-│   ├── progress-summary.md    # Lightweight summary
-│   ├── qa-sessions/           # Q&A session records
-│   │   ├── session-001.json
-│   │   └── session-002.json
-│   └── config/
-│       ├── mcp.json           # MCP server config
-│       └── test-strategy.json # Test configuration
-├── .stitch/
-│   ├── metadata.json          # Stitch project metadata
-│   ├── DESIGN.md              # Design system
-│   ├── SITE.md                # Site planning
-│   ├── next-prompt.md         # Stitch prompt baton
-│   └── designs/
-│       ├── dashboard.png
-│       ├── qa-interface.png
-│       └── ...
-├── docs/
-│   ├── brd/
-│   │   └── BRD-*.md
-│   ├── prd/
-│   │   └── PRD-*.md
-│   ├── architecture/
-│   │   └── ARCH-*.md
-│   └── design/
-│       ├── UI-SPEC-*.md
-│       └── DESIGN-*.md
-└── .claude/
-    ├── CLAUDE.md              # Framework rules
-    ├── agents/                # Agent definitions
-    ├── rules/                 # Development rules
-    └── context/               # Phase context
+workspace-root/
+├── lrac-uiux/
+│   └── .auto-coding/
+│       └── config/
+│           ├── ui-settings.json        # Workspace-wide settings, Team, approval policy
+│           ├── member-credentials.json # Shared member credentials
+│           └── auth-sessions.json      # Shared auth sessions
+├── project-root/
+│   ├── .auto-coding/
+│   │   ├── tasks.json             # Feature list (v3.0)
+│   │   ├── progress.txt           # Session history
+│   │   ├── progress-summary.md    # Lightweight summary
+│   │   ├── qa-sessions/           # Q&A session records
+│   │   │   ├── session-001.json
+│   │   │   └── session-002.json
+│   │   ├── inbox.json             # Project inbox messages
+│   │   ├── approvals/
+│   │   │   └── records.json       # Project approval decisions
+│   │   ├── phase-gates/
+│   │   │   └── gates.json         # Project phase gates
+│   │   └── config/
+│   │       ├── mcp.json           # MCP server config
+│   │       └── test-strategy.json # Test configuration
+│   ├── .stitch/
+│   │   ├── metadata.json          # Stitch project metadata
+│   │   ├── DESIGN.md              # Design system
+│   │   ├── SITE.md                # Site planning
+│   │   ├── next-prompt.md         # Stitch prompt baton
+│   │   └── designs/
+│   │       ├── dashboard.png
+│   │       ├── qa-interface.png
+│   │       └── ...
+│   ├── docs/
+│   │   ├── brd/
+│   │   │   └── BRD-*.md
+│   │   ├── prd/
+│   │   │   └── PRD-*.md
+│   │   ├── architecture/
+│   │   │   └── ARCH-*.md
+│   │   └── design/
+│   │       ├── UI-SPEC-*.md
+│   │       └── DESIGN-*.md
+│   └── .claude/
+│       ├── CLAUDE.md              # Framework rules
+│       ├── agents/                # Agent definitions
+│       ├── rules/                 # Development rules
+│       └── context/               # Phase context
 ```
 
 ### 3.2 Data Models
@@ -284,10 +312,12 @@ interface Answer {
 }
 ```
 
-#### 3.2.3 Approval Record Schema
+#### 3.2.3 Approval / Gate Schema
 
 ```typescript
 interface ApprovalRecord {
+  id: string;
+  projectRoot: string;
   documentType: "brd" | "prd" | "architecture" | "design";
   documentPath: string;
   status: "pending" | "approved" | "rejected" | "changes_requested";
@@ -312,6 +342,14 @@ interface Approval {
   userId: string;
   timestamp: string;
   notes?: string;
+}
+
+interface PhaseGateRecord {
+  id: string;
+  projectRoot: string;
+  phase: string;
+  status: "pending" | "approved" | "rejected" | "needs_revision";
+  requestedStakeholderIds: string[];
 }
 ```
 
@@ -451,23 +489,35 @@ Response: {
 }
 ```
 
-#### 4.1.4 Document Approval
+#### 4.1.4 Workspace Settings, Team, and Project Approval
 
 ```typescript
-// GET /api/projects/:id/approval?type=brd
+// GET /api/settings
 Response: {
-  approval: ApprovalRecord
+  settings: UserSettings
 }
 
-// POST /api/projects/:id/approval
+// POST /api/auth/login
 Request: {
-  documentType: "brd" | "prd" | "architecture"
-  action: "approve" | "reject" | "request_changes"
-  notes?: string
-  comments?: Comment[]
+  memberId: string
+  password: string
+  projectRoot?: string
 }
 Response: {
-  approval: ApprovalRecord
+  member: ProjectMember
+  projectRoot: string
+}
+
+// GET /api/inbox?project=:projectRoot
+Response: {
+  member: ProjectMember
+  messages: InboxMessage[]
+  unread: number
+}
+
+// GET /api/phase-gates?project=:projectRoot
+Response: {
+  gates: PhaseGateRecord[]
 }
 ```
 
@@ -1059,7 +1109,7 @@ fileChanged(path) → wss.broadcast({
 | -------------------- | ------------------------------------- | ---------------------------- |
 | **Start Phase 1**    | `brainstorming` skill                 | Web displays Q&A interface   |
 | **Complete Q&A**     | CLI reads `.auto-coding/qa-sessions/` | Web writes answers to JSON   |
-| **Approve BRD**      | CLI checks approval status            | Web writes approval to JSON  |
+| **Approve BRD**      | CLI checks project gate status        | Web writes project approval / gate decision |
 | **Execute Tasks**    | CLI runs agents                       | Web displays terminal output |
 | **Phase Transition** | CLI updates `tasks.json`              | Web revalidates via SWR      |
 
@@ -1104,7 +1154,7 @@ fileChanged(path) → wss.broadcast({
 
 **Features**:
 
-- Multi-user collaboration (optional)
+- Expanded shared-team workflows (optional)
 - Cloud sync (optional)
 - Plugin system (optional)
 

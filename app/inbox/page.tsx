@@ -83,7 +83,7 @@ export default function InboxPage() {
           <CardContent className="py-16 text-center">
             <p className="text-lg font-semibold text-foreground">Sign in to open your inbox</p>
             <p className="mt-2 text-sm text-muted-foreground">
-              Use the member sign-in menu in the top-right corner to review approvals.
+              Use the shared team sign-in menu in the top-right corner to review approvals for this project.
             </p>
           </CardContent>
         </Card>
@@ -98,7 +98,9 @@ export default function InboxPage() {
           <p className="admin-kicker mb-2">Team Inbox</p>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Inbox</h1>
           <p className="mt-1 text-muted-foreground">
-            {member ? `${member.name} · ${member.role}` : "Loading member context..."}
+            {member
+              ? `${member.name} · ${member.role} · shared team account`
+              : "Loading shared team member context..."}
           </p>
         </div>
         <Badge variant="secondary">{messages.filter((item) => item.status !== "resolved").length} active</Badge>
@@ -120,7 +122,9 @@ export default function InboxPage() {
             <CardContent className="py-12 text-center">
               <Bell className="mx-auto h-10 w-10 text-muted-foreground" />
               <p className="mt-4 text-lg font-semibold text-foreground">No messages</p>
-              <p className="mt-2 text-sm text-muted-foreground">New approval requests will appear here.</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                New approval requests for this project will appear here.
+              </p>
             </CardContent>
           </Card>
         ) : (

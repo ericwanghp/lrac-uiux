@@ -3,6 +3,34 @@ import {
   PROJECT_ROOT_LOCAL_STORAGE_KEY,
 } from "@/lib/constants/project-context";
 
+function readProjectRootFromClientContext(): string | null {
+  if (typeof window !== "undefined") {
+    const fromUrl = new URLSearchParams(window.location.search).get("project");
+    if (fromUrl?.trim()) {
+      return fromUrl.trim();
+    }
+
+    const fromStorage = window.localStorage.getItem(PROJECT_ROOT_LOCAL_STORAGE_KEY);
+    if (fromStorage?.trim()) {
+      return fromStorage.trim();
+    }
+  }
+
+  if (typeof document !== "undefined") {
+    const fromCookie = document.cookie
+      .split(";")
+      .map((entry) => entry.trim())
+      .find((entry) => entry.startsWith(`${PROJECT_ROOT_COOKIE_KEY}=`))
+      ?.split("=")[1];
+
+    if (fromCookie?.trim()) {
+      return decodeURIComponent(fromCookie).trim();
+    }
+  }
+
+  return null;
+}
+
 function normalizeAbsolutePath(input: string): string {
   const isAbsolute = input.startsWith("/");
   const segments = input
@@ -67,7 +95,7 @@ export function buildProjectScopedPath(
 ): string {
   const [basePath = "", search = ""] = path.split("?");
   const params = new URLSearchParams(search);
-  const trimmedProjectRoot = projectRoot?.trim();
+  const trimmedProjectRoot = projectRoot?.trim() || readProjectRootFromClientContext();
 
   if (trimmedProjectRoot) {
     params.set("project", trimmedProjectRoot);

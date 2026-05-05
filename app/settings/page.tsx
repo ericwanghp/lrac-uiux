@@ -107,7 +107,6 @@ export default function SettingsPage() {
   const [taskIdSchema, setTaskIdSchema] = useState<TaskIdSchemaData | null>(null);
   const [taskIdSchemaError, setTaskIdSchemaError] = useState<string | null>(null);
   const [passwordDrafts, setPasswordDrafts] = useState<Record<string, string>>({});
-
   const scopedPath = (path: string) => buildProjectScopedPath(path, projectRoot);
 
   useEffect(() => {
@@ -258,7 +257,6 @@ export default function SettingsPage() {
         body: JSON.stringify({
           memberId,
           password,
-          projectRoot,
         }),
       });
       setPasswordDrafts((current) => ({ ...current, [memberId]: "" }));
@@ -286,7 +284,7 @@ export default function SettingsPage() {
             <p className="admin-kicker mb-2">Workspace Preferences</p>
             <h1 className="mb-2 text-3xl font-bold tracking-tight text-foreground">Settings</h1>
             <p className="text-muted-foreground">
-              Project-scoped preferences are now persisted through the admin backend.
+              Application-wide preferences shared across every project in this workspace.
             </p>
           </div>
           {saveMessage ? (
@@ -672,8 +670,8 @@ export default function SettingsPage() {
             <TabsContent value="team" className="space-y-6">
               <Card className={panelClassName}>
                 <CardHeader>
-                  <CardTitle>Project Members</CardTitle>
-                  <CardDescription>Manage local project accounts used for inbox approvals.</CardDescription>
+                  <CardTitle>Team Members</CardTitle>
+                  <CardDescription>Manage shared member accounts used across all project inbox approvals.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-end">
@@ -748,7 +746,7 @@ export default function SettingsPage() {
               <Card className={panelClassName}>
                 <CardHeader>
                   <CardTitle>Phase Approvers</CardTitle>
-                  <CardDescription>Assign which project members must approve each phase.</CardDescription>
+                  <CardDescription>Assign which shared team members must approve each phase across all projects.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {settings.communication.phaseApprovals.map((policy) => (
@@ -776,7 +774,7 @@ export default function SettingsPage() {
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {settings.communication.members.length === 0 ? (
-                          <p className="text-sm text-muted-foreground">Add project members first.</p>
+                          <p className="text-sm text-muted-foreground">Add team members first.</p>
                         ) : (
                           settings.communication.members.map((member) => {
                             const selected = policy.approverIds.includes(member.id);
