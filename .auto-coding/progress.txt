@@ -1161,3 +1161,28 @@ Dispatched 4 agents in parallel using tmux panes:
 - Hooks will auto-enforce checklist on every Write/Edit and session Stop
 
 ---
+
+# ============================================================
+# Session: imac-landing | Timestamp: 2026-05-05T14:30:00Z | Role: frontend-dev
+# ============================================================
+
+## Starting State
+- Root page (/) redirected to /dashboard via client-side router.replace
+- No landing/marketing page existed
+
+## Execution Content
+1. Created ConditionalShell (components/layout/conditional-shell.tsx) — checks pathname, skips AppShell on /
+2. Rewrote app/page.tsx — full landing page with hero, 4 capability cards, phase flow strip, CTA
+3. Updated app/layout.tsx — uses ConditionalShell instead of direct AppShell
+4. Updated sidebar.tsx — Dashboard nav href / → /dashboard, logo link / → /dashboard
+5. Removed QuickActions from dashboard page (user request)
+6. Verified in browser: landing page renders, "Get Started" navigates to /dashboard with full admin shell
+
+## Ending State
+- Completed: Landing page, conditional shell, navigation route updates, tasks.json Phase 4 breakdown
+- Remaining Issues: None
+
+## Next Steps
+- Git commit this IMAC iteration
+
+---

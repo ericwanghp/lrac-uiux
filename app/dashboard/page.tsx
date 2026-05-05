@@ -7,7 +7,6 @@ import {
   ApprovalGates,
   BlockerQueue,
   RecentActivity,
-  QuickActions,
 } from "@/components/dashboard/stats-grid";
 import { loadDashboardData } from "@/components/dashboard/data";
 import { ProjectSwitcherForm } from "@/components/shared";
@@ -73,7 +72,6 @@ export default async function DashboardPage({
           <ApprovalGates summaries={data.phaseGateSummaries} projectRoot={data.projectRoot} />
           <BlockerQueue data={data} />
           <RecentActivity activities={data.activity} />
-          <QuickActions />
         </div>
       </div>
     </div>

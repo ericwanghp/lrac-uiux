@@ -262,6 +262,24 @@
         "imac-vr-p5d-006"
       ],
       "remainingFeatures": []
+    },
+    "imac-landing": {
+      "name": "IMAC Landing Page",
+      "features": [
+        "imac-landing-p4b-001",
+        "imac-landing-p5d-001",
+        "imac-landing-p5d-002",
+        "imac-landing-p5d-003"
+      ],
+      "canStartWhen": [],
+      "status": "completed",
+      "completedFeatures": [
+        "imac-landing-p4b-001",
+        "imac-landing-p5d-001",
+        "imac-landing-p5d-002",
+        "imac-landing-p5d-003"
+      ],
+      "remainingFeatures": []
     }
   },
   "features": [
@@ -2380,6 +2398,158 @@
           "timestamp": "2026-05-05T13:05:00Z",
           "action": "Feature completed",
           "details": "tasks.json updated with imac-visual-redesign parallel group and 7 features."
+        }
+      ]
+    },
+    {
+      "id": "imac-landing-p4b-001",
+      "title": "Landing Page Task Breakdown",
+      "summary": "Break down landing page IMAC into implementation tasks: conditional shell, landing page component, navigation update.",
+      "ownerRole": "architect",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": [],
+        "parallelGroup": "imac-landing"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Tasks decomposed with clear ownership and dependencies",
+          "Feature IDs follow imac-landing-{phase}-{NNN} convention"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-05-05T14:00:00Z",
+        "startedAt": "2026-05-05T14:00:00Z",
+        "completedAt": "2026-05-05T14:00:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-05-05T14:00:00Z",
+          "action": "Feature completed",
+          "details": "3 implementation tasks defined: ConditionalShell, LandingPage component, Sidebar/Navigation route updates."
+        }
+      ]
+    },
+    {
+      "id": "imac-landing-p5d-001",
+      "title": "Conditional AppShell for Landing Page",
+      "summary": "Create ConditionalShell client component that skips AppShell on root path, update layout.tsx to use it.",
+      "ownerRole": "frontend-dev",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["imac-landing-p4b-001"],
+        "parallelGroup": "imac-landing"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "ConditionalShell checks usePathname() and skips AppShell on /",
+          "app/layout.tsx uses ConditionalShell instead of direct AppShell",
+          "Admin pages still render with full sidebar + header",
+          "TypeScript passes"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-05-05T14:00:00Z",
+        "startedAt": "2026-05-05T14:00:00Z",
+        "completedAt": "2026-05-05T14:15:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-05-05T14:15:00Z",
+          "action": "Feature completed",
+          "details": "Created components/layout/conditional-shell.tsx, updated app/layout.tsx. Landing page renders without sidebar/header."
+        }
+      ]
+    },
+    {
+      "id": "imac-landing-p5d-002",
+      "title": "Landing Page Implementation",
+      "summary": "Build independent-style landing page with hero, 4 capability showcases (8-Phase, Agent Teams, Stitch AI, Task Mgmt), CTA section. Entry button navigates to /dashboard.",
+      "ownerRole": "frontend-dev",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["imac-landing-p4b-001"],
+        "parallelGroup": "imac-landing"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "app/page.tsx rewritten from redirect to landing page",
+          "Hero section with title, subtitle, gradient text",
+          "4 capability cards in 2x2 grid with highlights",
+          "Phase flow strip showing 6 phases",
+          "CTA section with Enter Console button",
+          "Enter Console navigates to /dashboard (with project param if present)",
+          "Independent visual style (no admin-panel classes)",
+          "Responsive on mobile/tablet/desktop",
+          "TypeScript passes"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-05-05T14:00:00Z",
+        "startedAt": "2026-05-05T14:15:00Z",
+        "completedAt": "2026-05-05T14:45:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-05-05T14:45:00Z",
+          "action": "Feature completed",
+          "details": "Full landing page implemented with hero, capabilities grid, CTA, footer. Verified in browser."
+        }
+      ]
+    },
+    {
+      "id": "imac-landing-p5d-003",
+      "title": "Navigation Route Update",
+      "summary": "Update sidebar Dashboard link from / to /dashboard, update sidebar logo link to /dashboard, remove QuickActions from dashboard.",
+      "ownerRole": "frontend-dev",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["imac-landing-p5d-002"],
+        "parallelGroup": "imac-landing"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Sidebar Dashboard nav item href changed from / to /dashboard",
+          "Sidebar logo link changed from / to /dashboard",
+          "No navigation element points to / except the landing page itself",
+          "QuickActions removed from dashboard page",
+          "TypeScript passes"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-05-05T14:45:00Z",
+        "startedAt": "2026-05-05T14:45:00Z",
+        "completedAt": "2026-05-05T15:00:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-05-05T15:00:00Z",
+          "action": "Feature completed",
+          "details": "Sidebar nav href updated, logo link updated, QuickActions removed. No stale / references."
         }
       ]
     }

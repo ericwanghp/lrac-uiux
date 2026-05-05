@@ -25,7 +25,7 @@ import { buildProjectScopedPath } from "@/lib/utils/project-selection";
 const navigation = [
   {
     name: "Dashboard",
-    href: "/",
+    href: "/dashboard",
     icon: LayoutDashboard,
   },
   {
@@ -110,7 +110,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
       {/* Logo */}
       <div className="flex h-16 lg:h-20 items-center border-b border-border/60 px-4 lg:px-6">
         <Link
-          href={buildProjectScopedPath("/", navigationProjectRoot)}
+          href={buildProjectScopedPath("/dashboard", navigationProjectRoot)}
           onClick={onNavigate}
           className="flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
           aria-label="LRAC Home"
