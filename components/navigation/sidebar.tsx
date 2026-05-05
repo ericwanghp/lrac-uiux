@@ -104,6 +104,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
 
   return (
     <nav
+      data-tour="sidebar"
       className="admin-sidebar flex h-full w-72 flex-col"
       aria-label="Main navigation"
     >

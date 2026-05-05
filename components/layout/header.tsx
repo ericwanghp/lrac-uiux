@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { Menu, Settings } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
+import { CircleHelp, Menu, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,8 @@ import { useProjectQueryParam } from "@/components/providers/use-project-query-p
 import { GlobalProjectSwitcher } from "@/components/shared/global-project-switcher";
 import { buildProjectScopedPath } from "@/lib/utils/project-selection";
 import { useProjectRealtimeStatus } from "@/components/providers/project-realtime-status-provider";
+import { useTour } from "@/components/tour/tour-provider";
+import { getTourForPath } from "@/components/tour/tour-configs";
 
 interface HeaderProps {
   onMenuToggle?: () => void;
@@ -19,9 +21,16 @@ interface HeaderProps {
 
 export function Header({ onMenuToggle }: HeaderProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const projectRoot = useProjectQueryParam();
   const { snapshot } = useProjectRealtimeStatus();
+  const { replayTour, isTourActive } = useTour();
   const phaseText = `Phase ${Math.min(snapshot.currentPhase, 7)}: ${snapshot.currentPhaseLabel}`;
+
+  const handleReplayTour = () => {
+    const config = getTourForPath(pathname);
+    if (config) replayTour(config);
+  };
 
   return (
     <header
@@ -60,7 +69,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-1 sm:gap-2 lg:gap-4" role="group" aria-label="Header actions">
+      <div data-tour="header-actions" className="flex items-center gap-1 sm:gap-2 lg:gap-4" role="group" aria-label="Header actions">
         <ClaudeCliLauncher projectRoot={projectRoot} />
         <ShellLauncher projectRoot={projectRoot} />
 
@@ -74,6 +83,18 @@ export function Header({ onMenuToggle }: HeaderProps) {
         </Badge>
 
         <MemberAuthPanel />
+
+        {/* Replay tour */}
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Replay page tour"
+          onClick={handleReplayTour}
+          disabled={isTourActive}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-9 w-9"
+        >
+          <CircleHelp className="h-[18px] w-[18px]" aria-hidden="true" />
+        </Button>
 
         {/* Settings */}
         <Button

@@ -84,7 +84,7 @@ export default function InboxPage() {
 
   return (
     <div className="admin-page">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fade-in">
+      <div data-tour="inbox-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fade-in">
         <div>
           <p className="admin-kicker mb-1">Team Inbox</p>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Inbox</h1>
@@ -123,7 +123,7 @@ export default function InboxPage() {
           </Card>
         ) : (
           messages.map((message, i) => (
-            <Card key={message.id} className={`admin-panel border-border/60 bg-card/90 hover-glow animate-fade-in-up stagger-${Math.min(i + 1, 6)}`}>
+            <Card key={message.id} data-tour="inbox-message" className={`admin-panel border-border/60 bg-card/90 hover-glow animate-fade-in-up stagger-${Math.min(i + 1, 6)}`}>
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">

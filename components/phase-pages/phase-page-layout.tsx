@@ -60,7 +60,7 @@ export function PhasePageLayout({
   const PhaseIcon = theme.icon;
 
   return (
-    <div className="admin-page">
+    <div className="admin-page" data-tour="phase-header">
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 animate-fade-in">
         <div className="flex items-start gap-3">
           <div className={`admin-icon-surface h-10 w-10 shrink-0 ${theme.accent}`}>

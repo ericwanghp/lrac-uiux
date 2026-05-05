@@ -280,6 +280,24 @@
         "imac-landing-p5d-003"
       ],
       "remainingFeatures": []
+    },
+    "imac-onboard": {
+      "name": "IMAC Onboarding Tour",
+      "features": [
+        "imac-onboard-p4b-001",
+        "imac-onboard-p5d-001",
+        "imac-onboard-p5d-002",
+        "imac-onboard-p5d-003"
+      ],
+      "canStartWhen": [],
+      "status": "completed",
+      "completedFeatures": [
+        "imac-onboard-p4b-001",
+        "imac-onboard-p5d-001",
+        "imac-onboard-p5d-002",
+        "imac-onboard-p5d-003"
+      ],
+      "remainingFeatures": []
     }
   },
   "features": [
@@ -2550,6 +2568,157 @@
           "timestamp": "2026-05-05T15:00:00Z",
           "action": "Feature completed",
           "details": "Sidebar nav href updated, logo link updated, QuickActions removed. No stale / references."
+        }
+      ]
+    },
+    {
+      "id": "imac-onboard-p4b-001",
+      "title": "Onboarding Tour Task Breakdown",
+      "summary": "Decompose onboarding tour feature: tour infrastructure, per-page step configs, auto-trigger & replay.",
+      "ownerRole": "architect",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": [],
+        "parallelGroup": "imac-onboard"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Tasks decomposed with clear dependencies",
+          "Feature IDs follow imac-onboard-{phase}-{NNN}"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-05-05T15:30:00Z",
+        "startedAt": "2026-05-05T15:30:00Z",
+        "completedAt": "2026-05-05T15:30:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-05-05T15:30:00Z",
+          "action": "Feature completed",
+          "details": "3 implementation tasks: TourProvider+overlay, per-page configs, auto-trigger & replay."
+        }
+      ]
+    },
+    {
+      "id": "imac-onboard-p5d-001",
+      "title": "Tour Infrastructure: Provider, Overlay, Tooltip, useTour hook",
+      "summary": "Build TourProvider context, spotlight overlay with element highlight, tooltip with Next/Prev/Skip, useTour hook for step navigation.",
+      "ownerRole": "frontend-dev",
+      "priority": "critical",
+      "taskBreakdown": {
+        "dependencies": ["imac-onboard-p4b-001"],
+        "parallelGroup": "imac-onboard"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "TourProvider wraps app in ConditionalShell",
+          "Spotlight overlay highlights target element with padding",
+          "Tooltip shows step title, description, step counter, Next/Prev/Skip/Done",
+          "useTour hook exposes startTour, nextStep, prevStep, skipTour, isTourActive",
+          "Smooth scroll to highlighted element",
+          "Matches warm theme design system",
+          "TypeScript passes"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-05-05T15:30:00Z",
+        "startedAt": "2026-05-05T15:30:00Z",
+        "completedAt": null
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-05-05T16:00:00Z",
+          "action": "Feature completed",
+          "details": "TourProvider, TourOverlay, useTour hook implemented with spotlight SVG cutout, tooltip with Next/Prev/Skip, step counter."
+        }
+      ]
+    },
+    {
+      "id": "imac-onboard-p5d-002",
+      "title": "Per-Page Tour Step Definitions",
+      "summary": "Define tour step configs for each page: dashboard, requirements, design, architecture, development, testing, deployment, inbox, settings.",
+      "ownerRole": "frontend-dev",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["imac-onboard-p5d-001"],
+        "parallelGroup": "imac-onboard"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Tour configs defined for all 9 admin pages",
+          "Each config has: tourId, steps array with target selector, title, description, placement",
+          "Dashboard tour covers: project switcher, milestone tracks, stats, action queue, approval gates",
+          "Phase pages tour covers: layout structure, phase-specific features",
+          "TypeScript passes"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-05-05T15:30:00Z",
+        "startedAt": null,
+        "completedAt": null
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-05-05T16:15:00Z",
+          "action": "Feature completed",
+          "details": "Per-page tour configs for all 9 pages: dashboard (8 steps), requirements (3), design (3), architecture (2), development (2), testing (1), deployment (1), inbox (2), settings (2)."
+        }
+      ]
+    },
+    {
+      "id": "imac-onboard-p5d-003",
+      "title": "Auto-Trigger, Replay & Help Integration",
+      "summary": "Auto-start tour on first page visit (localStorage), add replay button in header and settings, add help trigger.",
+      "ownerRole": "frontend-dev",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": ["imac-onboard-p5d-002"],
+        "parallelGroup": "imac-onboard"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "localStorage tracks completed tours per page (key: lrac-tour-completed-{page})",
+          "Tour auto-starts on first visit to each page",
+          "Help button in header restarts current page tour",
+          "Settings page has 'Replay All Tours' option",
+          "TypeScript passes"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-05-05T15:30:00Z",
+        "startedAt": null,
+        "completedAt": null
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-05-05T16:30:00Z",
+          "action": "Feature completed",
+          "details": "Auto-trigger on first visit via localStorage, replay button in header (CircleHelp icon), ConditionalShell integrated with TourProvider. Verified in browser."
         }
       ]
     }

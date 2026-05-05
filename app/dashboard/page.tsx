@@ -41,7 +41,7 @@ export default async function DashboardPage({
       </div>
 
       {/* Project Switcher */}
-      <Card className="admin-panel border-border/60 bg-card/90 animate-fade-in-up">
+      <Card data-tour="project-switcher" className="admin-panel border-border/60 bg-card/90 animate-fade-in-up">
         <CardHeader>
           <CardTitle className="text-base">Project Switcher</CardTitle>
           <CardDescription>Switch between workspace projects</CardDescription>
@@ -55,23 +55,33 @@ export default async function DashboardPage({
       </Card>
 
       {/* Milestone Tracks */}
-      <MilestoneTracks tracks={data.milestoneTracks} />
+      <div data-tour="milestone-tracks">
+        <MilestoneTracks tracks={data.milestoneTracks} />
+      </div>
 
       {/* Stats */}
-      <DashboardStats data={data} />
+      <div data-tour="project-metrics">
+        <DashboardStats data={data} />
+      </div>
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
         <div className="lg:col-span-2 space-y-4 lg:space-y-6">
-          <ProjectContext data={data} />
+          <div data-tour="project-context">
+            <ProjectContext data={data} />
+          </div>
           <PersistenceSnapshot data={data} />
         </div>
 
         <div className="space-y-4 lg:space-y-6">
           <ActionQueue data={data} />
-          <ApprovalGates summaries={data.phaseGateSummaries} projectRoot={data.projectRoot} />
+          <div data-tour="approval-gates">
+            <ApprovalGates summaries={data.phaseGateSummaries} projectRoot={data.projectRoot} />
+          </div>
           <BlockerQueue data={data} />
-          <RecentActivity activities={data.activity} />
+          <div data-tour="recent-activity">
+            <RecentActivity activities={data.activity} />
+          </div>
         </div>
       </div>
     </div>
