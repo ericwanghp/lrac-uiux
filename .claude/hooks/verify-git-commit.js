@@ -48,18 +48,46 @@ function main() {
     const diffSeconds = now - lastCommitTime;
     const diffMinutes = Math.floor(diffSeconds / 60);
 
+    // --- Checklist enforcement for recent commits ---
     if (diffMinutes > 15) {
       console.log(`⚠️  Working tree is clean, but last commit was ${diffMinutes} minutes ago.`);
       console.log('If you just modified code, please verify the commit was successful.');
       console.log('If no code was modified, this warning can be ignored.');
-      // We don't fail here because some tasks might not require code changes (e.g., analysis)
-    } else {
-      const lastCommitMsg = execSync('git log -1 --format=%s', { cwd: ROOT_DIR, encoding: 'utf8' }).trim();
-      const lastCommitHash = execSync('git log -1 --format=%h', { cwd: ROOT_DIR, encoding: 'utf8' }).trim();
+      process.exit(0);
+    }
 
-      console.log('✅ Git commit verification passed');
-      console.log(`   Latest commit: [${lastCommitHash}] ${lastCommitMsg}`);
-      console.log(`   Committed: ${diffMinutes} minutes ago`);
+    // Recent commit found — verify Feature Completion Checklist
+    const lastCommitMsg = execSync('git log -1 --format=%s', { cwd: ROOT_DIR, encoding: 'utf8' }).trim();
+    const lastCommitHash = execSync('git log -1 --format=%h', { cwd: ROOT_DIR, encoding: 'utf8' }).trim();
+
+    console.log('✅ Git commit verification passed');
+    console.log(`   Latest commit: [${lastCommitHash}] ${lastCommitMsg}`);
+    console.log(`   Committed: ${diffMinutes} minutes ago`);
+
+    // Check if tasks.json was touched in the recent commit
+    const diffFiles = execSync('git diff-tree --no-commit-id --name-only -r HEAD', {
+      cwd: ROOT_DIR,
+      encoding: 'utf8',
+    }).trim();
+
+    const changedFiles = diffFiles.split('\n').filter(Boolean);
+    const tasksJsonChanged = changedFiles.some(
+      (f) => f === '.auto-coding/tasks.json' || f === '.auto-coding\\tasks.json'
+    );
+    const progressTxtChanged = changedFiles.some(
+      (f) => f === '.auto-coding/progress.txt' || f === '.auto-coding\\progress.txt'
+    );
+
+    console.log('');
+    console.log('=== Feature Completion Checklist Verification ===');
+    console.log(`   tasks.json updated:    ${tasksJsonChanged ? '✅ YES' : '❌ NO'}`);
+    console.log(`   progress.txt updated:  ${progressTxtChanged ? '✅ YES' : '⚠️  NO (may not be needed for this commit)'}`);
+
+    if (!tasksJsonChanged && changedFiles.some((f) => f.startsWith('app/') || f.startsWith('components/') || f.startsWith('lib/'))) {
+      console.log('');
+      console.log('⚠️  WARNING: Code files were committed but .auto-coding/tasks.json was NOT updated.');
+      console.log('   Feature Completion Checklist requires: tasks.json -> progress.txt -> git commit');
+      console.log('   If this commit completes a feature, update tasks.json and amend or create a follow-up commit.');
     }
 
     process.exit(0);

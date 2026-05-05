@@ -4,77 +4,145 @@
   "parallelGroups": {
     "foundation": {
       "name": "Foundation Setup",
-      "features": ["inital-p5d-001", "inital-p5d-002", "inital-p5d-003"],
+      "features": [
+        "inital-p5d-001",
+        "inital-p5d-002",
+        "inital-p5d-003"
+      ],
       "canStartWhen": [],
       "status": "completed",
-      "completedFeatures": ["inital-p5d-001", "inital-p5d-002", "inital-p5d-003"],
+      "completedFeatures": [
+        "inital-p5d-001",
+        "inital-p5d-002",
+        "inital-p5d-003"
+      ],
       "remainingFeatures": []
     },
     "ui-components": {
       "name": "UI Components Library",
-      "features": ["inital-p5d-004", "inital-p5d-005"],
-      "canStartWhen": ["inital-p5d-002"],
+      "features": [
+        "inital-p5d-004",
+        "inital-p5d-005"
+      ],
+      "canStartWhen": [
+        "inital-p5d-002"
+      ],
       "status": "completed",
-      "completedFeatures": ["inital-p5d-004", "inital-p5d-005"],
+      "completedFeatures": [
+        "inital-p5d-004",
+        "inital-p5d-005"
+      ],
       "remainingFeatures": []
     },
     "phase-1-core": {
       "name": "Phase 1 Core Features",
-      "features": ["inital-p5d-006", "inital-p5d-007", "inital-p5d-008"],
-      "canStartWhen": ["inital-p5d-004"],
+      "features": [
+        "inital-p5d-006",
+        "inital-p5d-007",
+        "inital-p5d-008"
+      ],
+      "canStartWhen": [
+        "inital-p5d-004"
+      ],
       "status": "completed",
-      "completedFeatures": ["inital-p5d-006", "inital-p5d-007", "inital-p5d-008"],
+      "completedFeatures": [
+        "inital-p5d-006",
+        "inital-p5d-007",
+        "inital-p5d-008"
+      ],
       "remainingFeatures": []
     },
     "phase-1-interactive": {
       "name": "Phase 1 Interactive Features",
-      "features": ["inital-p5d-009", "inital-p5d-010", "inital-p5d-011"],
-      "canStartWhen": ["inital-p5d-006"],
+      "features": [
+        "inital-p5d-009",
+        "inital-p5d-010",
+        "inital-p5d-011"
+      ],
+      "canStartWhen": [
+        "inital-p5d-006"
+      ],
       "status": "completed",
-      "completedFeatures": ["inital-p5d-009", "inital-p5d-010", "inital-p5d-011"],
+      "completedFeatures": [
+        "inital-p5d-009",
+        "inital-p5d-010",
+        "inital-p5d-011"
+      ],
       "remainingFeatures": []
     },
     "phase-2-enhanced": {
       "name": "Phase 2 Enhanced Features",
-      "features": ["inital-p5d-012", "inital-p5d-013", "inital-p5d-014", "inital-p5d-015"],
-      "canStartWhen": ["inital-p5d-008"],
+      "features": [
+        "inital-p5d-012",
+        "inital-p5d-013",
+        "inital-p5d-014",
+        "inital-p5d-015"
+      ],
+      "canStartWhen": [
+        "inital-p5d-008"
+      ],
       "status": "completed",
-      "completedFeatures": ["inital-p5d-012", "inital-p5d-013", "inital-p5d-014", "inital-p5d-015"],
+      "completedFeatures": [
+        "inital-p5d-012",
+        "inital-p5d-013",
+        "inital-p5d-014",
+        "inital-p5d-015"
+      ],
       "remainingFeatures": []
     },
     "imac-phase-2-product-design": {
       "name": "IMAC Phase 2 Product Design",
-      "features": ["imac-cli-terminal-orchestration-p2p-001"],
+      "features": [
+        "imac-cli-terminal-orchestration-p2p-001"
+      ],
       "canStartWhen": [],
       "status": "completed",
-      "completedFeatures": ["imac-cli-terminal-orchestration-p2p-001"],
+      "completedFeatures": [
+        "imac-cli-terminal-orchestration-p2p-001"
+      ],
       "remainingFeatures": []
     },
     "imac-phase-25-design": {
       "name": "IMAC Phase 2.5 UI Design",
-      "features": ["imac-cli-terminal-orchestration-p25d-001"],
-      "canStartWhen": ["imac-cli-terminal-orchestration-p2p-001"],
+      "features": [
+        "imac-cli-terminal-orchestration-p25d-001"
+      ],
+      "canStartWhen": [
+        "imac-cli-terminal-orchestration-p2p-001"
+      ],
       "status": "completed",
-      "completedFeatures": ["imac-cli-terminal-orchestration-p25d-001"],
+      "completedFeatures": [
+        "imac-cli-terminal-orchestration-p25d-001"
+      ],
       "remainingFeatures": []
     },
     "imac-phase-3-architecture": {
       "name": "IMAC Phase 3 Architecture",
-      "features": ["imac-cli-terminal-orchestration-p3a-001"],
-      "canStartWhen": ["imac-cli-terminal-orchestration-p2p-001"],
+      "features": [
+        "imac-cli-terminal-orchestration-p3a-001"
+      ],
+      "canStartWhen": [
+        "imac-cli-terminal-orchestration-p2p-001"
+      ],
       "status": "completed",
-      "completedFeatures": ["imac-cli-terminal-orchestration-p3a-001"],
+      "completedFeatures": [
+        "imac-cli-terminal-orchestration-p3a-001"
+      ],
       "remainingFeatures": []
     },
     "imac-phase-4-breakdown": {
       "name": "IMAC Phase 4 Breakdown",
-      "features": ["imac-cli-terminal-orchestration-p4b-001"],
+      "features": [
+        "imac-cli-terminal-orchestration-p4b-001"
+      ],
       "canStartWhen": [
         "imac-cli-terminal-orchestration-p25d-001",
         "imac-cli-terminal-orchestration-p3a-001"
       ],
       "status": "completed",
-      "completedFeatures": ["imac-cli-terminal-orchestration-p4b-001"],
+      "completedFeatures": [
+        "imac-cli-terminal-orchestration-p4b-001"
+      ],
       "remainingFeatures": []
     },
     "imac-phase-5-core": {
@@ -84,7 +152,9 @@
         "imac-cli-terminal-orchestration-p5d-002",
         "imac-cli-terminal-orchestration-p5d-003"
       ],
-      "canStartWhen": ["imac-cli-terminal-orchestration-p4b-001"],
+      "canStartWhen": [
+        "imac-cli-terminal-orchestration-p4b-001"
+      ],
       "status": "completed",
       "completedFeatures": [
         "imac-cli-terminal-orchestration-p5d-001",
@@ -99,7 +169,9 @@
         "imac-cli-terminal-orchestration-p5d-004",
         "imac-cli-terminal-orchestration-p5d-005"
       ],
-      "canStartWhen": ["imac-cli-terminal-orchestration-p5d-003"],
+      "canStartWhen": [
+        "imac-cli-terminal-orchestration-p5d-003"
+      ],
       "status": "completed",
       "completedFeatures": [
         "imac-cli-terminal-orchestration-p5d-004",
@@ -127,26 +199,68 @@
     },
     "imac-phase-6-testing": {
       "name": "IMAC Phase 6 Testing",
-      "features": ["imac-cli-terminal-orchestration-p6t-001"],
-      "canStartWhen": ["imac-cli-terminal-orchestration-p5d-007"],
+      "features": [
+        "imac-cli-terminal-orchestration-p6t-001"
+      ],
+      "canStartWhen": [
+        "imac-cli-terminal-orchestration-p5d-007"
+      ],
       "status": "completed",
-      "completedFeatures": ["imac-cli-terminal-orchestration-p6t-001"],
+      "completedFeatures": [
+        "imac-cli-terminal-orchestration-p6t-001"
+      ],
       "remainingFeatures": []
     },
     "imac-phase-7-deployment": {
       "name": "IMAC Phase 7 Deployment",
-      "features": ["imac-cli-terminal-orchestration-p7d-001"],
-      "canStartWhen": ["imac-cli-terminal-orchestration-p6t-001"],
+      "features": [
+        "imac-cli-terminal-orchestration-p7d-001"
+      ],
+      "canStartWhen": [
+        "imac-cli-terminal-orchestration-p6t-001"
+      ],
       "status": "completed",
-      "completedFeatures": ["imac-cli-terminal-orchestration-p7d-001"],
+      "completedFeatures": [
+        "imac-cli-terminal-orchestration-p7d-001"
+      ],
       "remainingFeatures": []
     },
     "imac-phase-8-management": {
       "name": "IMAC Phase 8 Management",
-      "features": ["imac-cli-terminal-orchestration-p8m-001"],
-      "canStartWhen": ["imac-cli-terminal-orchestration-p7d-001"],
+      "features": [
+        "imac-cli-terminal-orchestration-p8m-001"
+      ],
+      "canStartWhen": [
+        "imac-cli-terminal-orchestration-p7d-001"
+      ],
       "status": "completed",
-      "completedFeatures": ["imac-cli-terminal-orchestration-p8m-001"],
+      "completedFeatures": [
+        "imac-cli-terminal-orchestration-p8m-001"
+      ],
+      "remainingFeatures": []
+    },
+    "imac-visual-redesign": {
+      "name": "IMAC Visual Redesign",
+      "features": [
+        "imac-vr-p25d-001",
+        "imac-vr-p5d-001",
+        "imac-vr-p5d-002",
+        "imac-vr-p5d-003",
+        "imac-vr-p5d-004",
+        "imac-vr-p5d-005",
+        "imac-vr-p5d-006"
+      ],
+      "canStartWhen": [],
+      "status": "completed",
+      "completedFeatures": [
+        "imac-vr-p25d-001",
+        "imac-vr-p5d-001",
+        "imac-vr-p5d-002",
+        "imac-vr-p5d-003",
+        "imac-vr-p5d-004",
+        "imac-vr-p5d-005",
+        "imac-vr-p5d-006"
+      ],
       "remainingFeatures": []
     }
   },
@@ -197,7 +311,9 @@
       "ownerRole": "frontend-dev",
       "priority": "critical",
       "taskBreakdown": {
-        "dependencies": ["inital-p5d-001"],
+        "dependencies": [
+          "inital-p5d-001"
+        ],
         "parallelGroup": "foundation"
       },
       "acceptanceCriteria": {
@@ -237,7 +353,9 @@
       "ownerRole": "frontend-dev",
       "priority": "critical",
       "taskBreakdown": {
-        "dependencies": ["inital-p5d-001"],
+        "dependencies": [
+          "inital-p5d-001"
+        ],
         "parallelGroup": "foundation"
       },
       "acceptanceCriteria": {
@@ -276,7 +394,9 @@
       "ownerRole": "frontend-dev",
       "priority": "high",
       "taskBreakdown": {
-        "dependencies": ["inital-p5d-002"],
+        "dependencies": [
+          "inital-p5d-002"
+        ],
         "parallelGroup": "ui-components"
       },
       "acceptanceCriteria": {
@@ -317,7 +437,9 @@
       "ownerRole": "backend-dev",
       "priority": "high",
       "taskBreakdown": {
-        "dependencies": ["inital-p5d-002"],
+        "dependencies": [
+          "inital-p5d-002"
+        ],
         "parallelGroup": "ui-components"
       },
       "acceptanceCriteria": {
@@ -357,7 +479,9 @@
       "ownerRole": "frontend-dev",
       "priority": "critical",
       "taskBreakdown": {
-        "dependencies": ["inital-p5d-004"],
+        "dependencies": [
+          "inital-p5d-004"
+        ],
         "parallelGroup": "phase-1-core"
       },
       "acceptanceCriteria": {
@@ -398,7 +522,9 @@
       "ownerRole": "backend-dev",
       "priority": "critical",
       "taskBreakdown": {
-        "dependencies": ["inital-p5d-004"],
+        "dependencies": [
+          "inital-p5d-004"
+        ],
         "parallelGroup": "phase-1-core"
       },
       "acceptanceCriteria": {
@@ -438,7 +564,9 @@
       "ownerRole": "frontend-dev",
       "priority": "critical",
       "taskBreakdown": {
-        "dependencies": ["inital-p5d-004"],
+        "dependencies": [
+          "inital-p5d-004"
+        ],
         "parallelGroup": "phase-1-core"
       },
       "acceptanceCriteria": {
@@ -479,7 +607,9 @@
       "ownerRole": "frontend-dev",
       "priority": "critical",
       "taskBreakdown": {
-        "dependencies": ["inital-p5d-006"],
+        "dependencies": [
+          "inital-p5d-006"
+        ],
         "parallelGroup": "phase-1-interactive"
       },
       "acceptanceCriteria": {
@@ -521,7 +651,9 @@
       "ownerRole": "backend-dev",
       "priority": "high",
       "taskBreakdown": {
-        "dependencies": ["inital-p5d-006"],
+        "dependencies": [
+          "inital-p5d-006"
+        ],
         "parallelGroup": "phase-1-interactive"
       },
       "acceptanceCriteria": {
@@ -560,7 +692,9 @@
       "ownerRole": "frontend-dev",
       "priority": "critical",
       "taskBreakdown": {
-        "dependencies": ["inital-p5d-006"],
+        "dependencies": [
+          "inital-p5d-006"
+        ],
         "parallelGroup": "phase-1-interactive"
       },
       "acceptanceCriteria": {
@@ -601,7 +735,9 @@
       "ownerRole": "frontend-dev",
       "priority": "high",
       "taskBreakdown": {
-        "dependencies": ["inital-p5d-008"],
+        "dependencies": [
+          "inital-p5d-008"
+        ],
         "parallelGroup": "phase-2-enhanced"
       },
       "acceptanceCriteria": {
@@ -658,7 +794,9 @@
       "ownerRole": "backend-dev",
       "priority": "high",
       "taskBreakdown": {
-        "dependencies": ["inital-p5d-008"],
+        "dependencies": [
+          "inital-p5d-008"
+        ],
         "parallelGroup": "phase-2-enhanced"
       },
       "acceptanceCriteria": {
@@ -698,7 +836,9 @@
       "ownerRole": "frontend-dev",
       "priority": "critical",
       "taskBreakdown": {
-        "dependencies": ["inital-p5d-008"],
+        "dependencies": [
+          "inital-p5d-008"
+        ],
         "parallelGroup": "phase-2-enhanced"
       },
       "acceptanceCriteria": {
@@ -742,7 +882,9 @@
       "ownerRole": "frontend-dev",
       "priority": "medium",
       "taskBreakdown": {
-        "dependencies": ["inital-p5d-008"],
+        "dependencies": [
+          "inital-p5d-008"
+        ],
         "parallelGroup": "phase-2-enhanced"
       },
       "acceptanceCriteria": {
@@ -876,7 +1018,10 @@
       "ownerRole": "test-engineer",
       "priority": "high",
       "taskBreakdown": {
-        "dependencies": ["inital-p5d-016", "inital-p5d-017"],
+        "dependencies": [
+          "inital-p5d-016",
+          "inital-p5d-017"
+        ],
         "parallelGroup": null
       },
       "acceptanceCriteria": {
@@ -915,7 +1060,9 @@
       "ownerRole": "frontend-dev",
       "priority": "high",
       "taskBreakdown": {
-        "dependencies": ["inital-p6t-001"],
+        "dependencies": [
+          "inital-p6t-001"
+        ],
         "parallelGroup": null
       },
       "acceptanceCriteria": {
@@ -967,7 +1114,9 @@
       "ownerRole": "devops-engineer",
       "priority": "medium",
       "taskBreakdown": {
-        "dependencies": ["inital-p6t-002"],
+        "dependencies": [
+          "inital-p6t-002"
+        ],
         "parallelGroup": null
       },
       "acceptanceCriteria": {
@@ -1011,7 +1160,11 @@
         "parallelGroup": "phase-1-research"
       },
       "acceptanceCriteria": {
-        "criteria": ["完成竞品分析清单", "形成目标用户画像", "输出调研结论文档"]
+        "criteria": [
+          "完成竞品分析清单",
+          "形成目标用户画像",
+          "输出调研结论文档"
+        ]
       },
       "timeline": {
         "createdAt": "2026-03-14T00:00:00Z",
@@ -1039,11 +1192,16 @@
       "ownerRole": "product-manager",
       "priority": "critical",
       "taskBreakdown": {
-        "dependencies": ["inital-p1r-001"],
+        "dependencies": [
+          "inital-p1r-001"
+        ],
         "parallelGroup": "phase-1-brd"
       },
       "acceptanceCriteria": {
-        "criteria": ["BRD 包含业务目标、范围、约束", "完成评审并记录修改项"]
+        "criteria": [
+          "BRD 包含业务目标、范围、约束",
+          "完成评审并记录修改项"
+        ]
       },
       "timeline": {
         "createdAt": "2026-03-14T00:00:00Z",
@@ -1071,11 +1229,16 @@
       "ownerRole": "product-manager",
       "priority": "critical",
       "taskBreakdown": {
-        "dependencies": ["inital-p1b-001"],
+        "dependencies": [
+          "inital-p1b-001"
+        ],
         "parallelGroup": "phase-2-prd"
       },
       "acceptanceCriteria": {
-        "criteria": ["PRD 包含功能需求与非功能需求", "关键流程具备验收标准"]
+        "criteria": [
+          "PRD 包含功能需求与非功能需求",
+          "关键流程具备验收标准"
+        ]
       },
       "timeline": {
         "createdAt": "2026-03-14T00:00:00Z",
@@ -1103,11 +1266,16 @@
       "ownerRole": "ui-ux-designer",
       "priority": "high",
       "taskBreakdown": {
-        "dependencies": ["inital-p2p-001"],
+        "dependencies": [
+          "inital-p2p-001"
+        ],
         "parallelGroup": "phase-2-5-design"
       },
       "acceptanceCriteria": {
-        "criteria": ["完成风格和主题确认记录", "形成可执行的视觉方向说明"]
+        "criteria": [
+          "完成风格和主题确认记录",
+          "形成可执行的视觉方向说明"
+        ]
       },
       "timeline": {
         "createdAt": "2026-03-14T00:00:00Z",
@@ -1135,11 +1303,16 @@
       "ownerRole": "ui-ux-designer",
       "priority": "high",
       "taskBreakdown": {
-        "dependencies": ["inital-p25d-001"],
+        "dependencies": [
+          "inital-p25d-001"
+        ],
         "parallelGroup": "phase-2-5-design"
       },
       "acceptanceCriteria": {
-        "criteria": ["输出 Stitch 可执行的增强提示词", "提示词包含设计系统上下文"]
+        "criteria": [
+          "输出 Stitch 可执行的增强提示词",
+          "提示词包含设计系统上下文"
+        ]
       },
       "timeline": {
         "createdAt": "2026-03-14T00:00:00Z",
@@ -1167,11 +1340,16 @@
       "ownerRole": "ui-ux-designer",
       "priority": "high",
       "taskBreakdown": {
-        "dependencies": ["inital-p25d-002"],
+        "dependencies": [
+          "inital-p25d-002"
+        ],
         "parallelGroup": "phase-2-5-design"
       },
       "acceptanceCriteria": {
-        "criteria": ["关键页面产出 .stitch/designs/*.html", "关键页面产出 .stitch/designs/*.png"]
+        "criteria": [
+          "关键页面产出 .stitch/designs/*.html",
+          "关键页面产出 .stitch/designs/*.png"
+        ]
       },
       "timeline": {
         "createdAt": "2026-03-14T00:00:00Z",
@@ -1199,11 +1377,16 @@
       "ownerRole": "ui-ux-designer",
       "priority": "high",
       "taskBreakdown": {
-        "dependencies": ["inital-p25d-003"],
+        "dependencies": [
+          "inital-p25d-003"
+        ],
         "parallelGroup": "phase-2-5-design"
       },
       "acceptanceCriteria": {
-        "criteria": ["完成 .stitch/DESIGN.md", "包含颜色、字体、组件与状态规范"]
+        "criteria": [
+          "完成 .stitch/DESIGN.md",
+          "包含颜色、字体、组件与状态规范"
+        ]
       },
       "timeline": {
         "createdAt": "2026-03-14T00:00:00Z",
@@ -1234,11 +1417,16 @@
         "optional": true
       },
       "taskBreakdown": {
-        "dependencies": ["inital-p25d-004"],
+        "dependencies": [
+          "inital-p25d-004"
+        ],
         "parallelGroup": "phase-2-5-design"
       },
       "acceptanceCriteria": {
-        "criteria": ["完成组件映射清单", "输出 docs/design/UI-SPEC-*.md"]
+        "criteria": [
+          "完成组件映射清单",
+          "输出 docs/design/UI-SPEC-*.md"
+        ]
       },
       "timeline": {
         "createdAt": "2026-03-14T00:00:00Z",
@@ -1266,11 +1454,16 @@
       "ownerRole": "fullstack-dev",
       "priority": "critical",
       "taskBreakdown": {
-        "dependencies": ["inital-p25d-004"],
+        "dependencies": [
+          "inital-p25d-004"
+        ],
         "parallelGroup": "phase-3-architecture"
       },
       "acceptanceCriteria": {
-        "criteria": ["架构图和模块边界清晰", "关键技术选型与权衡记录完成"]
+        "criteria": [
+          "架构图和模块边界清晰",
+          "关键技术选型与权衡记录完成"
+        ]
       },
       "timeline": {
         "createdAt": "2026-03-14T00:00:00Z",
@@ -1298,11 +1491,17 @@
       "ownerRole": "project-manager",
       "priority": "critical",
       "taskBreakdown": {
-        "dependencies": ["inital-p3a-001"],
+        "dependencies": [
+          "inital-p3a-001"
+        ],
         "parallelGroup": "phase-4-breakdown"
       },
       "acceptanceCriteria": {
-        "criteria": ["输出完整任务拆解清单", "新增任务依赖关系可执行", "Phase 5+ 任务已追加到 tasks.json"]
+        "criteria": [
+          "输出完整任务拆解清单",
+          "新增任务依赖关系可执行",
+          "Phase 5+ 任务已追加到 tasks.json"
+        ]
       },
       "timeline": {
         "createdAt": "2026-03-14T00:00:00Z",
@@ -1367,7 +1566,9 @@
       "ownerRole": "ui-ux-designer",
       "priority": "high",
       "taskBreakdown": {
-        "dependencies": ["imac-cli-terminal-orchestration-p2p-001"],
+        "dependencies": [
+          "imac-cli-terminal-orchestration-p2p-001"
+        ],
         "parallelGroup": "imac-phase-25-design"
       },
       "acceptanceCriteria": {
@@ -1404,7 +1605,9 @@
       "ownerRole": "architect",
       "priority": "critical",
       "taskBreakdown": {
-        "dependencies": ["imac-cli-terminal-orchestration-p2p-001"],
+        "dependencies": [
+          "imac-cli-terminal-orchestration-p2p-001"
+        ],
         "parallelGroup": "imac-phase-3-architecture"
       },
       "acceptanceCriteria": {
@@ -1480,7 +1683,9 @@
       "ownerRole": "backend-dev",
       "priority": "critical",
       "taskBreakdown": {
-        "dependencies": ["imac-cli-terminal-orchestration-p4b-001"],
+        "dependencies": [
+          "imac-cli-terminal-orchestration-p4b-001"
+        ],
         "parallelGroup": "imac-phase-5-core"
       },
       "acceptanceCriteria": {
@@ -1516,7 +1721,9 @@
       "ownerRole": "fullstack-dev",
       "priority": "critical",
       "taskBreakdown": {
-        "dependencies": ["imac-cli-terminal-orchestration-p5d-001"],
+        "dependencies": [
+          "imac-cli-terminal-orchestration-p5d-001"
+        ],
         "parallelGroup": "imac-phase-5-core"
       },
       "acceptanceCriteria": {
@@ -1552,7 +1759,9 @@
       "ownerRole": "frontend-dev",
       "priority": "critical",
       "taskBreakdown": {
-        "dependencies": ["imac-cli-terminal-orchestration-p5d-001"],
+        "dependencies": [
+          "imac-cli-terminal-orchestration-p5d-001"
+        ],
         "parallelGroup": "imac-phase-5-core"
       },
       "acceptanceCriteria": {
@@ -1588,7 +1797,9 @@
       "ownerRole": "frontend-dev",
       "priority": "high",
       "taskBreakdown": {
-        "dependencies": ["imac-cli-terminal-orchestration-p5d-003"],
+        "dependencies": [
+          "imac-cli-terminal-orchestration-p5d-003"
+        ],
         "parallelGroup": "imac-phase-5-interaction"
       },
       "acceptanceCriteria": {
@@ -1624,7 +1835,9 @@
       "ownerRole": "frontend-dev",
       "priority": "high",
       "taskBreakdown": {
-        "dependencies": ["imac-cli-terminal-orchestration-p5d-003"],
+        "dependencies": [
+          "imac-cli-terminal-orchestration-p5d-003"
+        ],
         "parallelGroup": "imac-phase-5-interaction"
       },
       "acceptanceCriteria": {
@@ -1700,7 +1913,9 @@
       "ownerRole": "backend-dev",
       "priority": "high",
       "taskBreakdown": {
-        "dependencies": ["imac-cli-terminal-orchestration-p5d-006"],
+        "dependencies": [
+          "imac-cli-terminal-orchestration-p5d-006"
+        ],
         "parallelGroup": "imac-phase-5-orchestration"
       },
       "acceptanceCriteria": {
@@ -1736,7 +1951,9 @@
       "ownerRole": "qa-engineer",
       "priority": "critical",
       "taskBreakdown": {
-        "dependencies": ["imac-cli-terminal-orchestration-p5d-007"],
+        "dependencies": [
+          "imac-cli-terminal-orchestration-p5d-007"
+        ],
         "parallelGroup": "imac-phase-6-testing"
       },
       "acceptanceCriteria": {
@@ -1772,7 +1989,9 @@
       "ownerRole": "devops-engineer",
       "priority": "high",
       "taskBreakdown": {
-        "dependencies": ["imac-cli-terminal-orchestration-p6t-001"],
+        "dependencies": [
+          "imac-cli-terminal-orchestration-p6t-001"
+        ],
         "parallelGroup": "imac-phase-7-deployment"
       },
       "acceptanceCriteria": {
@@ -1808,7 +2027,9 @@
       "ownerRole": "project-manager",
       "priority": "high",
       "taskBreakdown": {
-        "dependencies": ["imac-cli-terminal-orchestration-p7d-001"],
+        "dependencies": [
+          "imac-cli-terminal-orchestration-p7d-001"
+        ],
         "parallelGroup": "imac-phase-8-management"
       },
       "acceptanceCriteria": {
@@ -1874,6 +2095,291 @@
           "timestamp": "2026-03-21T00:00:00Z",
           "action": "Feature completed",
           "details": "Created components/shared/project-switcher-form.tsx with path input, validation icons, Enter-key submission, localStorage persistence. Updated app/dashboard/page.tsx to use ProjectSwitcherForm. TypeScript check passed."
+        }
+      ]
+    },
+    {
+      "id": "imac-vr-p25d-001",
+      "title": "Design System CSS Upgrade",
+      "summary": "Refined warm theme tokens, added animation keyframes, skeleton loading, toast notifications, error boundaries, interaction utilities, responsive breakpoint helpers.",
+      "ownerRole": "frontend-dev",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": [],
+        "parallelGroup": "imac-visual-redesign"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Color tokens refined for better contrast (primary: 20 90% 54%)",
+          "CSS variables for shadows, transitions, radii added",
+          "Animation keyframes: fade-in, fade-in-up, shimmer, toast-enter/exit",
+          "Skeleton loading classes (.skeleton, .skeleton-text, etc.)",
+          "Toast notification system (.toast, .toast-success/error/warning/info)",
+          "Interaction utilities (.hover-lift, .hover-glow, .text-gradient-primary)",
+          "Staggered animation delays (.stagger-1 through .stagger-6)",
+          "New shared components: ToastProvider, Skeleton, ErrorBoundary",
+          "TypeScript passes"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-05-05T10:00:00Z",
+        "startedAt": "2026-05-05T10:00:00Z",
+        "completedAt": "2026-05-05T10:30:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-05-05T10:30:00Z",
+          "action": "Feature completed",
+          "details": "globals.css upgraded, tailwind.config.ts updated, toast/skeleton/error-boundary components created."
+        }
+      ]
+    },
+    {
+      "id": "imac-vr-p5d-001",
+      "title": "Responsive App Shell & Navigation",
+      "summary": "Refactored AppShell for mobile responsive sidebar with drawer, hamburger menu button, responsive header.",
+      "ownerRole": "frontend-dev",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": [
+          "imac-vr-p25d-001"
+        ],
+        "parallelGroup": "imac-visual-redesign"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Mobile sidebar drawer with backdrop blur overlay",
+          "Hamburger menu button visible only on mobile (lg:hidden)",
+          "Sidebar auto-closes on navigation",
+          "Responsive header height (h-14 mobile, h-16 desktop)",
+          "Lucide Settings icon replaces inline SVG",
+          "TypeScript passes"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-05-05T10:30:00Z",
+        "startedAt": "2026-05-05T10:30:00Z",
+        "completedAt": "2026-05-05T11:00:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-05-05T11:00:00Z",
+          "action": "Feature completed",
+          "details": "AppShell, Header, Sidebar refactored for responsive. Mobile drawer with overlay, onNavigate prop."
+        }
+      ]
+    },
+    {
+      "id": "imac-vr-p5d-002",
+      "title": "Dashboard Decomposition & Visual Redesign",
+      "summary": "Decomposed 892-line dashboard into modular components (data.ts + stats-grid.tsx), added staggered animations.",
+      "ownerRole": "frontend-dev",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": [
+          "imac-vr-p25d-001"
+        ],
+        "parallelGroup": "imac-visual-redesign"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Dashboard page reduced to ~60 lines orchestrator",
+          "Data loading extracted to components/dashboard/data.ts",
+          "8 visual section components extracted (StatsGrid, MilestoneTracks, etc.)",
+          "Staggered fade-in animations on stat cards",
+          "hover-lift and hover-glow on interactive cards",
+          "TypeScript passes"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-05-05T11:00:00Z",
+        "startedAt": "2026-05-05T11:00:00Z",
+        "completedAt": "2026-05-05T11:30:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-05-05T11:30:00Z",
+          "action": "Feature completed",
+          "details": "Dashboard decomposed: data.ts, stats-grid.tsx with 8 exported section components."
+        }
+      ]
+    },
+    {
+      "id": "imac-vr-p5d-003",
+      "title": "Phase Pages Visual Differentiation",
+      "summary": "Created PhasePageLayout with per-phase color themes, refactored all 5 phase pages (requirements, architecture, development, testing, deployment).",
+      "ownerRole": "frontend-dev",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": [
+          "imac-vr-p5d-001"
+        ],
+        "parallelGroup": "imac-visual-redesign"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "PhasePageLayout component with per-phase icon and color accent",
+          "Phase 1-2 (blue), Phase 3-4 (amber), Phase 5 (emerald), Phase 6 (cyan), Phase 7 (rose)",
+          "Duplicated formatTime() removed from all phase pages",
+          "Unified card styling with border-border/60, hover-glow, animate-fade-in-up",
+          "TypeScript passes"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-05-05T11:30:00Z",
+        "startedAt": "2026-05-05T11:30:00Z",
+        "completedAt": "2026-05-05T12:00:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-05-05T12:00:00Z",
+          "action": "Feature completed",
+          "details": "PhasePageLayout created, all 5 phase pages refactored in parallel by subagents."
+        }
+      ]
+    },
+    {
+      "id": "imac-vr-p5d-004",
+      "title": "Settings, Inbox & Approval Redesign",
+      "summary": "Extracted 1073-line settings into 7 tab components, improved inbox with skeleton loading, updated approval styling.",
+      "ownerRole": "frontend-dev",
+      "priority": "high",
+      "taskBreakdown": {
+        "dependencies": [
+          "imac-vr-p25d-001"
+        ],
+        "parallelGroup": "imac-visual-redesign"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "Settings page decomposed into 7 tab components under components/settings/",
+          "Mobile horizontal tab list with overflow-x-auto",
+          "Desktop sidebar tab list with hidden lg:flex",
+          "Inbox page uses SkeletonPage for loading state",
+          "Staggered fade-in animations on inbox cards",
+          "TypeScript passes"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-05-05T12:00:00Z",
+        "startedAt": "2026-05-05T12:00:00Z",
+        "completedAt": "2026-05-05T12:30:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-05-05T12:30:00Z",
+          "action": "Feature completed",
+          "details": "Settings tabs extracted, inbox page redesigned with skeleton loading and animations."
+        }
+      ]
+    },
+    {
+      "id": "imac-vr-p5d-005",
+      "title": "Interaction Polish & Final QA",
+      "summary": "Integrated ToastProvider and ErrorBoundary in root layout, added responsive padding, unified border opacity, hover feedback across all pages.",
+      "ownerRole": "frontend-dev",
+      "priority": "medium",
+      "taskBreakdown": {
+        "dependencies": [
+          "imac-vr-p5d-001",
+          "imac-vr-p5d-002",
+          "imac-vr-p5d-003",
+          "imac-vr-p5d-004"
+        ],
+        "parallelGroup": "imac-visual-redesign"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "ToastProvider and ErrorBoundary integrated in app/layout.tsx",
+          "Responsive padding on all page layouts (p-4 sm:p-6 lg:p-8)",
+          "Consistent border opacity (border-border/60) across surfaces",
+          "Interactive cards use hover-glow for subtle feedback",
+          "171 unit tests pass across 26 test files",
+          "TypeScript clean (0 errors)"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-05-05T12:30:00Z",
+        "startedAt": "2026-05-05T12:30:00Z",
+        "completedAt": "2026-05-05T13:00:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-05-05T13:00:00Z",
+          "action": "Feature completed",
+          "details": "All polish applied, 171 tests pass, TypeScript clean. Committed as cf43a8d."
+        }
+      ]
+    },
+    {
+      "id": "imac-vr-p5d-006",
+      "title": "IMAC tasks.json Record Update",
+      "summary": "Post-completion: add imac-visual-redesign features to tasks.json for tracking.",
+      "ownerRole": "frontend-dev",
+      "priority": "low",
+      "taskBreakdown": {
+        "dependencies": [],
+        "parallelGroup": "imac-visual-redesign"
+      },
+      "acceptanceCriteria": {
+        "criteria": [
+          "parallelGroups.imac-visual-redesign added with all 7 feature IDs",
+          "7 features added to features array with correct status/passes/timeline",
+          "JSON valid and parseable"
+        ]
+      },
+      "timeline": {
+        "createdAt": "2026-05-05T13:00:00Z",
+        "startedAt": "2026-05-05T13:00:00Z",
+        "completedAt": "2026-05-05T13:05:00Z"
+      },
+      "status": {
+        "status": "completed",
+        "passes": true,
+        "blockReason": null,
+        "resumeContext": null
+      },
+      "executionHistory": [
+        {
+          "timestamp": "2026-05-05T13:05:00Z",
+          "action": "Feature completed",
+          "details": "tasks.json updated with imac-visual-redesign parallel group and 7 features."
         }
       ]
     }
