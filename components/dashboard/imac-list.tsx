@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { GitBranch, GitMerge, Loader2, Paperclip, Play, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -52,6 +53,7 @@ function buildImacPrompt(session: ImacSession): string {
 }
 
 export function ImacList({ sessions }: ImacListProps) {
+  const router = useRouter();
   const [loadingAction, setLoadingAction] = React.useState<string | null>(null);
 
   const handleStartInClaude = React.useCallback(async (session: ImacSession) => {
@@ -77,12 +79,12 @@ export function ImacList({ sessions }: ImacListProps) {
         },
       });
 
-      window.location.reload();
+      router.refresh();
     } catch (error) {
       alert(error instanceof Error ? error.message : "Failed to start IMAC session");
       setLoadingAction(null);
     }
-  }, []);
+  }, [router]);
 
   const handleAction = React.useCallback(async (action: string, sessionId: string) => {
     setLoadingAction(`${action}-${sessionId}`);
@@ -90,13 +92,13 @@ export function ImacList({ sessions }: ImacListProps) {
       const response = await fetch(`/api/imac/${sessionId}/${action}`, { method: "POST" });
       const result = await response.json();
       if (!result.success) throw new Error(result.error);
-      window.location.reload();
+      router.refresh();
     } catch (error) {
       alert(error instanceof Error ? error.message : "Action failed");
     } finally {
       setLoadingAction(null);
     }
-  }, []);
+  }, [router]);
 
   if (sessions.length === 0) {
     return (
