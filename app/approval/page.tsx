@@ -73,6 +73,10 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
+function getMemberRolesLabel(roles?: string[]) {
+  return Array.isArray(roles) && roles.length > 0 ? roles.join(", ") : "reviewer";
+}
+
 function upsertApproval(approvals: ApprovalRecord[], updatedApproval: ApprovalRecord) {
   return approvals.map((approval) =>
     approval.id === updatedApproval.id ? updatedApproval : approval
@@ -262,7 +266,7 @@ export default function ApprovalPage() {
           comment: comment?.trim() || "",
           actorId: currentMember?.id || "frontend-user",
           actorName: currentMember?.name || "Current Reviewer",
-          actorRole: currentMember?.role || "reviewer",
+          actorRole: currentMember?.roles[0] || "reviewer",
         }),
       });
       setSelectedGate(updatedGate);
@@ -313,7 +317,7 @@ export default function ApprovalPage() {
           </p>
           {currentMember ? (
             <p className="mt-1 text-xs text-muted-foreground">
-              Reviewer: {currentMember.name} · {currentMember.role} · shared team account
+              Reviewer: {currentMember.name} · {getMemberRolesLabel(currentMember.roles)} · shared team account
             </p>
           ) : null}
           {projectRoot ? (

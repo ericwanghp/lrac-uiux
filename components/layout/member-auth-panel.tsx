@@ -114,7 +114,7 @@ export function MemberAuthPanel() {
             <div className="space-y-3">
               <div>
                 <p className="text-sm font-semibold text-foreground">{member.name}</p>
-                <p className="text-xs text-muted-foreground">{member.role}</p>
+                <p className="text-xs text-muted-foreground">{member.roles.join(", ") || "reviewer"}</p>
               </div>
               <Button
                 variant="outline"
@@ -152,7 +152,7 @@ export function MemberAuthPanel() {
                   <SelectContent>
                     {members.map((entry) => (
                       <SelectItem key={entry.id} value={entry.id}>
-                        {entry.name} · {entry.role}
+                        {entry.name} · {entry.roles.join(", ") || "reviewer"}
                       </SelectItem>
                     ))}
                   </SelectContent>

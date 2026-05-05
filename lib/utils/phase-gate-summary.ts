@@ -32,7 +32,7 @@ function toStakeholderMap(
     map.set(member.id, {
       id: member.id,
       name: member.name,
-      role: member.role,
+      role: (member.roles ?? []).join(", "),
     });
   });
   stakeholders.forEach((stakeholder) => {

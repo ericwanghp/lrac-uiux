@@ -86,7 +86,7 @@ export async function notifyPhaseGateCreated(input: {
             recipients: recipients.map((recipient) => ({
               id: recipient.id,
               name: recipient.name,
-              role: recipient.role,
+              role: Array.isArray(recipient.role) ? recipient.role.join(", ") : recipient.role,
               kind: recipient.kind,
               email: recipient.email ?? null,
             })),

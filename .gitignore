@@ -66,3 +66,4 @@ CLAUDE-architecture.excalidraw
 
 # Local reports
 .claude/reports/
+.playwright-mcp/

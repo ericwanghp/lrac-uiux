@@ -47,7 +47,7 @@ export interface StakeholderContact {
 export interface ProjectMember {
   id: string;
   name: string;
-  role: string;
+  roles: string[];
   email?: string;
   active: boolean;
 }
@@ -193,15 +193,51 @@ export const DEFAULT_COMMUNICATION_SETTINGS: CommunicationSettings = {
   phaseApprovals: DEFAULT_PHASE_APPROVAL_POLICIES,
 };
 
+type LegacyProjectMemberInput = Partial<ProjectMember> & {
+  id?: string;
+  name?: string;
+  roles?: string[] | null;
+  role?: string | null;
+  email?: string;
+  active?: boolean;
+};
+
+type CommunicationSettingsInput = Partial<Omit<CommunicationSettings, "members">> & {
+  members?: LegacyProjectMemberInput[] | null;
+};
+
+function normalizeProjectMember(
+  member: LegacyProjectMemberInput,
+  index: number
+): ProjectMember {
+  const roles = Array.from(
+    new Set(
+      (Array.isArray(member.roles) ? member.roles : member.role ? [member.role] : [])
+        .filter((role): role is string => typeof role === "string" && role.trim().length > 0)
+        .map((role) => role.trim())
+    )
+  );
+
+  return {
+    id: member.id?.trim() || `member-${index + 1}`,
+    name: member.name?.trim() || `Member ${index + 1}`,
+    roles,
+    email: typeof member.email === "string" ? member.email : undefined,
+    active: typeof member.active === "boolean" ? member.active : true,
+  };
+}
+
 export function normalizeCommunicationSettings(
-  communication?: Partial<CommunicationSettings>
+  communication?: CommunicationSettingsInput
 ): CommunicationSettings {
   const policyByPhase = new Map(
     (communication?.phaseApprovals ?? []).map((policy) => [policy.phase, policy])
   );
 
   return {
-    members: Array.isArray(communication?.members) ? communication.members : [],
+    members: Array.isArray(communication?.members)
+      ? communication.members.map((member, index) => normalizeProjectMember(member, index))
+      : [],
     stakeholders: Array.isArray(communication?.stakeholders) ? communication.stakeholders : [],
     channels:
       Array.isArray(communication?.channels) && communication.channels.length > 0

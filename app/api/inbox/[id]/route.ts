@@ -54,7 +54,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       decision: {
         actorId: session.member.id,
         actorName: session.member.name,
-        role: session.member.role,
+        role: Array.isArray(session.member.roles) ? session.member.roles.join(", ") : (session.member.roles ?? ""),
         decision,
         comment: body.comment || "",
         timestamp: new Date().toISOString(),

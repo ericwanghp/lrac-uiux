@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   Bell,
+  Check,
   Keyboard,
   KeyRound,
   Mail,
@@ -59,10 +60,8 @@ const keyboardShortcuts: KeyboardShortcut[] = [
   { action: "Save current form", keys: ["Cmd", "S"], category: "Global" },
   { action: "Close modals", keys: ["Esc"], category: "Global" },
   { action: "Navigate between elements", keys: ["Tab"], category: "Global" },
-  { action: "Activate buttons", keys: ["Enter"], category: "Global" },
-  { action: "Activate buttons", keys: ["Space"], category: "Global" },
-  { action: "Navigate lists", keys: ["↑"], category: "Global" },
-  { action: "Navigate lists", keys: ["↓"], category: "Global" },
+  { action: "Activate buttons", keys: ["Enter", "Space"], category: "Global" },
+  { action: "Navigate lists", keys: ["↑", "↓"], category: "Global" },
   { action: "New project", keys: ["Cmd", "N"], category: "Actions" },
   { action: "Open project", keys: ["Cmd", "O"], category: "Actions" },
   { action: "Toggle sidebar", keys: ["Cmd", "B"], category: "Actions" },
@@ -78,6 +77,59 @@ const triggerClassName =
   "justify-start rounded-2xl px-4 py-3 w-full text-muted-foreground transition-all hover:bg-accent/70 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/15";
 const rowClassName = "flex items-center justify-between gap-4 py-4 border-b border-border/80";
 const codeSurfaceClassName = "rounded-xl border border-border/80 bg-secondary/70 px-3 py-2";
+
+const TEAM_ROLE_STYLES: Record<string, { label: string; selectedClassName: string }> = {
+  "business-owner": {
+    label: "Business Owner",
+    selectedClassName: "border-sky-500/30 bg-sky-500/12 text-sky-700 dark:text-sky-200",
+  },
+  "product-manager": {
+    label: "Product Manager",
+    selectedClassName: "border-violet-500/30 bg-violet-500/12 text-violet-700 dark:text-violet-200",
+  },
+  "design-reviewer": {
+    label: "Design Reviewer",
+    selectedClassName: "border-pink-500/30 bg-pink-500/12 text-pink-700 dark:text-pink-200",
+  },
+  "architect-reviewer": {
+    label: "Architect Reviewer",
+    selectedClassName: "border-amber-500/30 bg-amber-500/12 text-amber-700 dark:text-amber-200",
+  },
+  "project-manager": {
+    label: "Project Manager",
+    selectedClassName: "border-indigo-500/30 bg-indigo-500/12 text-indigo-700 dark:text-indigo-200",
+  },
+  "qa-lead": {
+    label: "QA Lead",
+    selectedClassName: "border-emerald-500/30 bg-emerald-500/12 text-emerald-700 dark:text-emerald-200",
+  },
+  "ops-reviewer": {
+    label: "Ops Reviewer",
+    selectedClassName: "border-cyan-500/30 bg-cyan-500/12 text-cyan-700 dark:text-cyan-200",
+  },
+  "project-sponsor": {
+    label: "Project Sponsor",
+    selectedClassName: "border-rose-500/30 bg-rose-500/12 text-rose-700 dark:text-rose-200",
+  },
+  reviewer: {
+    label: "Reviewer",
+    selectedClassName: "border-primary/30 bg-primary/12 text-primary",
+  },
+};
+
+function getRoleLabel(role: string) {
+  return TEAM_ROLE_STYLES[role]?.label ?? role;
+}
+
+function getAvailableRoles(settings: UserSettings) {
+  return Array.from(
+    new Set([
+      ...Object.keys(TEAM_ROLE_STYLES),
+      ...settings.communication.members.flatMap((member) => member.roles ?? []),
+      ...settings.communication.phaseApprovals.flatMap((policy) => policy.requiredRoles),
+    ])
+  ).sort((left, right) => getRoleLabel(left).localeCompare(getRoleLabel(right)));
+}
 
 async function fetchJson<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
   const response = await fetch(input, {
@@ -108,6 +160,7 @@ export default function SettingsPage() {
   const [taskIdSchemaError, setTaskIdSchemaError] = useState<string | null>(null);
   const [passwordDrafts, setPasswordDrafts] = useState<Record<string, string>>({});
   const scopedPath = (path: string) => buildProjectScopedPath(path, projectRoot);
+  const availableRoles = getAvailableRoles(settings);
 
   useEffect(() => {
     const loadPageData = async () => {
@@ -118,7 +171,15 @@ export default function SettingsPage() {
           fetchJson<TaskIdSchemaData>("/api/meta/task-id-schema"),
         ]);
 
-        setSettings(settingsData.settings);
+        const migrated = settingsData.settings;
+        migrated.communication.members = migrated.communication.members.map((m) => {
+          const member = m as ProjectMember & { role?: string };
+          return {
+            ...member,
+            roles: member.roles ?? (member.role ? [member.role] : []),
+          };
+        });
+        setSettings(migrated);
         setCatalog(settingsData.catalog);
         setTaskIdSchema(taskIdData);
         setTaskIdSchemaError(null);
@@ -193,7 +254,7 @@ export default function SettingsPage() {
     const nextMember: ProjectMember = {
       id: `member-${nextIndex}`,
       name: `Member ${nextIndex}`,
-      role: "reviewer",
+      roles: ["reviewer"],
       email: "",
       active: true,
     };
@@ -236,6 +297,27 @@ export default function SettingsPage() {
           approverIds: exists
             ? policy.approverIds.filter((id) => id !== memberId)
             : [...policy.approverIds, memberId],
+        };
+      }),
+    }));
+  };
+
+  const togglePhaseRequiredRole = (phase: string, role: string) => {
+    updateCommunicationSettings((communication) => ({
+      ...communication,
+      phaseApprovals: communication.phaseApprovals.map((policy) => {
+        if (policy.phase !== phase) {
+          return policy;
+        }
+
+        const selected = policy.requiredRoles.includes(role);
+        return {
+          ...policy,
+          requiredRoles: selected
+            ? policy.requiredRoles.filter((entry) => entry !== role)
+            : [...policy.requiredRoles, role].sort((left, right) =>
+                getRoleLabel(left).localeCompare(getRoleLabel(right))
+              ),
         };
       }),
     }));
@@ -690,16 +772,52 @@ export default function SettingsPage() {
                             <Input value={member.name} onChange={(event) => updateMember(member.id, { name: event.target.value })} />
                           </div>
                           <div className="space-y-2">
-                            <Label>Role</Label>
-                            <Input value={member.role} onChange={(event) => updateMember(member.id, { role: event.target.value })} />
-                          </div>
-                          <div className="space-y-2">
                             <Label>Email</Label>
                             <Input value={member.email || ""} onChange={(event) => updateMember(member.id, { email: event.target.value })} />
                           </div>
-                          <div className="space-y-2">
-                            <Label>Member ID</Label>
-                            <Input value={member.id} onChange={(event) => updateMember(member.id, { id: event.target.value })} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Roles</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Colored roles are enabled for this member. Click any role chip to toggle it.
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {availableRoles.map((role) => {
+                              const selected = (member.roles ?? []).includes(role);
+                              const roleStyle = TEAM_ROLE_STYLES[role];
+                              return (
+                                <button
+                                  key={role}
+                                  type="button"
+                                  onClick={() =>
+                                    updateMember(member.id, {
+                                      roles: selected
+                                        ? (member.roles ?? []).filter((r) => r !== role)
+                                        : [...(member.roles ?? []), role],
+                                    })
+                                  }
+                                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                                    selected
+                                      ? `${roleStyle?.selectedClassName ?? "border-primary/30 bg-primary/12 text-primary"} shadow-sm`
+                                      : "border-border/70 bg-background/75 text-muted-foreground hover:border-border hover:bg-secondary/70 hover:text-foreground"
+                                  }`}
+                                  aria-pressed={selected}
+                                  title={selected ? `Remove ${getRoleLabel(role)}` : `Add ${getRoleLabel(role)}`}
+                                >
+                                  <span
+                                    className={`inline-flex h-4 w-4 items-center justify-center rounded-full border text-[10px] ${
+                                      selected
+                                        ? "border-current/25 bg-current/10"
+                                        : "border-border/70 bg-background/80 text-muted-foreground"
+                                    }`}
+                                    aria-hidden="true"
+                                  >
+                                    {selected ? <Check className="h-3 w-3" /> : null}
+                                  </span>
+                                  <span>{getRoleLabel(role)}</span>
+                                </button>
+                              );
+                            })}
                           </div>
                         </div>
                         <div className="flex items-center justify-between gap-4">
@@ -757,7 +875,7 @@ export default function SettingsPage() {
                             Phase {policy.phase} · {policy.label}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            Required roles: {policy.requiredRoles.join(", ") || "None"}
+                            Colored role chips are required reviewers for this phase. Click to toggle.
                           </p>
                         </div>
                         <Switch
@@ -772,24 +890,90 @@ export default function SettingsPage() {
                           }
                         />
                       </div>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="space-y-2">
+                        <Label>Required Roles</Label>
+                        <div className="flex flex-wrap gap-2">
+                          {availableRoles.map((role) => {
+                            const selected = policy.requiredRoles.includes(role);
+                            const roleStyle = TEAM_ROLE_STYLES[role];
+                            return (
+                              <button
+                                key={`${policy.phase}-${role}`}
+                                type="button"
+                                onClick={() => togglePhaseRequiredRole(policy.phase, role)}
+                                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                                  selected
+                                    ? `${roleStyle?.selectedClassName ?? "border-primary/30 bg-primary/12 text-primary"} shadow-sm`
+                                    : "border-border/70 bg-background/75 text-muted-foreground hover:border-border hover:bg-secondary/70 hover:text-foreground"
+                                }`}
+                                aria-pressed={selected}
+                                title={selected ? `Remove ${getRoleLabel(role)}` : `Require ${getRoleLabel(role)}`}
+                              >
+                                <span
+                                  className={`inline-flex h-4 w-4 items-center justify-center rounded-full border text-[10px] ${
+                                    selected
+                                      ? "border-current/25 bg-current/10"
+                                      : "border-border/70 bg-background/80 text-muted-foreground"
+                                  }`}
+                                  aria-hidden="true"
+                                >
+                                  {selected ? <Check className="h-3 w-3" /> : null}
+                                </span>
+                                <span>{getRoleLabel(role)}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Assigned Approvers</Label>
+                        <div className="flex flex-wrap gap-2">
                         {settings.communication.members.length === 0 ? (
                           <p className="text-sm text-muted-foreground">Add team members first.</p>
                         ) : (
                           settings.communication.members.map((member) => {
                             const selected = policy.approverIds.includes(member.id);
+                            const memberRoles = member.roles.map((role) => getRoleLabel(role)).join(", ");
                             return (
-                              <Button
+                              <button
                                 key={`${policy.phase}-${member.id}`}
-                                size="sm"
-                                variant={selected ? "default" : "outline"}
+                                type="button"
                                 onClick={() => togglePhaseApprover(policy.phase, member.id)}
+                                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                                  selected
+                                    ? "border-primary/30 bg-primary/12 text-primary shadow-sm"
+                                    : "border-border/70 bg-background/75 text-muted-foreground hover:border-border hover:bg-secondary/70 hover:text-foreground"
+                                }`}
+                                aria-pressed={selected}
+                                title={selected ? `Remove ${member.name} as approver` : `Add ${member.name} as approver`}
                               >
-                                {member.name}
-                              </Button>
+                                <span
+                                  className={`inline-flex h-4 w-4 items-center justify-center rounded-full border text-[10px] ${
+                                    selected
+                                      ? "border-current/25 bg-current/10"
+                                      : "border-border/70 bg-background/80 text-muted-foreground"
+                                  }`}
+                                  aria-hidden="true"
+                                >
+                                  {selected ? <Check className="h-3 w-3" /> : null}
+                                </span>
+                                <span>{member.name}</span>
+                                {memberRoles ? (
+                                  <span
+                                    className={`rounded-full px-2 py-0.5 text-[10px] ${
+                                      selected
+                                        ? "bg-current/10 text-current/80"
+                                        : "bg-secondary/80 text-muted-foreground"
+                                    }`}
+                                  >
+                                    {memberRoles}
+                                  </span>
+                                ) : null}
+                              </button>
                             );
                           })
                         )}
+                        </div>
                       </div>
                     </div>
                   ))}

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { normalizeCommunicationSettings } from "@/lib/types/settings";
 import { UpdateUserSettingsInputSchema } from "@/lib/validation";
 import { readProjectSettings, writeProjectSettings } from "@/lib/utils/project-settings-operations";
 import { discoverOrchestrationCatalog, normalizeOrchestrationSettings } from "@/lib/utils/orchestration-settings";
@@ -45,6 +46,9 @@ export async function PATCH(request: NextRequest) {
     const updatedEnvelope = await writeProjectSettings({
       ...currentEnvelope.settings,
       ...validatedInput,
+      communication: validatedInput.communication
+        ? normalizeCommunicationSettings(validatedInput.communication)
+        : currentEnvelope.settings.communication,
       orchestration: validatedInput.orchestration ?? currentEnvelope.settings.orchestration,
     }, projectRoot);
     const catalog = await discoverOrchestrationCatalog(PROJECT_ROOT);

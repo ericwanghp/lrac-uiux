@@ -337,6 +337,30 @@ export function CreateProjectDialog({ workspaceRoot, setupScriptPath }: CreatePr
 
           {step === "path" ? (
             <div className="mt-6 space-y-5">
+            <div className="rounded-[1.25rem] border-2 border-primary/40 bg-primary/5 p-4 ring-2 ring-primary/20">
+              <div className="flex items-center gap-2 mb-3">
+                <FolderRoot className="h-4 w-4 text-primary" />
+                <p className="text-sm font-semibold text-primary">Project path</p>
+              </div>
+              <Input
+                id="create-project-path"
+                value={projectPath}
+                onChange={(event) => setProjectPath(event.target.value)}
+                placeholder={`${workspaceRoot}/my-next-project`}
+                className="h-12 border-primary/30 bg-background/85 font-mono text-sm focus:border-primary focus:ring-primary/20"
+                autoFocus
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    void handleNextStep();
+                  }
+                }}
+              />
+              <p className="mt-2 text-xs text-muted-foreground">
+                例如 `my-app`、`agents/demo-app` 或完整路径 `{workspaceRoot}/my-app`
+              </p>
+            </div>
+
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
               <div className="rounded-[1.25rem] border border-border/80 bg-secondary/45 p-4">
                 <div className="flex items-center gap-2">
@@ -384,8 +408,8 @@ export function CreateProjectDialog({ workspaceRoot, setupScriptPath }: CreatePr
 
             <div className="rounded-[1.25rem] border border-border/80 bg-secondary/45 p-4">
               <div className="flex items-start gap-3">
-                <div className="rounded-2xl border border-primary/15 bg-primary/10 p-2 text-primary">
-                  <FolderRoot className="h-4 w-4" />
+                <div className="rounded-2xl border border-border/70 bg-background/80 p-2">
+                  <FolderRoot className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
@@ -394,28 +418,6 @@ export function CreateProjectDialog({ workspaceRoot, setupScriptPath }: CreatePr
                   <p className="mt-2 break-all font-mono text-sm text-foreground">{workspaceRoot}</p>
                 </div>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="create-project-path" className="text-sm font-medium text-foreground">
-                Project path
-              </label>
-              <Input
-                id="create-project-path"
-                value={projectPath}
-                onChange={(event) => setProjectPath(event.target.value)}
-                placeholder={`${workspaceRoot}/my-next-project`}
-                className="h-12 border-border/80 bg-background/85 font-mono text-sm"
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    void handleSubmit();
-                  }
-                }}
-              />
-              <p className="text-xs text-muted-foreground">
-                例如 `my-app`、`agents/demo-app` 或完整路径 `{workspaceRoot}/my-app`
-              </p>
             </div>
 
             <div className="rounded-[1.25rem] border border-border/80 bg-secondary/35 p-4">

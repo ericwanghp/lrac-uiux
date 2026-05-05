@@ -12,17 +12,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ProgressBar, StatCard } from "@/components/shared";
+import { ProgressBar } from "@/components/shared";
 import {
-  ClipboardList,
-  Clock,
-  CheckCircle,
-  AlertCircle,
   Users,
   Search,
-  ShieldAlert,
-  UserRoundCheck,
-  LockKeyhole,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -305,7 +298,6 @@ export default function PMDashboardPage() {
   const [rawFeatures, setRawFeatures] = useState<Feature[]>([]);
   const [approvals, setApprovals] = useState<ApprovalRecord[]>([]);
   const [phaseGateSummaries, setPhaseGateSummaries] = useState<PhaseGateSummary[]>([]);
-  const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [milestoneTrackFilter, setMilestoneTrackFilter] = useState("all");
@@ -315,7 +307,6 @@ export default function PMDashboardPage() {
     async (isSilent = false) => {
       try {
         if (!isSilent) {
-          setLoading(true);
           setLoadError(null);
         }
         const endpoints = ["/api/tasks", "/api/features", "/api/features/"];
@@ -376,10 +367,6 @@ export default function PMDashboardPage() {
         setTasks(mappedTasks);
       } catch (error) {
         setLoadError(error instanceof Error ? error.message : "加载任务失败");
-      } finally {
-        if (!isSilent) {
-          setLoading(false);
-        }
       }
     },
     [scopedPath]
@@ -500,75 +487,6 @@ export default function PMDashboardPage() {
     completed: globallyFilteredTasks.filter((t) => t.status === "completed").length,
     blocked: globallyFilteredTasks.filter((t) => t.status === "blocked").length,
   };
-  const pendingPhaseGateSummaries = phaseGateSummaries.filter((summary) => summary.status === "pending");
-  const waitingApproversCount = pendingPhaseGateSummaries.reduce(
-    (sum, summary) => sum + summary.pendingApprovers.length,
-    0
-  );
-  const blockedByApprovalCount = pendingPhaseGateSummaries.reduce(
-    (sum, summary) => sum + summary.blockedFeaturesCount,
-    0
-  );
-  const topStatCards = [
-    {
-      title: "Total Tasks",
-      value: stats.total,
-      description: loading ? "Loading..." : "From tasks.json",
-      variant: "default" as const,
-      icon: <ClipboardList className="h-5 w-5" />,
-    },
-    {
-      title: "In Progress",
-      value: stats.inProgress,
-      description: `${stats.total > 0 ? ((stats.inProgress / stats.total) * 100).toFixed(0) : 0}% of total`,
-      variant: "primary" as const,
-      icon: <Clock className="h-5 w-5" />,
-    },
-    {
-      title: "Completed",
-      value: stats.completed,
-      description: `${stats.total > 0 ? ((stats.completed / stats.total) * 100).toFixed(0) : 0}% completion`,
-      variant: "success" as const,
-      icon: <CheckCircle className="h-5 w-5" />,
-    },
-    {
-      title: "Blocked",
-      value: stats.blocked,
-      description: loadError ? "Load error" : "Needs attention",
-      variant: "error" as const,
-      icon: <AlertCircle className="h-5 w-5" />,
-    },
-    {
-      title: "Pending Gates",
-      value: pendingPhaseGateSummaries.length,
-      description:
-        pendingPhaseGateSummaries.length > 0
-          ? "Approval reviews are still open"
-          : "No phase gate is waiting for review",
-      variant: pendingPhaseGateSummaries.length > 0 ? ("warning" as const) : ("success" as const),
-      icon: <ShieldAlert className="h-5 w-5" />,
-    },
-    {
-      title: "Approvers Waiting",
-      value: waitingApproversCount,
-      description:
-        waitingApproversCount > 0
-          ? "Outstanding approver actions across pending gates"
-          : "No approver is currently waiting",
-      variant: waitingApproversCount > 0 ? ("warning" as const) : ("success" as const),
-      icon: <UserRoundCheck className="h-5 w-5" />,
-    },
-    {
-      title: "Blocked By Approval",
-      value: blockedByApprovalCount,
-      description:
-        blockedByApprovalCount > 0
-          ? "Tasks remain blocked until gate decisions finish"
-          : "No task is blocked by an approval gate",
-      variant: blockedByApprovalCount > 0 ? ("error" as const) : ("success" as const),
-      icon: <LockKeyhole className="h-5 w-5" />,
-    },
-  ];
 
   // Filter tasks (local task search within global milestone filter)
   const filteredTasks = globallyFilteredTasks.filter(
@@ -808,16 +726,6 @@ export default function PMDashboardPage() {
             <Users className="mr-2 h-4 w-4" />
             Manage Team
           </Button>
-        </div>
-      </div>
-
-      {/* Stat Cards */}
-      <div>
-        <p className="admin-kicker mb-3">Program Metrics</p>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-3">
-          {topStatCards.map((stat) => (
-            <StatCard key={stat.title} {...stat} className="min-h-[156px]" />
-          ))}
         </div>
       </div>
 

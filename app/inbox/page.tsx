@@ -99,7 +99,7 @@ export default function InboxPage() {
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Inbox</h1>
           <p className="mt-1 text-muted-foreground">
             {member
-              ? `${member.name} · ${member.role} · shared team account`
+              ? `${member.name} · ${member.roles.join(", ") || "reviewer"} · shared team account`
               : "Loading shared team member context..."}
           </p>
         </div>

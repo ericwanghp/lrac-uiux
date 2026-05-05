@@ -134,7 +134,7 @@ export function RequirementsIntakeDialog({
               {phaseCompleted ? "Update Requirements Intake" : "Open Requirements Intake"}
             </Button>
           </AlertDialogTrigger>
-          <AlertDialogContent className="max-w-3xl p-0">
+          <AlertDialogContent className="max-w-5xl p-0">
             <div className="rounded-[1.5rem] border border-white/50 bg-card/95 p-6">
               <AlertDialogHeader className="space-y-4 text-left">
                 <div className="inline-flex w-fit items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-primary">
@@ -149,9 +149,9 @@ export function RequirementsIntakeDialog({
                 </div>
               </AlertDialogHeader>
 
-              <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
-                <div className="space-y-5">
-                  <div className="rounded-[1.25rem] border border-border/80 bg-background/80 p-4">
+              <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,25fr)_minmax(180px,0.85fr)]">
+                <div className="flex flex-col">
+                  <div className="flex flex-1 flex-col rounded-[1.25rem] border border-border/80 bg-background/80 p-4">
                     <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
                       Requirement Description
                     </p>
@@ -159,14 +159,14 @@ export function RequirementsIntakeDialog({
                       value={description}
                       onChange={(event) => setDescription(event.target.value)}
                       placeholder="请描述项目目标、目标用户、核心流程、关键功能、技术约束和优先级..."
-                      className="mt-3 min-h-[260px] resize-none border-border/80 bg-background/90 text-sm leading-6"
+                      className="mt-3 min-h-[200px] flex-1 resize-none border-border/80 bg-background/90 text-sm leading-6"
                     />
                   </div>
+                </div>
 
+                <div className="space-y-4">
                   <div className="rounded-[1.25rem] border border-border/80 bg-secondary/35 p-4">
-                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                      Reference Documents
-                    </p>
+                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Reference Documents</p>
                     <label className="mt-3 flex cursor-pointer flex-col items-center justify-center gap-3 rounded-[1.25rem] border border-dashed border-border/80 bg-background/80 px-5 py-8 text-center transition hover:border-primary/40 hover:bg-primary/5">
                       <div className="rounded-2xl border border-primary/15 bg-primary/10 p-3 text-primary">
                         <FileUp className="h-5 w-5" />
@@ -188,9 +188,7 @@ export function RequirementsIntakeDialog({
                       />
                     </label>
                   </div>
-                </div>
 
-                <div className="space-y-4">
                   <div className="rounded-[1.25rem] border border-border/80 bg-secondary/45 p-4">
                     <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">What happens next</p>
                     <div className="mt-3 space-y-2 text-sm text-muted-foreground">

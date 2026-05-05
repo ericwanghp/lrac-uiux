@@ -17,15 +17,15 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
 const phases = [
-  { number: 1, name: "Requirements", icon: ClipboardList, route: "/phase/1" },
-  { number: 2, name: "Product", icon: FileText, route: "/phase/2" },
-  { number: 2.5, name: "Design", icon: Palette, route: "/phase/2.5" },
-  { number: 3, name: "Architecture", icon: Building2, route: "/phase/3" },
-  { number: 4, name: "Breakdown", icon: BarChart3, route: "/phase/4" },
-  { number: 5, name: "Development", icon: Code2, route: "/phase/5" },
-  { number: 6, name: "Testing", icon: FlaskConical, route: "/phase/6" },
-  { number: 7, name: "Deployment", icon: Rocket, route: "/phase/7" },
-  { number: 8, name: "PM", icon: Users, route: "/phase/8" },
+  { number: 1, name: "Requirements", icon: ClipboardList, route: "/requirements" },
+  { number: 2, name: "Product", icon: FileText, route: "/requirements" },
+  { number: 2.5, name: "Design", icon: Palette, route: "/design" },
+  { number: 3, name: "Architecture", icon: Building2, route: "/architecture" },
+  { number: 4, name: "Breakdown", icon: BarChart3, route: "/architecture" },
+  { number: 5, name: "Development", icon: Code2, route: "/development" },
+  { number: 6, name: "Testing", icon: FlaskConical, route: "/qa" },
+  { number: 7, name: "Deployment", icon: Rocket, route: "/deployment" },
+  { number: 8, name: "PM", icon: Users, route: "/pm" },
 ];
 
 type PhaseStatus = "completed" | "active" | "pending";

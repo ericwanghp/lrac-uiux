@@ -2,11 +2,11 @@
   "version": "1.0",
   "sessions": [
     {
-      "token": "dae877e0-75b1-4e23-b590-b0e69d7e42ca",
+      "token": "e8f56c1b-6b1e-47e6-bb46-93e90ca6f74e",
       "memberId": "ericwang",
       "projectRoot": "/Users/ericwang/lracode/lrac_test1",
-      "createdAt": "2026-05-05T03:10:04.922Z",
-      "expiresAt": "2026-05-05T15:10:04.922Z"
+      "createdAt": "2026-05-05T05:57:02.545Z",
+      "expiresAt": "2026-05-05T17:57:02.545Z"
     }
   ]
 }

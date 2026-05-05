@@ -88,7 +88,7 @@ function getPhaseApprovalPolicy(communication: CommunicationSettings, phase: Pha
 function getStakeholdersForRoles(communication: CommunicationSettings, roles: string[]): string[] {
   const roleSet = new Set(roles);
   const memberMatches = communication.members
-    .filter((member) => member.active && roleSet.has(member.role))
+    .filter((member) => member.active && (member.roles ?? []).some((r) => roleSet.has(r)))
     .map((member) => member.id);
   const stakeholderMatches = communication.stakeholders
     .filter((stakeholder) => roleSet.has(stakeholder.role))

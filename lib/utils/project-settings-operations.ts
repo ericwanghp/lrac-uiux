@@ -42,6 +42,9 @@ function createDefaultEnvelope(): UserSettingsEnvelope {
 async function readEnvelopeIfExists(filePath: string): Promise<Partial<UserSettingsEnvelope> | null> {
   try {
     const content = await fs.readFile(filePath, "utf-8");
+    if (!content.trim()) {
+      return null;
+    }
     return JSON.parse(content) as Partial<UserSettingsEnvelope>;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
