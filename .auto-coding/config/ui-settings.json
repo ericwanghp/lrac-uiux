@@ -1,0 +1,371 @@
+{
+  "version": "1.0",
+  "settings": {
+    "theme": "light",
+    "fontSize": 14,
+    "autoSave": true,
+    "autoSaveInterval": 30,
+    "desktopNotifications": true,
+    "soundEnabled": false,
+    "emailNotifications": false,
+    "notificationLevel": "important",
+    "compactMode": false,
+    "showLineNumbers": true,
+    "orchestration": {
+      "agentConfigs": [
+        {
+          "id": "business-analyst",
+          "enabled": true
+        },
+        {
+          "id": "market-researcher",
+          "enabled": true
+        },
+        {
+          "id": "product-manager",
+          "enabled": true
+        },
+        {
+          "id": "ux-designer",
+          "enabled": true
+        },
+        {
+          "id": "frontend-dev",
+          "enabled": true
+        },
+        {
+          "id": "architect",
+          "enabled": true
+        },
+        {
+          "id": "researcher",
+          "enabled": true
+        },
+        {
+          "id": "architect-reviewer",
+          "enabled": true
+        },
+        {
+          "id": "fullstack-dev",
+          "enabled": true
+        },
+        {
+          "id": "code-reviewer",
+          "enabled": true
+        },
+        {
+          "id": "test-engineer",
+          "enabled": true
+        },
+        {
+          "id": "test-automator",
+          "enabled": true
+        },
+        {
+          "id": "devops-engineer",
+          "enabled": true
+        },
+        {
+          "id": "project-manager",
+          "enabled": true
+        }
+      ],
+      "skillConfigs": [
+        {
+          "id": "brainstorming",
+          "enabled": true
+        },
+        {
+          "id": "competitive-analysis",
+          "enabled": true
+        },
+        {
+          "id": "ui-ux-pro-max",
+          "enabled": true
+        },
+        {
+          "id": "enhance-prompt",
+          "enabled": true
+        },
+        {
+          "id": "stitch-loop",
+          "enabled": true
+        },
+        {
+          "id": "design-md",
+          "enabled": true
+        },
+        {
+          "id": "shadcn-ui",
+          "enabled": true
+        },
+        {
+          "id": "writing-plans",
+          "enabled": true
+        },
+        {
+          "id": "executing-plans",
+          "enabled": true
+        },
+        {
+          "id": "tdd-enforcement",
+          "enabled": true
+        },
+        {
+          "id": "verification-before-completion",
+          "enabled": true
+        },
+        {
+          "id": "systematic-debugging",
+          "enabled": true
+        },
+        {
+          "id": "fix",
+          "enabled": true
+        },
+        {
+          "id": "dispatching-parallel-agents",
+          "enabled": true
+        },
+        {
+          "id": "finishing-development-branch",
+          "enabled": true
+        },
+        {
+          "id": "toolchain-audit",
+          "enabled": true
+        }
+      ],
+      "phaseDispatch": [
+        {
+          "phase": "1",
+          "label": "Requirements Analysis",
+          "requiredAgents": [
+            "business-analyst",
+            "market-researcher"
+          ],
+          "requiredSkills": [
+            "brainstorming"
+          ],
+          "optionalSkills": [
+            "competitive-analysis"
+          ]
+        },
+        {
+          "phase": "2",
+          "label": "Product Design",
+          "requiredAgents": [
+            "product-manager",
+            "ux-designer"
+          ],
+          "requiredSkills": [
+            "brainstorming"
+          ],
+          "optionalSkills": [
+            "competitive-analysis"
+          ]
+        },
+        {
+          "phase": "2.5",
+          "label": "UI/UX Design",
+          "requiredAgents": [
+            "ux-designer",
+            "frontend-dev"
+          ],
+          "requiredSkills": [
+            "ui-ux-pro-max",
+            "enhance-prompt",
+            "stitch-loop",
+            "design-md"
+          ],
+          "optionalSkills": [
+            "shadcn-ui"
+          ]
+        },
+        {
+          "phase": "3",
+          "label": "Architecture Design",
+          "requiredAgents": [
+            "architect",
+            "researcher",
+            "architect-reviewer"
+          ],
+          "requiredSkills": [
+            "writing-plans"
+          ],
+          "optionalSkills": []
+        },
+        {
+          "phase": "4",
+          "label": "Task Breakdown",
+          "requiredAgents": [
+            "architect"
+          ],
+          "requiredSkills": [
+            "writing-plans"
+          ],
+          "optionalSkills": []
+        },
+        {
+          "phase": "5",
+          "label": "Development & Unit Tests",
+          "requiredAgents": [
+            "fullstack-dev",
+            "code-reviewer"
+          ],
+          "requiredSkills": [
+            "executing-plans",
+            "tdd-enforcement",
+            "verification-before-completion"
+          ],
+          "optionalSkills": [
+            "systematic-debugging",
+            "fix",
+            "dispatching-parallel-agents"
+          ]
+        },
+        {
+          "phase": "6",
+          "label": "Integration & Regression Testing",
+          "requiredAgents": [
+            "test-engineer",
+            "test-automator"
+          ],
+          "requiredSkills": [
+            "verification-before-completion"
+          ],
+          "optionalSkills": [
+            "systematic-debugging",
+            "dispatching-parallel-agents"
+          ]
+        },
+        {
+          "phase": "7",
+          "label": "Deploy & UAT",
+          "requiredAgents": [
+            "devops-engineer",
+            "product-manager"
+          ],
+          "requiredSkills": [
+            "finishing-development-branch",
+            "verification-before-completion"
+          ],
+          "optionalSkills": [
+            "dispatching-parallel-agents"
+          ]
+        },
+        {
+          "phase": "8",
+          "label": "Project Management",
+          "requiredAgents": [
+            "project-manager"
+          ],
+          "requiredSkills": [
+            "dispatching-parallel-agents"
+          ],
+          "optionalSkills": [
+            "toolchain-audit"
+          ]
+        }
+      ]
+    },
+    "communication": {
+      "members": [],
+      "stakeholders": [],
+      "channels": [
+        {
+          "id": "default-webhook",
+          "label": "Default Webhook",
+          "type": "generic-webhook",
+          "enabled": false,
+          "webhookUrl": "",
+          "secret": ""
+        }
+      ],
+      "phaseApprovals": [
+        {
+          "phase": "1",
+          "label": "Requirements Analysis",
+          "enabled": true,
+          "requiredRoles": [
+            "business-owner"
+          ],
+          "approverIds": []
+        },
+        {
+          "phase": "2",
+          "label": "Product Design",
+          "enabled": true,
+          "requiredRoles": [
+            "product-manager"
+          ],
+          "approverIds": []
+        },
+        {
+          "phase": "2.5",
+          "label": "UI/UX Design",
+          "enabled": true,
+          "requiredRoles": [
+            "design-reviewer"
+          ],
+          "approverIds": []
+        },
+        {
+          "phase": "3",
+          "label": "Architecture Design",
+          "enabled": true,
+          "requiredRoles": [
+            "architect-reviewer"
+          ],
+          "approverIds": []
+        },
+        {
+          "phase": "4",
+          "label": "Task Breakdown",
+          "enabled": false,
+          "requiredRoles": [
+            "project-manager"
+          ],
+          "approverIds": []
+        },
+        {
+          "phase": "5",
+          "label": "Development & Unit Tests",
+          "enabled": true,
+          "requiredRoles": [
+            "qa-lead"
+          ],
+          "approverIds": []
+        },
+        {
+          "phase": "6",
+          "label": "Integration & Regression Testing",
+          "enabled": true,
+          "requiredRoles": [
+            "qa-lead"
+          ],
+          "approverIds": []
+        },
+        {
+          "phase": "7",
+          "label": "Deploy & UAT",
+          "enabled": true,
+          "requiredRoles": [
+            "ops-reviewer"
+          ],
+          "approverIds": []
+        },
+        {
+          "phase": "8",
+          "label": "Project Management",
+          "enabled": false,
+          "requiredRoles": [
+            "project-sponsor"
+          ],
+          "approverIds": []
+        }
+      ]
+    }
+  },
+  "updatedAt": "2026-05-03T18:09:30.886Z"
+}

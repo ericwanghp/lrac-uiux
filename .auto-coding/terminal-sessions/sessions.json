@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "sessions": [
+    {
+      "id": "ts-moubt4pl-t9wwqf",
+      "parentSessionId": null,
+      "sessionType": "pm_main",
+      "featureId": "imac-cli-terminal-orchestration-p5d-003",
+      "status": "active",
+      "createdAt": "2026-05-06T17:23:26.361Z",
+      "updatedAt": "2026-05-06T17:23:26.366Z",
+      "closedAt": null,
+      "nextSeqNo": 3,
+      "events": [
+        {
+          "id": "te-moubt4po-luvcyp",
+          "sessionId": "ts-moubt4pl-t9wwqf",
+          "seqNo": 1,
+          "eventType": "terminal.command.submitted",
+          "streamType": "system",
+          "timestamp": "2026-05-06T17:23:26.364Z",
+          "actor": {
+            "type": "system",
+            "id": "api"
+          },
+          "payload": {
+            "command": "echo hello"
+          }
+        },
+        {
+          "id": "te-moubt4pq-on41w9",
+          "sessionId": "ts-moubt4pl-t9wwqf",
+          "seqNo": 2,
+          "eventType": "terminal.output.appended",
+          "streamType": "stdout",
+          "timestamp": "2026-05-06T17:23:26.366Z",
+          "actor": {
+            "type": "system",
+            "id": "api"
+          },
+          "payload": {
+            "content": "hello"
+          }
+        }
+      ]
+    }
+  ]
+}

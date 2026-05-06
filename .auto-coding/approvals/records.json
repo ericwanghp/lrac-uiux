@@ -1,0 +1,328 @@
+{
+  "version": "1.0",
+  "approvals": [
+    {
+      "id": "approval-b03272134d",
+      "featureId": "doc-docs-architecture-arch-imac-cli-terminal-orchestration-md",
+      "type": "architecture",
+      "status": "pending",
+      "requester": "Architect",
+      "requesterRole": "architect",
+      "documentPath": "docs/architecture/ARCH-imac-cli-terminal-orchestration.md",
+      "documentType": "Architecture Design",
+      "comments": [],
+      "approvers": [
+        "Architecture Reviewer"
+      ],
+      "approvedBy": [],
+      "rejectedBy": [],
+      "createdAt": "2026-05-02T18:48:23.793Z",
+      "updatedAt": "2026-05-02T18:48:23.793Z",
+      "decidedAt": null
+    },
+    {
+      "id": "approval-71c74c2b8c",
+      "featureId": "doc-docs-architecture-arch-imac-management-md",
+      "type": "architecture",
+      "status": "pending",
+      "requester": "Architect",
+      "requesterRole": "architect",
+      "documentPath": "docs/architecture/ARCH-imac-management.md",
+      "documentType": "Architecture Design",
+      "comments": [],
+      "approvers": [
+        "Architecture Reviewer"
+      ],
+      "approvedBy": [],
+      "rejectedBy": [],
+      "createdAt": "2026-05-05T16:55:23.274Z",
+      "updatedAt": "2026-05-05T16:55:23.274Z",
+      "decidedAt": null
+    },
+    {
+      "id": "approval-2089659394",
+      "featureId": "doc-docs-architecture-arch-lrac-uiux-md",
+      "type": "architecture",
+      "status": "pending",
+      "requester": "Architect",
+      "requesterRole": "architect",
+      "documentPath": "docs/architecture/ARCH-lrac-uiux.md",
+      "documentType": "Architecture Design",
+      "comments": [],
+      "approvers": [
+        "Architecture Reviewer"
+      ],
+      "approvedBy": [],
+      "rejectedBy": [],
+      "createdAt": "2026-05-02T18:48:23.793Z",
+      "updatedAt": "2026-05-02T18:48:23.793Z",
+      "decidedAt": null
+    },
+    {
+      "id": "approval-ee38e56909",
+      "featureId": "doc-docs-architecture-current-system-model-md",
+      "type": "architecture",
+      "status": "pending",
+      "requester": "Architect",
+      "requesterRole": "architect",
+      "documentPath": "docs/architecture/CURRENT-SYSTEM-MODEL.md",
+      "documentType": "Architecture Design",
+      "comments": [],
+      "approvers": [
+        "Architecture Reviewer"
+      ],
+      "approvedBy": [],
+      "rejectedBy": [],
+      "createdAt": "2026-05-05T03:30:02.634Z",
+      "updatedAt": "2026-05-05T03:30:02.634Z",
+      "decidedAt": null
+    },
+    {
+      "id": "approval-82c7e7cf11",
+      "featureId": "doc-docs-brd-brd-imac-cli-terminal-orchestration-md",
+      "type": "requirements",
+      "status": "pending",
+      "requester": "Business Analyst",
+      "requesterRole": "business-analyst",
+      "documentPath": "docs/brd/BRD-imac-cli-terminal-orchestration.md",
+      "documentType": "Business Requirements Document",
+      "comments": [],
+      "approvers": [
+        "Project Sponsor"
+      ],
+      "approvedBy": [],
+      "rejectedBy": [],
+      "createdAt": "2026-05-02T18:48:23.793Z",
+      "updatedAt": "2026-05-02T18:48:23.793Z",
+      "decidedAt": null
+    },
+    {
+      "id": "approval-68e82be15e",
+      "featureId": "doc-docs-brd-brd-lrac-uiux-md",
+      "type": "requirements",
+      "status": "pending",
+      "requester": "Business Analyst",
+      "requesterRole": "business-analyst",
+      "documentPath": "docs/brd/BRD-lrac-uiux.md",
+      "documentType": "Business Requirements Document",
+      "comments": [],
+      "approvers": [
+        "Project Sponsor"
+      ],
+      "approvedBy": [],
+      "rejectedBy": [],
+      "createdAt": "2026-05-02T18:48:23.793Z",
+      "updatedAt": "2026-05-02T18:48:23.793Z",
+      "decidedAt": null
+    },
+    {
+      "id": "approval-5e7f798f94",
+      "featureId": "doc-docs-design-ui-spec-approval-md",
+      "type": "design",
+      "status": "pending",
+      "requester": "Designer",
+      "requesterRole": "designer",
+      "documentPath": "docs/design/UI-SPEC-approval.md",
+      "documentType": "Design Specification",
+      "comments": [],
+      "approvers": [
+        "Design Reviewer"
+      ],
+      "approvedBy": [],
+      "rejectedBy": [],
+      "createdAt": "2026-05-02T18:48:23.793Z",
+      "updatedAt": "2026-05-02T18:48:23.793Z",
+      "decidedAt": null
+    },
+    {
+      "id": "approval-750bb3a469",
+      "featureId": "doc-docs-design-ui-spec-dashboard-md",
+      "type": "design",
+      "status": "pending",
+      "requester": "Designer",
+      "requesterRole": "designer",
+      "documentPath": "docs/design/UI-SPEC-dashboard.md",
+      "documentType": "Design Specification",
+      "comments": [],
+      "approvers": [
+        "Design Reviewer"
+      ],
+      "approvedBy": [],
+      "rejectedBy": [],
+      "createdAt": "2026-05-02T18:48:23.793Z",
+      "updatedAt": "2026-05-02T18:48:23.793Z",
+      "decidedAt": null
+    },
+    {
+      "id": "approval-61875e1935",
+      "featureId": "doc-docs-design-ui-spec-design-viewer-md",
+      "type": "design",
+      "status": "pending",
+      "requester": "Designer",
+      "requesterRole": "designer",
+      "documentPath": "docs/design/UI-SPEC-design-viewer.md",
+      "documentType": "Design Specification",
+      "comments": [],
+      "approvers": [
+        "Design Reviewer"
+      ],
+      "approvedBy": [],
+      "rejectedBy": [],
+      "createdAt": "2026-05-02T18:48:23.793Z",
+      "updatedAt": "2026-05-02T18:48:23.793Z",
+      "decidedAt": null
+    },
+    {
+      "id": "approval-f2b9a8c4ee",
+      "featureId": "doc-docs-design-ui-spec-execution-monitor-md",
+      "type": "design",
+      "status": "pending",
+      "requester": "Designer",
+      "requesterRole": "designer",
+      "documentPath": "docs/design/UI-SPEC-execution-monitor.md",
+      "documentType": "Design Specification",
+      "comments": [],
+      "approvers": [
+        "Design Reviewer"
+      ],
+      "approvedBy": [],
+      "rejectedBy": [],
+      "createdAt": "2026-05-02T18:48:23.793Z",
+      "updatedAt": "2026-05-02T18:48:23.793Z",
+      "decidedAt": null
+    },
+    {
+      "id": "approval-5d894b02dc",
+      "featureId": "doc-docs-design-ui-spec-imac-terminal-orchestration-md",
+      "type": "design",
+      "status": "pending",
+      "requester": "Designer",
+      "requesterRole": "designer",
+      "documentPath": "docs/design/UI-SPEC-imac-terminal-orchestration.md",
+      "documentType": "Design Specification",
+      "comments": [],
+      "approvers": [
+        "Design Reviewer"
+      ],
+      "approvedBy": [],
+      "rejectedBy": [],
+      "createdAt": "2026-05-02T18:48:23.793Z",
+      "updatedAt": "2026-05-02T18:48:23.793Z",
+      "decidedAt": null
+    },
+    {
+      "id": "approval-08308eaf8c",
+      "featureId": "doc-docs-design-ui-spec-index-md",
+      "type": "design",
+      "status": "pending",
+      "requester": "Designer",
+      "requesterRole": "designer",
+      "documentPath": "docs/design/UI-SPEC-index.md",
+      "documentType": "Design Specification",
+      "comments": [],
+      "approvers": [
+        "Design Reviewer"
+      ],
+      "approvedBy": [],
+      "rejectedBy": [],
+      "createdAt": "2026-05-02T18:48:23.793Z",
+      "updatedAt": "2026-05-02T18:48:23.793Z",
+      "decidedAt": null
+    },
+    {
+      "id": "approval-8df0e21f2b",
+      "featureId": "doc-docs-design-ui-spec-pm-dashboard-md",
+      "type": "design",
+      "status": "pending",
+      "requester": "Designer",
+      "requesterRole": "designer",
+      "documentPath": "docs/design/UI-SPEC-pm-dashboard.md",
+      "documentType": "Design Specification",
+      "comments": [],
+      "approvers": [
+        "Design Reviewer"
+      ],
+      "approvedBy": [],
+      "rejectedBy": [],
+      "createdAt": "2026-05-02T18:48:23.793Z",
+      "updatedAt": "2026-05-02T18:48:23.793Z",
+      "decidedAt": null
+    },
+    {
+      "id": "approval-084eb592b3",
+      "featureId": "doc-docs-design-ui-spec-qa-md",
+      "type": "design",
+      "status": "pending",
+      "requester": "Designer",
+      "requesterRole": "designer",
+      "documentPath": "docs/design/UI-SPEC-qa.md",
+      "documentType": "Design Specification",
+      "comments": [],
+      "approvers": [
+        "Design Reviewer"
+      ],
+      "approvedBy": [],
+      "rejectedBy": [],
+      "createdAt": "2026-05-02T18:48:23.793Z",
+      "updatedAt": "2026-05-02T18:48:23.793Z",
+      "decidedAt": null
+    },
+    {
+      "id": "approval-eda69d5b71",
+      "featureId": "doc-docs-design-ui-spec-settings-md",
+      "type": "design",
+      "status": "pending",
+      "requester": "Designer",
+      "requesterRole": "designer",
+      "documentPath": "docs/design/UI-SPEC-settings.md",
+      "documentType": "Design Specification",
+      "comments": [],
+      "approvers": [
+        "Design Reviewer"
+      ],
+      "approvedBy": [],
+      "rejectedBy": [],
+      "createdAt": "2026-05-02T18:48:23.793Z",
+      "updatedAt": "2026-05-02T18:48:23.793Z",
+      "decidedAt": null
+    },
+    {
+      "id": "approval-2479a0bb34",
+      "featureId": "doc-docs-prd-prd-imac-cli-terminal-orchestration-md",
+      "type": "product",
+      "status": "pending",
+      "requester": "Product Manager",
+      "requesterRole": "product-manager",
+      "documentPath": "docs/prd/PRD-imac-cli-terminal-orchestration.md",
+      "documentType": "Product Requirements Document",
+      "comments": [],
+      "approvers": [
+        "Product Reviewer"
+      ],
+      "approvedBy": [],
+      "rejectedBy": [],
+      "createdAt": "2026-05-02T18:48:23.793Z",
+      "updatedAt": "2026-05-02T18:48:23.793Z",
+      "decidedAt": null
+    },
+    {
+      "id": "approval-0fa6d4a400",
+      "featureId": "doc-docs-prd-prd-lrac-uiux-md",
+      "type": "product",
+      "status": "pending",
+      "requester": "Product Manager",
+      "requesterRole": "product-manager",
+      "documentPath": "docs/prd/PRD-lrac-uiux.md",
+      "documentType": "Product Requirements Document",
+      "comments": [],
+      "approvers": [
+        "Product Reviewer"
+      ],
+      "approvedBy": [],
+      "rejectedBy": [],
+      "createdAt": "2026-05-02T18:48:23.793Z",
+      "updatedAt": "2026-05-02T18:48:23.793Z",
+      "decidedAt": null
+    }
+  ]
+}

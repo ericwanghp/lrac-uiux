@@ -58,10 +58,10 @@ CLAUDE-architecture.excalidraw
 /-1
 
 # Runtime persistence (generated at runtime)
-.auto-coding/terminal-sessions/
-.auto-coding/qa-sessions/sessions.json
-.auto-coding/approvals/records.json
-.auto-coding/config/ui-settings.json
+#.auto-coding/terminal-sessions/
+#.auto-coding/qa-sessions/sessions.json
+#.auto-coding/approvals/records.json
+#.auto-coding/config/ui-settings.json
 
 # Local reports
 .claude/reports/
