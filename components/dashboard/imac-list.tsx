@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { GitBranch, GitMerge, Loader2, Paperclip, Play, XCircle } from "lucide-react";
+import { GitBranch, GitMerge, Loader2, Paperclip, Play, Trash2, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -77,7 +77,7 @@ export function ImacList({ sessions }: ImacListProps) {
         autoStart: true,
         ...(worktreeSession.status === "created"
           ? { launchOptions: { defaultPrompt: buildImacPrompt(worktreeSession) } }
-          : {}),
+          : { launchOptions: { defaultPrompt: "", continueWithRecentContext: true } }),
       });
 
       router.refresh();
@@ -96,6 +96,21 @@ export function ImacList({ sessions }: ImacListProps) {
       router.refresh();
     } catch (error) {
       alert(error instanceof Error ? error.message : "Action failed");
+    } finally {
+      setLoadingAction(null);
+    }
+  }, [router]);
+
+  const handleDelete = React.useCallback(async (sessionId: string) => {
+    if (!confirm("Delete this IMAC session? This cannot be undone.")) return;
+    setLoadingAction(`delete-${sessionId}`);
+    try {
+      const response = await fetch(`/api/imac/${sessionId}/delete`, { method: "POST" });
+      const result = await response.json();
+      if (!result.success) throw new Error(result.error);
+      router.refresh();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to delete");
     } finally {
       setLoadingAction(null);
     }
@@ -193,6 +208,21 @@ export function ImacList({ sessions }: ImacListProps) {
                         Abort
                       </Button>
                     </>
+                  )}
+                  {session.status !== "in-progress" && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                      disabled={isLoading}
+                      onClick={() => void handleDelete(session.id)}
+                    >
+                      {loadingAction === `delete-${session.id}` ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-3 w-3" />
+                      )}
+                    </Button>
                   )}
                 </div>
               </div>

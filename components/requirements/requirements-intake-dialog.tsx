@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { useProjectQueryParam } from "@/components/providers/use-project-query-param";
 import { Textarea } from "@/components/ui/textarea";
 import { queueClaudeCliLaunchIntent } from "@/lib/utils/claude-cli-launch-intent";
+import { PROJECT_ROOT_LOCAL_STORAGE_KEY } from "@/lib/constants/project-context";
 import type { RequirementsIntakeRecord } from "@/lib/utils/requirements-intake";
 
 interface RequirementsIntakeDialogProps {
@@ -72,6 +73,16 @@ export function RequirementsIntakeDialog({
     setOpen(autoOpen);
   }, [autoOpen]);
 
+  React.useEffect(() => {
+    if (!open) {
+      setDescription(initialIntake.description);
+      setReferences(initialIntake.references);
+      setSelectedFiles([]);
+      setErrorMessage(null);
+      setSuccessMessage(null);
+    }
+  }, [open, initialIntake.description, initialIntake.references]);
+
   const handleSubmit = React.useCallback(async () => {
     if (!description.trim()) {
       setErrorMessage("Please enter a requirement description.");
@@ -101,9 +112,15 @@ export function RequirementsIntakeDialog({
 
       setReferences(payload.data.references);
       setSelectedFiles([]);
+
+      const resolvedProjectRoot = projectRoot
+        || (typeof window !== "undefined" ? window.localStorage.getItem(PROJECT_ROOT_LOCAL_STORAGE_KEY) : null)
+        || undefined;
+
       queueClaudeCliLaunchIntent({
-        projectRoot,
+        projectRoot: resolvedProjectRoot,
         activePanel: "current",
+        autoStart: true,
         launchOptions: {
           defaultPrompt: buildClaudeRequirementsPrompt(description, payload.data.references),
         },

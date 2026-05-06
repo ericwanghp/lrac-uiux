@@ -280,16 +280,18 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
       }));
     }
 
-    if (intent.projectRoot && intent.projectRoot !== currentProjectRoot) {
-      setSelectedProjectRoot(intent.projectRoot);
-      setCustomProjectRoot(intent.projectRoot);
+    const resolvedRoot = intent.projectRoot || currentProjectRoot || undefined;
+
+    if (resolvedRoot && resolvedRoot !== currentProjectRoot) {
+      setSelectedProjectRoot(resolvedRoot);
+      setCustomProjectRoot(resolvedRoot);
       setActivePanel(intent.activePanel ?? "projects");
     } else {
       setActivePanel(intent.activePanel ?? "current");
     }
 
     pendingAutoLaunchProjectRootRef.current =
-      intent.autoStart && intent.projectRoot ? intent.projectRoot : null;
+      intent.autoStart && resolvedRoot ? resolvedRoot : null;
 
     if (isSidebarCollapsed) {
       setIsSidebarCollapsed(false);
@@ -780,19 +782,32 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
   }, [activeSession, currentProjectRoot, refreshRunningSessions, sessionTabs]);
 
   const handleSessionExit = React.useCallback(
-    async (_code: number) => {
-      if (activeSession?.projectRoot) {
-        const latest = await loadSessionStatus(activeSession.projectRoot);
+    async (code: number) => {
+      if (!activeSession?.projectRoot) return;
 
-        if (!latest?.active) {
-          setSessionTabs((current) => removeSessionTab(current, activeSession.sessionId));
-          setActiveSession(null);
-          setActiveSessionId((current) => (current === activeSession.sessionId ? null : current));
-        }
-        void refreshRunningSessions();
+      const latest = await loadSessionStatus(activeSession.projectRoot);
+
+      if (!latest?.active) {
+        setSessionTabs((current) => removeSessionTab(current, activeSession.sessionId));
+        setActiveSession(null);
+        setActiveSessionId((current) => (current === activeSession.sessionId ? null : current));
       }
+
+      if (code !== 0 && launchOptions.continueWithRecentContext) {
+        setError(
+          "Session exited immediately — no conversation history found for -c (continue) mode. " +
+          "Try starting a new session without continue mode."
+        );
+        setLaunchOptions((current) => ({
+          ...current,
+          continueWithRecentContext: false,
+          defaultPrompt: "",
+        }));
+      }
+
+      void refreshRunningSessions();
     },
-    [activeSession, loadSessionStatus, refreshRunningSessions]
+    [activeSession, launchOptions.continueWithRecentContext, loadSessionStatus, refreshRunningSessions]
   );
 
   const sidebarItems = React.useMemo(
