@@ -62,7 +62,6 @@ CLAUDE-architecture.excalidraw
 .auto-coding/qa-sessions/sessions.json
 .auto-coding/approvals/records.json
 .auto-coding/config/ui-settings.json
-.auto-coding/progress-summary.md
 
 # Local reports
 .claude/reports/
