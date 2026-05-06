@@ -59,8 +59,9 @@ export function ImacList({ sessions }: ImacListProps) {
   const handleStartInClaude = React.useCallback(async (session: ImacSession) => {
     setLoadingAction(`worktree-${session.id}`);
     try {
+      const isFirstStart = session.status === "created";
       let worktreeSession = session;
-      if (session.status === "created") {
+      if (isFirstStart) {
         const response = await fetch(`/api/imac/${session.id}/worktree`, { method: "POST" });
         const result = await response.json();
         if (!result.success) throw new Error(result.error);
@@ -75,7 +76,7 @@ export function ImacList({ sessions }: ImacListProps) {
         projectRoot: worktreeSession.worktree.path,
         activePanel: "current",
         autoStart: true,
-        ...(worktreeSession.status === "created"
+        ...(isFirstStart
           ? { launchOptions: { defaultPrompt: buildImacPrompt(worktreeSession), continueWithRecentContext: false } }
           : { launchOptions: { defaultPrompt: "", continueWithRecentContext: true } }),
       });
