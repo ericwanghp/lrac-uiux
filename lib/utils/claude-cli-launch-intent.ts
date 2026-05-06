@@ -7,6 +7,7 @@ export interface ClaudeCliLaunchIntentOptions {
 export interface ClaudeCliLaunchIntent {
   projectRoot?: string | null;
   activePanel?: "current" | "projects" | "session";
+  autoStart?: boolean;
   launchOptions?: ClaudeCliLaunchIntentOptions;
 }
 

@@ -288,3 +288,37 @@ export async function abortImac(
     return session;
   });
 }
+
+export async function deleteImacSession(
+  sessionId: string,
+  projectRoot?: string | null
+): Promise<void> {
+  const root = await getCurrentProjectRoot(projectRoot);
+
+  return enqueueMutation(async () => {
+    const data = await readImacSessions(root);
+    const session = data.sessions.find((s) => s.id === sessionId);
+    if (!session) throw new Error(`IMAC session not found: ${sessionId}`);
+
+    if (session.status === "in-progress") {
+      throw new Error(`Cannot delete an in-progress IMAC session. Abort it first.`);
+    }
+
+    if (session.worktree.path) {
+      try {
+        await runGit(["worktree", "remove", session.worktree.path, "--force"], root);
+      } catch {
+        // best effort cleanup
+      }
+    }
+
+    try {
+      await runGit(["branch", "-D", session.worktree.branch], root);
+    } catch {
+      // branch may not exist
+    }
+
+    data.sessions = data.sessions.filter((s) => s.id !== sessionId);
+    await writeImacSessions(data, root);
+  });
+}

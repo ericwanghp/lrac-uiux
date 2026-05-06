@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import { getPhaseFromParallelGroup, getPhaseFromTaskId } from "@/lib/constants/task-id";
-import { discoverWorkspaceProjects } from "@/lib/utils/project-discovery";
+import { discoverImacWorktreeRoots, discoverWorkspaceProjects } from "@/lib/utils/project-discovery";
 import { getCurrentProjectRoot } from "@/lib/utils/file-operations";
 import { readActivityFeedsFile } from "@/lib/utils/activity-feed-operations";
 import { syncApprovalsWithProject } from "@/lib/utils/approval-operations";
@@ -64,7 +64,7 @@ export type DashboardData = {
   branches: BranchSnapshot[];
   hasImacBranch: boolean;
   milestoneTracks: MilestoneTrack[];
-  availableProjects: { root: string; name: string }[];
+  availableProjects: { root: string; name: string; imacWorktreeCount?: number }[];
   imacSessions: ImacSession[];
 };
 
@@ -148,9 +148,16 @@ export async function loadDashboardData(projectParam: string | undefined): Promi
   const progressText = progressResult.status === "fulfilled" ? progressResult.value : "";
   const qaSessions = qaResult.status === "fulfilled" ? qaResult.value.sessions : [];
   const docs = docStats.status === "fulfilled" ? docStats.value : [];
-  const availableProjects = projectOptionsResult.status === "fulfilled"
+  const rawProjects = projectOptionsResult.status === "fulfilled"
     ? projectOptionsResult.value
     : [{ root: projectRoot, name: tasksData?.project || path.basename(projectRoot) }];
+  const worktreeCounts = await Promise.all(
+    rawProjects.map((p) => discoverImacWorktreeRoots(p.root).then((r) => r.length))
+  );
+  const availableProjects = rawProjects.map((p, i) => ({
+    ...p,
+    imacWorktreeCount: worktreeCounts[i] || undefined,
+  }));
 
   const [approvalsResult, activityFeedsResult] = await Promise.allSettled([
     syncApprovalsWithProject(projectRoot),

@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { buildProjectScopedPath } from "@/lib/utils/project-selection";
 import type { GitInsightsData } from "@/lib/utils/git-insights";
 import { cn } from "@/lib/utils";
 import { ClaudeCliBranchGraph } from "@/components/claude-cli/claude-cli-branch-graph";
@@ -238,8 +237,8 @@ export function ClaudeCliGitInsights({ projectRoot, className }: ClaudeCliGitIns
     setError(null);
 
     try {
-      const requestPath = buildProjectScopedPath("/api/git/insights", projectRoot);
-      const requestUrl = new URL(requestPath, window.location.origin);
+      const requestUrl = new URL("/api/git/insights", window.location.origin);
+      requestUrl.searchParams.set("project", projectRoot);
       if (selectedFilePath) {
         requestUrl.searchParams.set("focusPath", selectedFilePath);
       }

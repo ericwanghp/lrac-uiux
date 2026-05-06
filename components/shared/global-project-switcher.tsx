@@ -110,7 +110,14 @@ export function GlobalProjectSwitcher() {
         <SelectContent>
           {projects.map((project) => (
             <SelectItem key={project.root} value={project.root}>
-              {project.name}
+              <span className="flex items-center gap-2">
+                {project.name}
+                {project.imacWorktreeCount ? (
+                  <span className="ml-auto flex h-4 items-center gap-0.5 rounded-full bg-amber-500/15 px-1.5 text-[9px] font-bold text-amber-600 dark:text-amber-400">
+                    {project.imacWorktreeCount}wt
+                  </span>
+                ) : null}
+              </span>
             </SelectItem>
           ))}
         </SelectContent>

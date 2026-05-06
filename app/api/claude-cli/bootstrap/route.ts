@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { listWorkspaceRunningSessions } from "@/lib/claude-cli/list-workspace-running-sessions";
 import { ensureClaudeCliServer } from "@/lib/claude-cli/server";
 import { getClaudeCliSessionId } from "@/lib/claude-cli/session-utils";
-import { describeProjectRoot, discoverWorkspaceProjects } from "@/lib/utils/project-discovery";
+import { describeProjectRoot, discoverAllImacWorktreeRoots, discoverWorkspaceProjects } from "@/lib/utils/project-discovery";
 import { getCurrentProjectRoot } from "@/lib/utils/file-operations";
+import { listImacSessions } from "@/lib/services/imac-session-manager";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,9 +18,26 @@ export async function GET(request: NextRequest) {
       describeProjectRoot(currentProjectRoot),
       discoverWorkspaceProjects(currentProjectRoot),
     ]);
+    const projectRoots = availableProjects.map((project) => project.root);
+    const worktreeRoots = await discoverAllImacWorktreeRoots(projectRoots);
+    const allRoots = [...projectRoots, ...worktreeRoots];
     const runningSessions = listWorkspaceRunningSessions(
       server.manager as unknown as Parameters<typeof listWorkspaceRunningSessions>[0],
-      availableProjects.map((project) => project.root)
+      allRoots
+    );
+
+    const activeWorktreeCounts: Record<string, number> = {};
+    await Promise.all(
+      projectRoots.map(async (root) => {
+        try {
+          const sessions = await listImacSessions(root);
+          activeWorktreeCounts[root] = sessions.filter(
+            (s) => s.status === "created" || s.status === "in-progress"
+          ).length;
+        } catch {
+          activeWorktreeCounts[root] = 0;
+        }
+      })
     );
 
     return NextResponse.json({
@@ -33,6 +51,7 @@ export async function GET(request: NextRequest) {
         ),
         availableProjects,
         runningSessions,
+        activeWorktreeCounts,
       },
     });
   } catch (error) {

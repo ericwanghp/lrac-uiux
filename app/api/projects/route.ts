@@ -3,6 +3,7 @@ import { getCurrentProjectRoot, readTasksJson } from "@/lib/utils/file-operation
 import {
   createWorkspaceProject,
   describeProjectRoot,
+  discoverImacWorktreeRoots,
   discoverWorkspaceProjects,
 } from "@/lib/utils/project-discovery";
 import type { TasksJson } from "@/lib/types";
@@ -85,6 +86,15 @@ export async function GET(request?: NextRequest) {
       }
     });
 
+    // Enrich projects with IMAC worktree counts
+    const worktreeCounts = await Promise.all(
+      availableProjects.map((p) => discoverImacWorktreeRoots(p.root).then((r) => r.length))
+    );
+    const enrichedProjects = availableProjects.map((p, i) => ({
+      ...p,
+      imacWorktreeCount: worktreeCounts[i] || undefined,
+    }));
+
     // Return response
     return NextResponse.json({
       success: true,
@@ -92,7 +102,7 @@ export async function GET(request?: NextRequest) {
         project: tasksData.project,
         version: tasksData.version,
         currentProjectRoot,
-        availableProjects,
+        availableProjects: enrichedProjects,
         statistics: {
           totalFeatures,
           completedFeatures,

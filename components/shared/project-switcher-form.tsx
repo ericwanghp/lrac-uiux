@@ -7,7 +7,11 @@ import { Button } from "@/components/ui/button";
 import { FolderOpen, CheckCircle2, AlertCircle } from "lucide-react";
 import type { ProjectOption } from "@/lib/types";
 import { PROJECT_ROOT_LOCAL_STORAGE_KEY } from "@/lib/constants/project-context";
-import { buildProjectNavigationPath, persistProjectSelection } from "@/lib/utils/project-selection";
+import {
+  buildProjectNavigationPath,
+  normalizeGlobalProjectRoot,
+  persistProjectSelection,
+} from "@/lib/utils/project-selection";
 
 type ValidationState = "idle" | "valid" | "invalid";
 
@@ -27,8 +31,9 @@ export function ProjectSwitcherForm({
   // Restore last saved path on mount
   useEffect(() => {
     const saved = localStorage.getItem(PROJECT_ROOT_LOCAL_STORAGE_KEY);
-    if (saved) {
-      setPathValue(saved);
+    const normalizedSaved = normalizeGlobalProjectRoot(saved);
+    if (normalizedSaved) {
+      setPathValue(normalizedSaved);
     }
   }, []);
 
@@ -133,6 +138,11 @@ export function ProjectSwitcherForm({
             onClick={() => handleProjectSelect(project.root)}
           >
             {project.name}
+            {project.imacWorktreeCount ? (
+              <span className="ml-1.5 flex h-4 items-center gap-0.5 rounded-full bg-amber-500/15 px-1.5 text-[9px] font-bold text-amber-600 dark:text-amber-400">
+                {project.imacWorktreeCount}wt
+              </span>
+            ) : null}
           </Button>
         ))}
       </div>

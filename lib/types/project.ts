@@ -1,6 +1,7 @@
 export type ProjectOption = {
   root: string;
   name: string;
+  imacWorktreeCount?: number;
 };
 
 export type ProjectSignal =

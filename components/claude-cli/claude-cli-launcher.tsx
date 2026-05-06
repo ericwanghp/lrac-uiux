@@ -53,6 +53,7 @@ type BootstrapResponse = {
     currentSession: ClaudeCliSessionDescriptor | null;
     availableProjects: ProjectOption[];
     runningSessions: ClaudeCliSessionDescriptor[];
+    activeWorktreeCounts: Record<string, number>;
   };
   error?: string;
 };
@@ -74,7 +75,10 @@ type SessionStatusResponse = {
 
 type RunningSessionsResponse = {
   success: boolean;
-  data?: ClaudeCliSessionDescriptor[];
+  data?: {
+    runningSessions: ClaudeCliSessionDescriptor[];
+    activeWorktreeCounts: Record<string, number>;
+  };
   error?: string;
 };
 
@@ -95,6 +99,7 @@ const SIDEBAR_PANEL_STORAGE_KEY = "lrac-uiux:claude-cli-sidebar-panel";
 const LAUNCH_OPTIONS_STORAGE_KEY = "lrac-uiux:claude-cli-launch-options";
 const DETAILS_PANEL_WIDTH_STORAGE_KEY = "lrac-uiux:claude-cli-details-panel-width";
 const GIT_PANEL_WIDTH_STORAGE_KEY = "lrac-uiux:claude-cli-git-panel-width";
+const IMAC_WORKTREE_PATH_SEGMENT = "/.auto-coding/worktrees/";
 const DEFAULT_DETAILS_PANEL_WIDTH = 296;
 const DEFAULT_GIT_PANEL_WIDTH = 720;
 const MIN_DETAILS_PANEL_WIDTH = 240;
@@ -137,6 +142,10 @@ function compactSessionId(sessionId: string): string {
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
+}
+
+function isImacWorktreeProjectRoot(projectRoot: string | null | undefined) {
+  return projectRoot?.includes(IMAC_WORKTREE_PATH_SEGMENT) ?? false;
 }
 
 function getDetailsPanelMaxWidth() {
@@ -203,6 +212,7 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
   const [launchOptions, setLaunchOptions] =
     React.useState<ClaudeCliLaunchOptions>(DEFAULT_LAUNCH_OPTIONS);
   const [runningSessions, setRunningSessions] = React.useState<ClaudeCliSessionDescriptor[]>([]);
+  const [activeWorktreeCounts, setActiveWorktreeCounts] = React.useState<Record<string, number>>({});
   const [isLauncherHovered, setIsLauncherHovered] = React.useState(false);
   const [detailsPanelWidth, setDetailsPanelWidth] = React.useState(DEFAULT_DETAILS_PANEL_WIDTH);
   const [gitPanelWidth, setGitPanelWidth] = React.useState(DEFAULT_GIT_PANEL_WIDTH);
@@ -211,6 +221,12 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
     startX: number;
     startWidth: number;
   } | null>(null);
+  const pendingAutoLaunchProjectRootRef = React.useRef<string | null>(null);
+  const activeSessionIdRef = React.useRef<string | null>(null);
+
+  React.useEffect(() => {
+    activeSessionIdRef.current = activeSessionId;
+  }, [activeSessionId]);
 
   const clearManualDefaultPrompt = React.useCallback(() => {
     setLaunchOptions((current) => ({
@@ -266,11 +282,14 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
 
     if (intent.projectRoot && intent.projectRoot !== currentProjectRoot) {
       setSelectedProjectRoot(intent.projectRoot);
-      setCustomProjectRoot("");
+      setCustomProjectRoot(intent.projectRoot);
       setActivePanel(intent.activePanel ?? "projects");
     } else {
       setActivePanel(intent.activePanel ?? "current");
     }
+
+    pendingAutoLaunchProjectRootRef.current =
+      intent.autoStart && intent.projectRoot ? intent.projectRoot : null;
 
     if (isSidebarCollapsed) {
       setIsSidebarCollapsed(false);
@@ -298,24 +317,37 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
       setCurrentProjectRoot(payload.data.currentProjectRoot);
       setCurrentProjectName(payload.data.currentProjectName);
       setAvailableProjects(payload.data.availableProjects);
-      setSelectedProjectRoot(payload.data.currentProjectRoot);
+      if (!pendingAutoLaunchProjectRootRef.current) {
+        setSelectedProjectRoot(payload.data.currentProjectRoot);
+      }
       setCurrentProjectSession(payload.data.currentSession);
       setRunningSessions(payload.data.runningSessions);
+      setActiveWorktreeCounts(payload.data.activeWorktreeCounts ?? {});
       const bootstrapSession = payload.data.currentSession;
       const nextSessionTabs = payload.data.runningSessions;
-      const nextActiveSession = bootstrapSession?.active
-        ? bootstrapSession
-        : nextSessionTabs.find((session) => session.sessionId === activeSessionId) ?? nextSessionTabs[0] ?? null;
+      const currentActiveId = activeSessionIdRef.current;
+      const matchedActive = currentActiveId
+        ? nextSessionTabs.find((session) => session.sessionId === currentActiveId) ?? null
+        : null;
 
-      setSessionTabs(nextSessionTabs);
-      setActiveSession(nextActiveSession);
-      setActiveSessionId(nextActiveSession?.sessionId ?? null);
+      if (currentActiveId && !matchedActive) {
+        setSessionTabs(nextSessionTabs);
+      } else {
+        const nextActiveSession = matchedActive
+          ? matchedActive
+          : bootstrapSession?.active
+            ? bootstrapSession
+            : nextSessionTabs[0] ?? null;
+        setSessionTabs(nextSessionTabs);
+        setActiveSession(nextActiveSession);
+        setActiveSessionId(nextActiveSession?.sessionId ?? null);
+      }
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : "Failed to load Claude Code");
     } finally {
       setIsBootstrapping(false);
     }
-  }, [activeSessionId, projectRoot]);
+  }, [projectRoot]);
 
   const refreshRunningSessions = React.useCallback(async () => {
     try {
@@ -328,7 +360,13 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
         throw new Error(payload.error || "Failed to load Claude Code sessions");
       }
 
-      setRunningSessions(payload.data ?? []);
+      const data = payload.data;
+      if (data && typeof data === "object" && "runningSessions" in data) {
+        setRunningSessions(data.runningSessions);
+        setActiveWorktreeCounts(data.activeWorktreeCounts ?? {});
+      } else {
+        setRunningSessions(data as unknown as ClaudeCliSessionDescriptor[]);
+      }
     } catch {
       setRunningSessions([]);
     }
@@ -581,7 +619,9 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
         setActiveSession(startedSession);
         setSessionTabs((current) => upsertSessionTab(current, startedSession));
         setActiveSessionId(startedSession.sessionId);
-        syncWorkspaceProjectContext(startedSession.projectRoot, startedSession.projectName);
+        if (!isImacWorktreeProjectRoot(startedSession.projectRoot)) {
+          syncWorkspaceProjectContext(startedSession.projectRoot, startedSession.projectName);
+        }
         if (targetProjectRoot === currentProjectRoot) {
           setCurrentProjectSession(startedSession);
         }
@@ -637,15 +677,75 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
     [activeSessionId, currentProjectRoot]
   );
 
+  const focusSession = React.useCallback(
+    (session: ClaudeCliSessionDescriptor) => {
+      setActiveSession(session);
+      setSessionTabs((current) => upsertSessionTab(current, session));
+      setActiveSessionId(session.sessionId);
+      if (session.projectRoot === currentProjectRoot) {
+        setCurrentProjectSession(session);
+      }
+      if (!isImacWorktreeProjectRoot(session.projectRoot)) {
+        syncWorkspaceProjectContext(session.projectRoot, session.projectName);
+      }
+      setError(null);
+      void refreshRunningSessions();
+    },
+    [currentProjectRoot, refreshRunningSessions, syncWorkspaceProjectContext]
+  );
+
+  const openOrLaunchSession = React.useCallback(
+    async (targetProjectRoot: string) => {
+      const normalizedProjectRoot = targetProjectRoot.trim();
+      if (!normalizedProjectRoot) {
+        setError("Select a project or provide a custom workspace path.");
+        return;
+      }
+
+      const existingSession =
+        (activeSession?.active && activeSession.projectRoot === normalizedProjectRoot
+          ? activeSession
+          : null) ||
+        (currentProjectSession?.active && currentProjectSession.projectRoot === normalizedProjectRoot
+          ? currentProjectSession
+          : null) ||
+        sessionTabs.find((session) => session.active && session.projectRoot === normalizedProjectRoot) ||
+        null;
+
+      if (existingSession) {
+        focusSession(existingSession);
+        return;
+      }
+
+      const inspectedSession = await loadSessionStatus(normalizedProjectRoot);
+      if (inspectedSession?.active) {
+        focusSession(inspectedSession);
+        return;
+      }
+
+      await launchSession(normalizedProjectRoot);
+    },
+    [activeSession, currentProjectSession, focusSession, launchSession, loadSessionStatus, sessionTabs]
+  );
+
   const handleOpenSelectedProject = React.useCallback(async () => {
     const targetProjectRoot = customProjectRoot.trim() || selectedProjectRoot || currentProjectRoot;
-    if (!targetProjectRoot) {
-      setError("Select a project or provide a custom workspace path.");
+    await openOrLaunchSession(targetProjectRoot);
+  }, [currentProjectRoot, customProjectRoot, openOrLaunchSession, selectedProjectRoot]);
+
+  React.useEffect(() => {
+    if (!open || isBootstrapping || isStarting) {
       return;
     }
 
-    await launchSession(targetProjectRoot);
-  }, [currentProjectRoot, customProjectRoot, launchSession, selectedProjectRoot]);
+    const pendingProjectRoot = pendingAutoLaunchProjectRootRef.current?.trim();
+    if (!pendingProjectRoot) {
+      return;
+    }
+
+    pendingAutoLaunchProjectRootRef.current = null;
+    void openOrLaunchSession(pendingProjectRoot);
+  }, [isBootstrapping, isStarting, open, openOrLaunchSession]);
 
   const handleStopSession = React.useCallback(async () => {
     if (!activeSession) {
@@ -725,12 +825,17 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
     activeSession ??
     currentProjectSession ??
     null;
+  const sidebarProjectRoot = displayedSession?.projectRoot || currentProjectRoot;
+  const sidebarProjectName = displayedSession?.projectName || currentProjectName;
   const activeSessionLabel = displayedSession ? `${displayedSession.projectName} connected` : "No active session";
   const toolbarProjectName = activeSession?.projectName || currentProjectName || "Workspace";
   const toolbarProjectRoot = activeSession?.projectRoot || currentProjectRoot || "Loading project context...";
   const runningSessionCount = runningSessions.length;
+  const isToolbarImac = isImacWorktreeProjectRoot(activeSession?.projectRoot);
   const toolbarStatusTone = activeSession
-    ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+    ? isToolbarImac
+      ? "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+      : "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
     : "border-border/70 bg-background/80 text-muted-foreground";
   const statusThemeLabel = themeMode === "dark" ? "Dark" : "Light";
   const activePanelLabel = activeSidebarItem.label;
@@ -804,6 +909,7 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
     );
 
     if (activePanel === "current") {
+      const sidebarSessionActive = displayedSession?.active ?? currentProjectSession?.active ?? false;
       return (
         <div className="space-y-4">
           <div>
@@ -815,15 +921,15 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
           <div className="rounded-[1.25rem] border border-border/75 bg-background/80 p-4">
             <div className="flex items-center gap-2 text-sm font-medium text-foreground">
               <FolderOpen className="h-4 w-4 text-primary" />
-              <span>{currentProjectName || "Current workspace"}</span>
+              <span>{sidebarProjectName || "Current workspace"}</span>
             </div>
             <p className="mt-2 break-all text-xs text-muted-foreground">
-              {currentProjectRoot || "Loading project context..."}
+              {sidebarProjectRoot || "Loading project context..."}
             </p>
             <div className="mt-4 flex items-center justify-between text-xs">
               <span className="text-muted-foreground">Session status</span>
               <span className="rounded-full bg-primary/10 px-2.5 py-1 font-medium text-primary">
-                {currentProjectSession?.active ? "Running" : "Idle"}
+                {sidebarSessionActive ? "Running" : "Idle"}
               </span>
             </div>
           </div>
@@ -831,12 +937,12 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
           <Button
             type="button"
             className="h-11 w-full rounded-2xl"
-            onClick={() => void launchSession(currentProjectRoot)}
-            disabled={isBootstrapping || isStarting || !currentProjectRoot}
-            aria-label={currentProjectSession?.active ? "Continue current project" : "Start current project"}
+            onClick={() => void launchSession(sidebarProjectRoot)}
+            disabled={isBootstrapping || isStarting || !sidebarProjectRoot}
+            aria-label={sidebarSessionActive ? "Continue current project" : "Start current project"}
           >
             <Play className="mr-2 h-4 w-4" />
-            {currentProjectSession?.active ? "Continue current project" : "Start current project"}
+            {sidebarSessionActive ? "Continue current project" : "Start current project"}
           </Button>
         </div>
       );
@@ -960,6 +1066,9 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
               )}
             >
               <CircleDot className="h-3.5 w-3.5" />
+              {isToolbarImac && (
+                <span className="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.16em]">IMAC</span>
+              )}
               <span className="truncate">{activeSessionLabel}</span>
             </div>
           </div>
@@ -1093,41 +1202,89 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
           <div className="ml-1.5 flex min-w-0 flex-1 overflow-hidden">
             <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
               {sessionTabs.length > 0 ? (
-                <div className="mb-2.5 flex items-center gap-2 overflow-x-auto rounded-[1.2rem] border border-border/75 bg-card/70 px-3 py-2">
-                  {sessionTabs.map((session) => {
-                    const isActive = session.sessionId === activeSessionId;
+                <div className="mb-2.5 space-y-1.5">
+                  {(() => {
+                    const mainTabs = sessionTabs.filter((s) => !isImacWorktreeProjectRoot(s.projectRoot));
+                    const imacTabs = sessionTabs.filter((s) => isImacWorktreeProjectRoot(s.projectRoot));
+
+                    // Build owner name map for iMac tabs
+                    const worktreeOwnerName = new Map<string, string>();
+                    for (const wt of imacTabs) {
+                      const wtSegment = wt.projectRoot.indexOf("/.auto-coding/worktrees/");
+                      if (wtSegment > 0 && !worktreeOwnerName.has(wt.projectRoot)) {
+                        const ownerRoot = wt.projectRoot.slice(0, wtSegment);
+                        const ownerTab = mainTabs.find((m) => m.projectRoot === ownerRoot);
+                        if (ownerTab) {
+                          worktreeOwnerName.set(wt.projectRoot, ownerTab.projectName);
+                        } else {
+                          const parts = ownerRoot.split("/");
+                          worktreeOwnerName.set(wt.projectRoot, parts[parts.length - 1] || ownerRoot);
+                        }
+                      }
+                    }
+
+                    const renderRow = (label: string, isImac: boolean, tabs: typeof sessionTabs) => {
+                      if (tabs.length === 0) return null;
+                      return (
+                        <div className="flex items-center gap-2 overflow-x-auto rounded-xl border border-border/60 bg-card/50 px-2.5 py-1.5">
+                          <span className={cn(
+                            "shrink-0 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em]",
+                            isImac
+                              ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                              : "bg-primary/10 text-primary"
+                          )}>
+                            {label}
+                          </span>
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            {tabs.map((session) => {
+                              const isActive = session.sessionId === activeSessionId;
+                              const wtCount = !isImac ? (activeWorktreeCounts[session.projectRoot] ?? 0) : 0;
+                              const ownerName = isImac ? (worktreeOwnerName.get(session.projectRoot) ?? null) : null;
+                              return (
+                                <button
+                                  key={session.sessionId}
+                                  type="button"
+                                  onClick={() => focusSession(session)}
+                                  className={cn(
+                                    "relative inline-flex min-w-0 max-w-[280px] items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors",
+                                    isActive
+                                      ? isImac
+                                        ? "border-amber-500/30 bg-amber-500/12 text-amber-700 dark:text-amber-300"
+                                        : "border-primary/30 bg-primary/12 text-primary"
+                                      : "border-border/50 bg-background/60 text-muted-foreground hover:bg-background hover:text-foreground"
+                                  )}
+                                  aria-label={`Switch to ${session.projectName}`}
+                                >
+                                  <span className={cn(
+                                    "h-1.5 w-1.5 shrink-0 rounded-full",
+                                    session.active ? (isImac ? "bg-amber-400" : "bg-emerald-400") : "bg-slate-400"
+                                  )} />
+                                  <span className="truncate font-medium">{session.projectName}</span>
+                                  {ownerName ? (
+                                    <span className="flex h-3.5 shrink-0 items-center gap-0.5 rounded-full bg-sky-500/12 px-1 text-[8px] font-semibold text-sky-600 dark:text-sky-400">
+                                      @{ownerName}
+                                    </span>
+                                  ) : null}
+                                  {wtCount > 0 ? (
+                                    <span className="flex h-3.5 items-center gap-0.5 rounded-full bg-amber-500/15 px-1 text-[8px] font-bold text-amber-600 dark:text-amber-400">
+                                      {wtCount}wt
+                                    </span>
+                                  ) : null}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    };
 
                     return (
-                      <button
-                        key={session.sessionId}
-                        type="button"
-                        onClick={() => {
-                          setActiveSessionId(session.sessionId);
-                          setActiveSession(session);
-                          setCurrentProjectSession(session);
-                          syncWorkspaceProjectContext(session.projectRoot, session.projectName);
-                        }}
-                        className={cn(
-                          "inline-flex min-w-0 max-w-[260px] items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition-colors",
-                          isActive
-                            ? "border-primary/30 bg-primary/12 text-primary"
-                            : "border-border/70 bg-background/80 text-muted-foreground hover:bg-background hover:text-foreground"
-                        )}
-                        aria-label={`Switch to ${session.projectName}`}
-                      >
-                        <span
-                          className={cn(
-                            "h-2 w-2 rounded-full",
-                            session.active ? "bg-emerald-400" : "bg-slate-400"
-                          )}
-                        />
-                        <span className="truncate font-medium">{session.projectName}</span>
-                        <span className="truncate text-[10px] uppercase tracking-[0.14em] opacity-70">
-                          {compactSessionId(session.sessionId)}
-                        </span>
-                      </button>
+                      <>
+                        {renderRow("MAIN", false, mainTabs)}
+                        {renderRow("IMAC", true, imacTabs)}
+                      </>
                     );
-                  })}
+                  })()}
                 </div>
               ) : null}
               {isBootstrapping ? (
@@ -1162,7 +1319,7 @@ export function ClaudeCliLauncher({ projectRoot }: ClaudeCliLauncherProps) {
             <div className="min-h-0 shrink-0" style={{ width: gitPanelWidth }}>
               <ClaudeCliGitInsights
                 className="h-full"
-                projectRoot={displayedSession?.projectRoot || currentProjectRoot || null}
+                projectRoot={sidebarProjectRoot || null}
               />
             </div>
           </div>

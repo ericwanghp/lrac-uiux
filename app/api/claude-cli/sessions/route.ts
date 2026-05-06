@@ -8,8 +8,9 @@ import {
   getClaudeCliProjectName,
   getClaudeCliSessionId,
 } from "@/lib/claude-cli/session-utils";
-import { discoverWorkspaceProjects } from "@/lib/utils/project-discovery";
+import { discoverAllImacWorktreeRoots, discoverWorkspaceProjects } from "@/lib/utils/project-discovery";
 import { getCurrentProjectRoot } from "@/lib/utils/file-operations";
+import { listImacSessions } from "@/lib/services/imac-session-manager";
 
 const ClaudeCliSessionSchema = z.object({
   projectRoot: z.string().optional().nullable(),
@@ -54,14 +55,34 @@ export async function GET(request: NextRequest) {
 
     if (workspaceRequested) {
       const availableProjects = await discoverWorkspaceProjects(projectRoot);
+      const projectRoots = availableProjects.map((project) => project.root);
+      const worktreeRoots = await discoverAllImacWorktreeRoots(projectRoots);
+      const allRoots = [...projectRoots, ...worktreeRoots];
       const runningSessions = listWorkspaceRunningSessions(
         server.manager as unknown as Parameters<typeof listWorkspaceRunningSessions>[0],
-        availableProjects.map((project) => project.root)
+        allRoots
+      );
+
+      const activeWorktreeCounts: Record<string, number> = {};
+      await Promise.all(
+        projectRoots.map(async (root) => {
+          try {
+            const sessions = await listImacSessions(root);
+            activeWorktreeCounts[root] = sessions.filter(
+              (s) => s.status === "created" || s.status === "in-progress"
+            ).length;
+          } catch {
+            activeWorktreeCounts[root] = 0;
+          }
+        })
       );
 
       return NextResponse.json({
         success: true,
-        data: runningSessions,
+        data: {
+          runningSessions,
+          activeWorktreeCounts,
+        },
       });
     }
 

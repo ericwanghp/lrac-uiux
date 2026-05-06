@@ -8,6 +8,7 @@ import path from "path";
 import { cookies } from "next/headers";
 import { TasksJson } from "@/lib/types";
 import { PROJECT_ROOT_COOKIE_KEY } from "@/lib/constants/project-context";
+import { normalizeGlobalProjectRoot } from "@/lib/utils/project-selection";
 
 export const PROJECT_ROOT = process.cwd();
 export const AUTO_CODING_DIR = path.join(PROJECT_ROOT, ".auto-coding");
@@ -24,7 +25,7 @@ export function resolveWorkspaceProjectRoot(projectRoot: string | null | undefin
 async function getProjectRootFromCookie(): Promise<string> {
   try {
     const cookieStore = await cookies();
-    const selectedRoot = cookieStore.get(PROJECT_ROOT_COOKIE_KEY)?.value;
+    const selectedRoot = normalizeGlobalProjectRoot(cookieStore.get(PROJECT_ROOT_COOKIE_KEY)?.value);
     return resolveWorkspaceProjectRoot(selectedRoot);
   } catch {
     return PROJECT_ROOT;

@@ -74,9 +74,10 @@ export function ImacList({ sessions }: ImacListProps) {
       queueClaudeCliLaunchIntent({
         projectRoot: worktreeSession.worktree.path,
         activePanel: "current",
-        launchOptions: {
-          defaultPrompt: buildImacPrompt(worktreeSession),
-        },
+        autoStart: true,
+        ...(worktreeSession.status === "created"
+          ? { launchOptions: { defaultPrompt: buildImacPrompt(worktreeSession) } }
+          : {}),
       });
 
       router.refresh();

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { normalizeGlobalProjectRoot } from "@/lib/utils/project-selection";
 
 const PROJECT_LOCATION_EVENT = "lrac:location-changed";
 
@@ -14,7 +15,7 @@ function readProjectFromLocation(): string | null {
     return null;
   }
 
-  return new URLSearchParams(window.location.search).get("project");
+  return normalizeGlobalProjectRoot(new URLSearchParams(window.location.search).get("project"));
 }
 
 function installHistoryListeners() {

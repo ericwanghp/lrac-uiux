@@ -84,9 +84,10 @@ export function ImacDetailClient({ session: initialSession }: { session: ImacSes
       queueClaudeCliLaunchIntent({
         projectRoot: worktreeSession.worktree.path,
         activePanel: "current",
-        launchOptions: {
-          defaultPrompt: buildImacPrompt(worktreeSession),
-        },
+        autoStart: true,
+        ...(worktreeSession.status === "created"
+          ? { launchOptions: { defaultPrompt: buildImacPrompt(worktreeSession) } }
+          : {}),
       });
     } catch (error) {
       alert(error instanceof Error ? error.message : "Failed to start IMAC in Claude Code");

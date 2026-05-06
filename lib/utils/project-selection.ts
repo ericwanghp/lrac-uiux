@@ -3,6 +3,8 @@ import {
   PROJECT_ROOT_LOCAL_STORAGE_KEY,
 } from "@/lib/constants/project-context";
 
+const IMAC_WORKTREE_PATH_SEGMENT = "/.auto-coding/worktrees/";
+
 function normalizeAbsolutePath(input: string): string {
   const isAbsolute = input.startsWith("/");
   const segments = input
@@ -22,6 +24,23 @@ function normalizeAbsolutePath(input: string): string {
   }
 
   return segments.length === 0 ? "/" : `/${segments.join("/")}`;
+}
+
+export function normalizeGlobalProjectRoot(projectRoot: string | null | undefined): string | null {
+  const trimmedProjectRoot = projectRoot?.trim();
+  if (!trimmedProjectRoot) {
+    return null;
+  }
+
+  const normalizedProjectRoot = normalizeAbsolutePath(trimmedProjectRoot);
+  const worktreeIndex = normalizedProjectRoot.indexOf(IMAC_WORKTREE_PATH_SEGMENT);
+
+  if (worktreeIndex === -1) {
+    return normalizedProjectRoot;
+  }
+
+  const ownerProjectRoot = normalizedProjectRoot.slice(0, worktreeIndex);
+  return ownerProjectRoot || "/";
 }
 
 export function resolveProjectCreationPath(input: string, workspaceRoot: string): string {
@@ -56,7 +75,14 @@ export function buildProjectNavigationPath(
 ) {
   const basePath = pathname && pathname.trim() ? pathname : "/dashboard";
   const params = new URLSearchParams(search);
-  params.set("project", projectRoot);
+  const normalizedProjectRoot = normalizeGlobalProjectRoot(projectRoot);
+
+  if (normalizedProjectRoot) {
+    params.set("project", normalizedProjectRoot);
+  } else {
+    params.delete("project");
+  }
+
   const query = params.toString();
   return query ? `${basePath}?${query}` : basePath;
 }
@@ -67,10 +93,10 @@ export function buildProjectScopedPath(
 ): string {
   const [basePath = "", search = ""] = path.split("?");
   const params = new URLSearchParams(search);
-  const trimmedProjectRoot = projectRoot?.trim() || null;
+  const normalizedProjectRoot = normalizeGlobalProjectRoot(projectRoot);
 
-  if (trimmedProjectRoot) {
-    params.set("project", trimmedProjectRoot);
+  if (normalizedProjectRoot) {
+    params.set("project", normalizedProjectRoot);
   } else {
     params.delete("project");
   }
@@ -80,11 +106,16 @@ export function buildProjectScopedPath(
 }
 
 export function persistProjectSelection(projectRoot: string) {
+  const normalizedProjectRoot = normalizeGlobalProjectRoot(projectRoot);
+  if (!normalizedProjectRoot) {
+    return;
+  }
+
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(PROJECT_ROOT_LOCAL_STORAGE_KEY, projectRoot);
+    window.localStorage.setItem(PROJECT_ROOT_LOCAL_STORAGE_KEY, normalizedProjectRoot);
   }
 
   if (typeof document !== "undefined") {
-    document.cookie = `${PROJECT_ROOT_COOKIE_KEY}=${encodeURIComponent(projectRoot)}; path=/; max-age=31536000; samesite=lax`;
+    document.cookie = `${PROJECT_ROOT_COOKIE_KEY}=${encodeURIComponent(normalizedProjectRoot)}; path=/; max-age=31536000; samesite=lax`;
   }
 }

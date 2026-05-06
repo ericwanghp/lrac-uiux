@@ -114,6 +114,21 @@ function shouldIncludeProject(descriptor: ProjectDescriptor, currentProjectRoot:
   return descriptor.signals.length > 0;
 }
 
+export async function discoverImacWorktreeRoots(projectRoot: string): Promise<string[]> {
+  const worktreesDir = path.join(projectRoot, ".auto-coding", "worktrees");
+  try {
+    const entries = await fs.readdir(worktreesDir, { withFileTypes: true });
+    return entries.filter((entry) => entry.isDirectory()).map((entry) => path.join(worktreesDir, entry.name));
+  } catch {
+    return [];
+  }
+}
+
+export async function discoverAllImacWorktreeRoots(projectRoots: string[]): Promise<string[]> {
+  const results = await Promise.all(projectRoots.map((root) => discoverImacWorktreeRoots(root)));
+  return results.flat();
+}
+
 export async function discoverWorkspaceProjects(
   currentProjectRoot: string
 ): Promise<ProjectOption[]> {

@@ -18,6 +18,24 @@
       "updatedAt": "2026-05-05T17:14:55.448Z",
       "mergedAt": null,
       "abortedAt": "2026-05-05T17:14:55.448Z"
+    },
+    {
+      "id": "imac-bla-ada-of-the-hom-moswonfk",
+      "abbreviation": "bla-ada-of-the-hom",
+      "title": "Black adaptation of the homepage",
+      "description": "当settings >Theme 是Dark时， 首页黑色适配不好，有些字都看不见。 做个适配Light & Dark的首页版本。",
+      "projectRoot": "/Users/ericwang/lracode/lrac-uiux",
+      "attachments": [],
+      "worktree": {
+        "branch": "imac/bla-ada-of-the-hom",
+        "path": "/Users/ericwang/lracode/lrac-uiux/.auto-coding/worktrees/bla-ada-of-the-hom",
+        "createdAt": "2026-05-05T17:32:32.106Z"
+      },
+      "status": "in-progress",
+      "createdAt": "2026-05-05T17:32:16.928Z",
+      "updatedAt": "2026-05-05T17:32:32.106Z",
+      "mergedAt": null,
+      "abortedAt": null
     }
   ]
 }
