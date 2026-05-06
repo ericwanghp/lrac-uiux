@@ -9,12 +9,14 @@ vi.mock("@/lib/utils/project-discovery", () => ({
   discoverWorkspaceProjects: vi.fn(),
   describeProjectRoot: vi.fn(),
   createWorkspaceProject: vi.fn(),
+  discoverImacWorktreeRoots: vi.fn(),
 }));
 
 import { getCurrentProjectRoot, readTasksJson } from "@/lib/utils/file-operations";
 import {
   createWorkspaceProject,
   describeProjectRoot,
+  discoverImacWorktreeRoots,
   discoverWorkspaceProjects,
 } from "@/lib/utils/project-discovery";
 import { GET, POST } from "@/app/api/projects/route";
@@ -72,6 +74,7 @@ describe("GET /api/projects", () => {
       { root: "/workspace/lrac-uiux", name: "LRAC UIUX" },
       { root: "/workspace/agent-studio", name: "Agent Studio" },
     ]);
+    vi.mocked(discoverImacWorktreeRoots).mockResolvedValue([]);
 
     const response = await GET();
     const payload = await response.json();
@@ -80,8 +83,8 @@ describe("GET /api/projects", () => {
     expect(payload.data.project).toBe("LRAC UIUX");
     expect(payload.data.currentProjectRoot).toBe("/workspace/lrac-uiux");
     expect(payload.data.availableProjects).toEqual([
-      { root: "/workspace/lrac-uiux", name: "LRAC UIUX" },
-      { root: "/workspace/agent-studio", name: "Agent Studio" },
+      { root: "/workspace/lrac-uiux", name: "LRAC UIUX", imacWorktreeCount: undefined },
+      { root: "/workspace/agent-studio", name: "Agent Studio", imacWorktreeCount: undefined },
     ]);
   });
 
@@ -98,6 +101,7 @@ describe("GET /api/projects", () => {
       signals: ["package.json", "CLAUDE.md"],
       hasTasksJson: false,
     });
+    vi.mocked(discoverImacWorktreeRoots).mockResolvedValue([]);
 
     const response = await GET();
     const payload = await response.json();

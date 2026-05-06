@@ -13,6 +13,7 @@ vi.mock("next/navigation", () => ({
     prefetch: vi.fn(),
     isReady: true,
   }),
+  usePathname: () => "/dashboard",
 }));
 
 vi.mock("@/components/shared/global-project-switcher", () => ({
@@ -48,6 +49,17 @@ vi.mock("@/components/shell/shell-launcher", () => ({
 
 vi.mock("@/components/layout/member-auth-panel", () => ({
   MemberAuthPanel: () => <button type="button">Sign In</button>,
+}));
+
+vi.mock("@/components/tour/tour-provider", () => ({
+  useTour: () => ({
+    replayTour: vi.fn(),
+    isTourActive: false,
+  }),
+}));
+
+vi.mock("@/components/tour/tour-configs", () => ({
+  getTourForPath: () => null,
 }));
 
 import { Header } from "../../components/layout/header";
