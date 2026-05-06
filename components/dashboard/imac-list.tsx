@@ -76,7 +76,7 @@ export function ImacList({ sessions }: ImacListProps) {
         activePanel: "current",
         autoStart: true,
         ...(worktreeSession.status === "created"
-          ? { launchOptions: { defaultPrompt: buildImacPrompt(worktreeSession) } }
+          ? { launchOptions: { defaultPrompt: buildImacPrompt(worktreeSession), continueWithRecentContext: false } }
           : { launchOptions: { defaultPrompt: "", continueWithRecentContext: true } }),
       });
 
