@@ -122,7 +122,8 @@ export function RequirementsIntakeDialog({
         activePanel: "current",
         autoStart: true,
         launchOptions: {
-          defaultPrompt: buildClaudeRequirementsPrompt(description, payload.data.references),
+          defaultPrompt: phaseCompleted ? "" : buildClaudeRequirementsPrompt(description, payload.data.references),
+          continueWithRecentContext: phaseCompleted,
         },
       });
       setSuccessMessage("Requirements saved. Claude Code workspace has been pre-filled with requirements context for the current project.");

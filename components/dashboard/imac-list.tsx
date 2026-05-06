@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import { GitBranch, GitMerge, Loader2, Paperclip, Play, Trash2, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -52,9 +51,34 @@ function buildImacPrompt(session: ImacSession): string {
   return lines.join("\n");
 }
 
-export function ImacList({ sessions }: ImacListProps) {
-  const router = useRouter();
+const POLL_INTERVAL = 10_000;
+
+export function ImacList({ sessions: initialSessions }: ImacListProps) {
+  const [sessions, setSessions] = React.useState<ImacSession[]>(initialSessions);
   const [loadingAction, setLoadingAction] = React.useState<string | null>(null);
+
+  const refreshSessions = React.useCallback(async () => {
+    try {
+      const response = await fetch("/api/imac", { cache: "no-store" });
+      const result = await response.json();
+      if (result.success && Array.isArray(result.data)) {
+        setSessions(result.data);
+      }
+    } catch {
+      // silent
+    }
+  }, []);
+
+  React.useEffect(() => {
+    setSessions(initialSessions);
+  }, [initialSessions]);
+
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      void refreshSessions();
+    }, POLL_INTERVAL);
+    return () => clearInterval(timer);
+  }, [refreshSessions]);
 
   const handleStartInClaude = React.useCallback(async (session: ImacSession) => {
     setLoadingAction(`worktree-${session.id}`);
@@ -81,12 +105,12 @@ export function ImacList({ sessions }: ImacListProps) {
           : { launchOptions: { defaultPrompt: "", continueWithRecentContext: true } }),
       });
 
-      router.refresh();
+      void refreshSessions();
     } catch (error) {
       alert(error instanceof Error ? error.message : "Failed to start IMAC session");
       setLoadingAction(null);
     }
-  }, [router]);
+  }, [refreshSessions]);
 
   const handleAction = React.useCallback(async (action: string, sessionId: string) => {
     setLoadingAction(`${action}-${sessionId}`);
@@ -94,13 +118,13 @@ export function ImacList({ sessions }: ImacListProps) {
       const response = await fetch(`/api/imac/${sessionId}/${action}`, { method: "POST" });
       const result = await response.json();
       if (!result.success) throw new Error(result.error);
-      router.refresh();
+      void refreshSessions();
     } catch (error) {
       alert(error instanceof Error ? error.message : "Action failed");
     } finally {
       setLoadingAction(null);
     }
-  }, [router]);
+  }, [refreshSessions]);
 
   const handleDelete = React.useCallback(async (sessionId: string) => {
     if (!confirm("Delete this IMAC session? This cannot be undone.")) return;
@@ -109,13 +133,13 @@ export function ImacList({ sessions }: ImacListProps) {
       const response = await fetch(`/api/imac/${sessionId}/delete`, { method: "POST" });
       const result = await response.json();
       if (!result.success) throw new Error(result.error);
-      router.refresh();
+      void refreshSessions();
     } catch (error) {
       alert(error instanceof Error ? error.message : "Failed to delete");
     } finally {
       setLoadingAction(null);
     }
-  }, [router]);
+  }, [refreshSessions]);
 
   if (sessions.length === 0) {
     return (
